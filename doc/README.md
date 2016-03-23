@@ -1,4 +1,4 @@
 nyan
 ====
 
-uh, TODO
+[language specification](./nyan.md)
