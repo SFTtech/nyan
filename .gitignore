@@ -1,0 +1,27 @@
+# editor-specific files
+\#*
+.#*
+*~
+.*.swp
+
+# ELF files
+*.o
+*.a
+*.so
+
+# python bytecode
+*.pyc
+*.pyo
+__pycache__
+
+# workflow
+*.orig
+
+# build system
+/bin
+/.bin
+
+# debugging
+callgrind.out.*
+perf.data*
+.gdb_history
