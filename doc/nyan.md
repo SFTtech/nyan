@@ -3,7 +3,7 @@ nyan
 
 ## WTF?
 
-**nyan** is a hierarchical stronly typed key-value store with patch
+**nyan** is a hierarchical strongly typed key-value store with patch
 functionality and inheritance
 
 ## Design goals
@@ -16,7 +16,7 @@ Requirements:
 * Portable
 * More or less compact (readability > memory)
 * Easy patch-definitions to allow nyan objects to overlay other objects, the
-  same machnism is used for initial loading of all mods as well as applying
+  same mechanism is used for initial loading of all mods as well as applying
   techs
 * We need patches (mod) that patch other patches (e.g. a tech for more hp).
 * Does not contain any code. The game engine is responsible for calling API
@@ -68,11 +68,20 @@ Concept:
 * **NyanPatch**: inherits from *NyanObject* and denominates a patch
   * Patches are created for exactly one *NyanObject*
   * Can modify member values of the assigned *NyanObject*
-  * Can modify the inheritance list of a *NyanObject* by adding and removing
+  * Can modify the **inheritance set** of a *NyanObject* by adding and
+    removing elements
   * They can add new members, but not remove them
-* You can inherit from any *NyanObject* (-> from a *NyanPatch* as well).
-  * When inheriting, existing values can be modified by += and = etc
-  * Member values are calculated accross the inheritance
+* A *NyanObject* can inherit from a set of *NyanObject*s
+  (-> from a *NyanPatch* as well).
+  * Members of parent objects are inherited
+  * If there is a name clash, i. e. the same member name is defined
+    by two parents, you must resolve it
+    * Qualify the parent name, the inherited members then have a prefix
+    * This effectively prevents the [diamond problem](https://en.wikipedia.org/wiki/Multiple_inheritance#The_diamond_problem)
+      as no same-named members are allowed to inherit from
+  * When inheriting, existing values can be modified by operators
+    defined for the member type
+  * Member values are calculated accross the inheritance upwards
     * This allows a parent object patch to impact all children
     * When a value from a *NyanObject* is retrieved,
       walk up every time and sum up the value.
@@ -83,10 +92,10 @@ Concept:
     * Patch within that subtree only applies to subtree?
     * Patch from the outside applies to all subtree copies?
 * A mod API could be implemented as follows:
-  Create a *NyanObject* "Mod" that has a member with a list
+  Create a *NyanObject* "Mod" that has a member with a set
   of patches to apply.
   * To create a mod: Inherit from this *NyanObject* and
-    add patches to the list.
+    add patches to the set.
   * Your game then applies the patches the appropriate way
     when a child of "Mod" is seen.
 
@@ -159,8 +168,10 @@ This is all the magic needed for creating the ultimate data language for us.
     - `file`:     `file("./name")` - (some filename,
                                       relative to the directory
                                       the defining nyan file is located at)
-  * list of elements of a type: `list(type)`
+  * ordered set of elements of a type: `orderedset(type)`
   * set of elements of a type: `set(type)`
+  * currently, there is **no** `list(type)` specified,
+    but may be added later if needed
   * *NyanObject*, to allow arbitrary hierarchies
 
 * Type hierarchy
@@ -168,13 +179,25 @@ This is all the magic needed for creating the ultimate data language for us.
   * A *NyanObject* `isinstance` of all the types of its parent *NyanObject*s
     * Sounds complicated, but is totally easy:
     * If an object `B` inherits from an object `A`, it also has the type `A`
-    * Just like the inheritance of other programming languages
+    * Just like the multi inheritance of other programming languages
+    * Again, name clashes of members must be resolved
+      to avoid the diamond problem
 
 * All members support the assignment operator `=`
 * Many other operators are defined on the primitive types
-  * `text`: `+=`
-  * `int` and `float`: `+=`, `*=`, `-=`, `/=`
-  * No operator is defined on *NyanObject* itself, except `=` of course
+  * `text`: `=`, `+=`
+  * `int` and `float`: `=`, `+=`, `*=`, `-=`, `/=`
+  * `set(type)`:
+    * assignment: `= {value, value, ...}`
+    * union: ` += {..}, |= {..}` -> add objects to set
+    * subtract: `-= {..}` -> remove those objects
+    * difference: `&= {..}` -> keep only objects element of both
+  * `orderedset(type)`:
+    * assignment: `= <value, value, ...>`
+    * append: `+= <..>` -> add objects to the end if not existing
+    * subtract: `-= {..}` -> remove those objects
+    * difference: `&= {..}` -> keep only objects element of both
+  * No operator is defined on a *NyanObject* member, except `=` of course
 
 
 ### Namespaces and imports
@@ -280,7 +303,7 @@ A few examples
 ##### `Unit`: In-game objects
 
 * Base object for things you can see in-game
-* Provides `ability` member which contains a list of abilities
+* Provides `ability` member which contains a set of abilities
 
 ##### Many many more.
 
@@ -325,7 +348,7 @@ Let's create a new resource.
 
 Mod():
     name : text
-    patches : list(NyanPatch)
+    patches : set(NyanPatch)
 
 Building():
     name : text
@@ -364,12 +387,16 @@ TCSilicon<TownCenter>():
 
 SiliconMod(Mod):
     name = "The modern age has started: Behold the microchips!"
-    patches = [TCSilicon]
+    patches = {TCSilicon}
 ```
 
 When those nyan files are loaded, the data store is updated accordingly.
-Your game engine decides, that all `patches` from a `Mod` are applied
+Your game engine implements that all `patches` from a `Mod` are applied
 at game start time.
+
+The load order of the user supplied `Mod`s is to be determined by the
+game engine. Either via some mod manager, or automatic resolution.
+It's up to the engine to implement.
 
 
 ## Patches
@@ -391,11 +418,11 @@ A user mod that patches loom to decrease villager hp by 10 instead of 15.
 # Game engine defines:
 Tech():
     name : text
-    updates : list(NyanPatch)
+    updates : set(NyanPatch)
 
 Mod():
     name : text
-    patches : list(NyanPatch)
+    patches : set(NyanPatch)
 
 Ability():
     mouse_animation : file
@@ -421,7 +448,7 @@ LoomVillagerHP<Villager>():
 
 Loom(Tech):
     name = "Research Loom to give villagers more HP"
-    updates = [LoomVillagerHP]
+    updates = {LoomVillagerHP}
 
 TownCenter(Building):
     researches = {Loom}
@@ -434,7 +461,7 @@ BalanceHP<LoomVillagerHP>():
 
 LoomBalance(Mod):
     name = "Balance the Loom research to give"
-    patches = [BalanceHP]
+    patches = {BalanceHP}
 ```
 
 ### Unit definition by mod
@@ -451,7 +478,7 @@ Creation<TownCenter>():
 
 TentacleMod(Mod):
     name = "Add the allmighty tentacle monster"
-    patches = [Creation]
+    patches = {Creation}
 ```
 
 ### Creating a new ability
@@ -482,7 +509,7 @@ Teleport(CooldownAbility, MoveAbility):
     name = "Teleport the unit"
     speed = 0.0
     instant = True
-    mouse_animation = FILE(arcane_wobbly.gif)
+    mouse_animation = file("arcane_wobbly.gif")
 
 MonsterTeleport(Teleport):
     recharge_time = 30.0
@@ -494,3 +521,7 @@ MonsterTPPatch<TentacleMonster>():
 TeleportMod(Mod):
     patches = [MonsterTPPatch]
 ```
+
+Why is there a `instant` member of `MoveAbility`? The game engine must
+support movement without pathfinding, otherwise even movement with infinite
+speed would be done by pathfinding.
