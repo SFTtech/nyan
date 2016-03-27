@@ -53,8 +53,8 @@ Concept:
   * **NyanObject**: nyan only defines nyanobjects,
     all the time you write anything
   * Abstract *NyanObject*: has undefined members
-  * Instanciable: all members have a value and e.g. a unit on screen can be
-    created from it
+  * Non-abstract: all members of the object have a defined value
+    and e.g. a unit on screen can be created from it
 
 * *NyanObject*s support a hierarchy by inheritance
 * They can be placed in namespaces to organize the directory structure
@@ -63,53 +63,60 @@ Concept:
 ### Data handling
 
 * **NyanObject**: versatile atomic base type
-  * has named members which have a type and maybe a value
+  * Has named members which have a type and maybe a value
   * *NyanObject*s remain abstract until all members have values
-* **NyanPatch**: inherits from *NyanObject* and denominates a patch
-  * Patches are created for exactly one *NyanObject*
+  * There exists no order of members
+* **NyanPatch**: is a *NyanObject* and denominates a patch
+  * A *NyanPatch* has a member named `__patch__`
+  * A patch is created for one or more *NyanObject*s
   * Can modify member values of the assigned *NyanObject*
   * Can modify the **inheritance set** of a *NyanObject* by adding and
     removing elements
   * They can add new members, but not remove them
-* A *NyanObject* can inherit from a set of *NyanObject*s
+* A *NyanObject* can inherit from an ordered set of *NyanObject*s
   (-> from a *NyanPatch* as well).
   * Members of parent objects are inherited
-  * If there is a name clash, i. e. the same member name is defined
-    by two parents, you must resolve it
-    * Qualify the parent name, the inherited members then have a prefix
-    * This effectively prevents the [diamond problem](https://en.wikipedia.org/wiki/Multiple_inheritance#The_diamond_problem)
-      as no same-named members are allowed to inherit from
   * When inheriting, existing values can be modified by operators
     defined for the member type
   * Member values are calculated accross the inheritance upwards
     * This allows a parent object patch to impact all children
     * When a value from a *NyanObject* is retrieved,
       walk up every time and sum up the value.
+  * If there is a member name clash, there can be two reasons for it
+    * The member originates from a common base object (aka the [diamond problem](https://en.wikipedia.org/wiki/Multiple_inheritance#The_diamond_problem))
+      * We use [C3 linearization](https://en.wikipedia.org/wiki/C3_linearization) to determine the calculation order
+      * Just access the member as always (`member += whatever`)
+    * Two independent objects define the same member
+      and you inherit from both
+      * The child class must access the members by `ParentObj.member`
+      * Further child objects must use the same explicit access
+    * If both conflicts occur simultaneously (common parent defines member
+      and another parent defines it independently)
+      * C3 is applied first (unifies members by a common parent)
+      * Name conflicts must then resolved by manual qualification again
 * Deep copy down feature for a *NyanObject*: copy all children.
   * This allows to copy a piece of the tree
-  * The copied object needs a new name
+  * This feature is required to have 2 Players with the same civilization
+    that can do their research independently
   * TODO: how are objects referenced by patches then?
+    * The copied object needs a new name?
     * Patch within that subtree only applies to subtree?
     * Patch from the outside applies to all subtree copies?
 * A mod API could be implemented as follows:
-  Create a *NyanObject* "Mod" that has a member with a set
-  of patches to apply.
-  * To create a mod: Inherit from this *NyanObject* and
-    add patches to the set.
-  * Your game then applies the patches the appropriate way
-    when a child of "Mod" is seen.
+  Create a *NyanObject* named `Mod` that has a member with a set
+  of patches to apply
+  * To create a mod: Inherit from this `Mod` *NyanObject* and
+    add patches to the set
+  * The game engine then applies the patches the appropriate way
+    when a child of "Mod" is created by nyan
 
 
 ### Syntax
 
-
 ``` python
-###
-This is an example of the nyan language
-The syntax is very much Python.
-But was enhanced to support easy data handling.
-We support multi-line comments :)
-###
+# This is an example of the nyan language
+# The syntax is very much Python.
+# But was enhanced to support easy data handling.
 
 # A NyanObject is created easily:
 ObjName():
@@ -133,26 +140,141 @@ PatchName<TargetNyanObject>[+AdditionalParent, -RemovedParent, ...]():
 * A *NyanObject* is "abstract" iff it contains at least one undefined member
 * A *NyanObject* is not "abstract" iff all members are defined
 * A *NyanObject* member **type** can never be changed once declared
-* It is a patch iff `<Target>` is written in the definition
+
+* It is a patch iff `<Target>` is written in the definition or the object
+  has a member `__patch__ : orderedset(NyanObject)`
+  * A patch can have `__parentadd__` and `__parentdel__` members,
+    both have type `: set(NyanObject)` as well
+  * They are used to patch the inheritance of the target objects
+* The patch will fail to be loaded if:
+  * Any of the patch targets is now known
+  * Any of changed members is not present in all the patch targets
+  * Any of the added parents is not known
+  * Any of the removed parents is not known
+  * -> Blind patching is not allowed
+* The patch will succeed to load if:
+  * Any patch target already has the parent to be added
+  * Any patch target is missing any parent to be removed
+  * -> Inheritance patching doesn't conflict with other patches
+
+
+#### Multi inheritance
 
 The parents of a *NyanObject* are kind of a mixin for members:
 
 * The child object obtains all the members from its parents
 * When a member value is requested, the value is calculated by
   backtracking through all the parents until the first value definition.
-* If name clashes occur, the loading will error
+* If name clashes occur, the loading will error, unless you fix them:
 * Parent member names can be qualified to fix the ambiguity:
 
 Both `Parent` and `Other` have a member named `member`:
 
 ``` python
-NewObj(Parent as name, Other as thing):
-    name.member = 1337
-    thing.member -= 42
+NewObj(Parent, Other):
+    Parent.member = 1337
+    Other.member -= 42
 ```
 
-The members of `NewObj` are then named `name.member`, and children of that
-object must access the member with that name.
+Children of that object must access the members with the qualified names
+as well to make the access clear.
+
+Consider this case, where we have 2 conflicts.
+
+``` python
+Top():
+    entry : int = 10
+
+A(Top):
+    entry += 5
+    otherentry : int = 0
+    specialentry : int = 42
+
+B(Top):
+    entry -= 3
+    otherentry : int = 1
+
+C():
+    entry : int = 20
+    otherentry : int = 2
+
+
+LOLWhat(A, B, C):
+    # We now have several conflicts in here!
+    # How is it resolved?
+    # A and B both get a member `entry` from Top
+    # A and B both declare `otherentry` independently
+    # C declares `entry` and `otherentry` independently
+    # LOLWhat now inherits from all, so it has
+    # * `entry` from Top
+    # * `entry` from C
+    # * `otherentry` from A
+    # * `otherentry` from B
+    # * `otherentry` from C
+    # ->
+    # to access any of those, the name must be qualified:
+
+    A.entry += 1     # or B.entry is the same!
+    C.entry += 1
+    A.otherentry += 1
+    B.otherentry += 1
+    C.otherentry += 1
+
+    specialentry -= 42
+
+
+OHNoes(LOLWhat):
+    # access to qualified members remains the same
+    A.entry += 1
+    specialentry += 1337
+```
+
+The detection of the qualification requirement works as follows:
+
+* The inheritance list of `LOLWhat` determined by `C3` is `[A, B, Top, C]`
+* When the `LOLWhat` `C.entry` value is requested, that list is walked
+  through until a value declaration for each member was found:
+  * `A` declares `otherentry` and `specialentry`, it changes `entry`
+  * `B` declares `otherentry` and changes `entry`
+    * Here, nyan detects that `otherentry` was declared twice
+    * The use of `otherentry` is therefore enforced to be qualified
+  * `Top` declares `entry`
+  * `C` declares `entry` and `otherentry`
+    * Here, nyan detects that `entry` and `otherentry` are declared again
+    * The access to `entry` must hence be qualified, too
+* nyan concludes that all accesses must be qualified,
+  except to `specialentry`, as only one declaration was found
+* The qualification is done by prefixing the precedes a *NyanObject* name
+  which is somewhere up the hierarchy and would grant conflict-free access
+  to that member
+* That does **not** mean the value somewhere up the tree is changed!
+  The change is only defined in the current object, the qualification just
+  ensures the correct target member is selected!
+
+
+If one now has the `OHNoes` *NyanObject* and desires to get values,
+the calculation is done like this:
+
+* Just like defining a change, the value must be queried using
+  a distinct name, i. e. the qualification prefix.
+* In the engine, you call something like `OHNoes.get("A.entry")`
+  * The inheritance list by C3 of `OHNoes` is `[LOLWhat, A, B, Top, C]`
+  * The list is gone through until the declaration of the requested member
+    was found
+  * `LOLWhat` did not declare it
+  * `A` did not declare it either, but we requested `"A.entry"`
+  * As the qualified prefix object does not declare it, the prefix is dropped
+  * The member name is now unique and can be searched for without the prefix
+    further up the tree
+  * `B` does not declare the `entry` either
+  * `Top` does declare it, now the recursion goes back the other way
+  * `Top` defined the value of `entry` to `10`
+  * `B` wants to subtract `3`, so `entry` is `7`
+  * `A` adds `5`, so `entry` is `12`
+  * `LOLWhat` adds `1`, `entry` is `13`
+  * `OHNoes` adds `1` as well, and `entry` is returned to be `14`
+
+
 
 This is all the magic needed for creating the ultimate data language for us.
 
@@ -162,7 +284,7 @@ This is all the magic needed for creating the ultimate data language for us.
 * Members of *NyanObject* must have a type, which can be a
   * primitive type
     - `text`:     `"lol"`          - (duh.)
-    - `int`:      `1337`, `inf`    - (some number)
+    - `int`:      `1337`           - (some number)
     - `float`:    `42.235`, `inf`  - (some floating point number)
     - `bool`:     `True`, `False`  - (some boolean value)
     - `file`:     `file("./name")` - (some filename,
@@ -208,6 +330,7 @@ They allow to organize data in an easy hierarchical way.
 #### Implicit namespace
 
 A nyan file name is implies its namespace.
+A file name must not contain a `.` (except the `.nyan`) to prevent clashes.
 
 `lol/mod/component/rofl.nyan`
 
@@ -328,7 +451,10 @@ Why:
 * The engine supports attack ballistics
 * All archers may receive armor/attack bonus updates
 * Crossbowmen is an archer and can be built at the archery
-* malte23 walks on your screen and dies laughing
+* malte23 walks on your screen and dies laughing.
+  It is _not_ a *NyanObject* but rather an unit object of the game engine
+  which has a pointer to the `Crossbowman` *NyanObject* to fetch values from
+
 
 The only non-abstract objects can be instanciated by the game engine.
 It's non-abstract when all members of an object are defined, which
@@ -407,7 +533,7 @@ members have value None then.
 
 ### Patching a patch example
 
-A user mod that patches loom to decrease villager hp by 10 instead of 15.
+A user mod that patches loom to increase villager hp by 10 instead of 15.
 
 0. Loom is defined in the base data pack
 1. The mod defines to update the original loom tech
