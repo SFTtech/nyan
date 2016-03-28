@@ -6,11 +6,26 @@ nyan
 **nyan** is a hierarchical strongly typed key-value store with patch
 functionality and inheritance
 
+
+## Design idea
+
+[openage](https://github.com/SFTtech/openage) requires a very complex data
+storage to represent the hierarchy of its objects. Research and technology
+affects numerous units, civilization bonuses, monk conversions and all that
+with the goal to be ultimatively moddable by the community:
+
+Current data representation formats make this nearly impossible to
+accomplish. Readability problems or huge lexical overhead led us to
+design a language crafted for our needs.
+
+Enter **nyan**, which is our approach to store data in a new way.
+
+
 ## Design goals
 
 Requirements:
 
-* nyan remains a general-purpose language; nicely abstracted from openage
+* nyan remains a general-purpose language; nicely abstracted from *openage*
 * Data is stored in .nyan files
 * Human readable
 * Portable
@@ -22,42 +37,43 @@ Requirements:
 * Does not contain any code. The game engine is responsible for calling API
   functions or redirecting to custom scripts
 * Namespaces to create a logical hierarchy
-
-* Some .nyan files are shipped with the engine
-  * they describe things the engine is capable of, basically the mod api
-  * that way, the engine can be sure that things exist
-  * the engine can access all nyan file contents with type safety
-
+* Some .nyan files are shipped with a game engine
+  * They describe things the engine is capable of, basically the mod api
+  * That way, the engine can be sure that things exist
+  * The engine can access all nyan file contents with type safety
 * The nyan interpreter is written in C++
-  * parses .nyan files and adds them to the store
-  * manages all data as nyan objects
+  * Parses .nyan files and adds them to the store
+  * Manages all data as nyan objects
 
 
 ## Language features
 
-* nyan is typesafe
-  * Strongly typed
-  * The type of a member is stored when declaring it
 * nyan allows easy modding
   * Data packs ship configuration data and game content as .nyan files
   * Mod Packs can change and extend existing information easily,
     by applying data "patches"
   * Patches are applied whenever the libnyan user decides
     when or where to do so
+* nyan is typesafe
+  * The type of a member is stored when declaring it
+  * No member type casts
+  * Only allowed operators for a member type can be called
 * nyan is invented here™
   * we can change the specification to our needs whenever we want
 
 Concept:
 
-* The only thing that nyan can do: Data patches.
-  * **NyanObject**: nyan only defines nyanobjects,
-    all the time you write anything
+* The only things nyan can do: Hierarchical data declaration and patches
+  * **NyanObject**: In a .nyan file, you write down *NyanObject*s
   * Abstract *NyanObject*: has undefined members
   * Non-abstract: all members of the object have a defined value
     and e.g. a unit on screen can be created from it
-
 * *NyanObject*s support a hierarchy by inheritance
-* They can be placed in namespaces to organize the directory structure
+  * You can fetch values from a *NyanObject* and the result is determined
+    by walking up the whole inheritance tree
+  * This allows changing a value in a parent class and all childs are
+    affected then
+* *NyanObject*s are placed in namespaces to organize the directory structure
 
 
 ### Data handling
@@ -69,9 +85,9 @@ Concept:
 * **NyanPatch**: is a *NyanObject* and denominates a patch
   * A *NyanPatch* has a member named `__patch__`
   * A patch is created for one or more *NyanObject*s
-  * Can modify member values of the assigned *NyanObject*
-  * Can modify the **inheritance set** of a *NyanObject* by adding and
-    removing elements
+  * Can modify **member values** of the assigned *NyanObject*
+  * Can modify the **inheritance orderedset** of a *NyanObject* by adding
+    and removing elements
   * They can add new members, but not remove them
 * A *NyanObject* can inherit from an ordered set of *NyanObject*s
   (-> from a *NyanPatch* as well).
@@ -116,7 +132,7 @@ Concept:
 ``` python
 # This is an example of the nyan language
 # The syntax is very much Python.
-# But was enhanced to support easy data handling.
+# But was enhanced to support easy hierarchical data handling.
 
 # A NyanObject is created easily:
 ObjName():
@@ -144,7 +160,7 @@ PatchName<TargetNyanObject>[+AdditionalParent, -RemovedParent, ...]():
 * It is a patch iff `<Target>` is written in the definition or the object
   has a member `__patch__ : orderedset(NyanObject)`
   * A patch can have `__parentadd__` and `__parentdel__` members,
-    both have type `: set(NyanObject)` as well
+    both have type `: set(NyanObject)`
   * They are used to patch the inheritance of the target objects
 * The patch will fail to be loaded if:
   * Any of the patch targets is now known
@@ -273,10 +289,6 @@ the calculation is done like this:
   * `A` adds `5`, so `entry` is `12`
   * `LOLWhat` adds `1`, `entry` is `13`
   * `OHNoes` adds `1` as well, and `entry` is returned to be `14`
-
-
-
-This is all the magic needed for creating the ultimate data language for us.
 
 
 #### Types
@@ -648,6 +660,9 @@ TeleportMod(Mod):
     patches = [MonsterTPPatch]
 ```
 
-Why is there a `instant` member of `MoveAbility`? The game engine must
+Why is there an `instant` member of `MoveAbility`? The game engine must
 support movement without pathfinding, otherwise even movement with infinite
 speed would be done by pathfinding.
+
+This demonstrated that modding capabilities are strongly limited by the game
+engine, nyan just assists you in designing a mod api in an intuitive way.
