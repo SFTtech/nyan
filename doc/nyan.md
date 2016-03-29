@@ -142,7 +142,7 @@ ObjName():
 Inherited(ObjName, OtherObj, ...):
     member += 10
 
-PatchName<TargetNyanObject>[+AdditionalParent, -RemovedParent, ...]():
+PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
     member_to_modify = absolute_value
     member_to_update += relative_value
     new_member : TypeName = value
@@ -159,18 +159,22 @@ PatchName<TargetNyanObject>[+AdditionalParent, -RemovedParent, ...]():
 
 * It is a patch iff `<Target>` is written in the definition or the object
   has a member `__patch__ : orderedset(NyanObject)`
-  * A patch can have `__parentadd__` and `__parentdel__` members,
-    both have type `: set(NyanObject)`
-  * They are used to patch the inheritance of the target objects
+  * A patch can have member `__parentadd__ : orderedset(NyanObject)`
+  * It is used to add new objects the target should inherit from
+  * This can be used to inject a "middle object" in between two inheriting
+    objects, because the multi inheritance linearization resolves the order
+    * Imagine something like `TentacleMonster -> Unit`
+    * What we now want is `TentacleMonster -> MonsterBase -> Unit`
+    * What we do first is create `MonsterBase -> Unit`
+    * What we next is patch `TentacleMonster -> Unit, MonsterBase` with `+`
+    * The linearization will result in `TentacleMonster -> MonsterBase -> Unit`
 * The patch will fail to be loaded if:
   * Any of the patch targets is now known
   * Any of changed members is not present in all the patch targets
   * Any of the added parents is not known
-  * Any of the removed parents is not known
   * -> Blind patching is not allowed
 * The patch will succeed to load if:
   * Any patch target already has the parent to be added
-  * Any patch target is missing any parent to be removed
   * -> Inheritance patching doesn't conflict with other patches
 
 
