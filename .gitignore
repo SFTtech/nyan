@@ -8,6 +8,9 @@
 *.o
 *.a
 *.so
+*.lo
+*.la
+*.Plo
 
 # python bytecode
 *.pyc
@@ -25,3 +28,28 @@ __pycache__
 callgrind.out.*
 perf.data*
 .gdb_history
+
+# autocancer
+.deps
+.libs
+/aclocal.m4
+/ar-lib
+/autom4te.cache
+/compile
+/config.guess
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/configure
+/depcomp
+/install-sh
+/libtool
+/ltmain.sh
+/m4
+/missing
+/stamp-h1
+/ylwrap
+Makefile
+Makefile.in

@@ -46,11 +46,11 @@ include a header.
 _the nyan authors_, require the following one-line header, preferrably in
 the first line, as a comment:
 
-    Copyright 20XX-20YY the nyan authors. See copying.md for legal info.
+    Copyright 20XX-20YY the nyan authors, LGPLv3+. See copying.md for legal info.
 
-`20XX` is the year when the file was created, and `20YY` is the year when the
-file was last edited. When editing a file, make sure the last-modification year
-is still correct.
+`20XX` is the year when the file was created, and `20YY` is the year when
+the file was last edited. When editing a file, make sure the
+last-modification year is still correct.
 
 
 Notes about this file:

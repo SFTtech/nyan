@@ -1,0 +1,19 @@
+# test nyan file
+First():
+    member = value
+Second():
+    pass
+
+Test():
+    member : int = 1337
+    lol += 42
+    stuff : NyanObject
+    gschicht : int
+
+Patch<Test, More, Stuff>[+lol,  + gschicht, + dafuq ](asdf, ie):
+    ie : gschicht
+    stuff = 10
+    wtf |= 13374242
+
+Anothertest(Patch, Test, something):
+    ie = lol
