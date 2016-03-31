@@ -14,6 +14,7 @@ libnyan_la_SOURCES = \
                      nyan_error.cpp \
                      nyan_flex_lexer.lpp \
                      nyan_lexer.cpp \
+                     nyan_member.cpp \
                      nyan_namespace.cpp \
                      nyan_object.cpp \
                      nyan_ops.cpp \
@@ -25,11 +26,16 @@ libnyan_la_SOURCES = \
 nyanincludedir = $(includedir)/nyan
 nyaninclude_HEADERS = \
                       nyan.h \
-                      nyan_object.h \
-                      nyan_namespace.h \
-                      nyan_store.h \
-                      nyan_ops.h \
                       nyan_ast.h \
+                      nyan_error.h \
+                      nyan_flex_lexer.h \
+                      nyan_lexer.h \
+                      nyan_member.h \
+                      nyan_namespace.h \
+                      nyan_object.h \
+                      nyan_ops.h \
+                      nyan_parser.h \
+                      nyan_store.h \
                       nyan_token.h \
                       nyan_util.h
 

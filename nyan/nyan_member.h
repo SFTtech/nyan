@@ -19,7 +19,7 @@ class NyanMember {
 
 public:
 	NyanMember();
-	virtual ~NyanMember();
+	virtual ~NyanMember() = default;
 
 	virtual std::string str();
 
@@ -35,7 +35,7 @@ protected:
 class NyanNone : public NyanMember {
 public:
 	NyanNone();
-	virtual ~NyanNone();
+	virtual ~NyanNone() = default;
 };
 
 
@@ -45,7 +45,7 @@ public:
 class NyanText : public NyanMember {
 public:
 	NyanText();
-	virtual ~NyanText();
+	virtual ~NyanText() = default;
 };
 
 
@@ -56,7 +56,7 @@ public:
 class NyanFilename : public NyanMember {
 public:
 	NyanFilename();
-	virtual ~NyanFilename();
+	virtual ~NyanFilename() = default;
 };
 
 
@@ -66,7 +66,7 @@ public:
 class NyanInt : public NyanMember {
 public:
 	NyanInt();
-	virtual ~NyanInt();
+	virtual ~NyanInt() = default;
 };
 
 
