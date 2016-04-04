@@ -2,10 +2,12 @@
 #ifndef NYAN_NYAN_MEMBER_H_
 #define NYAN_NYAN_MEMBER_H_
 
+#include <memory>
 #include <string>
 #include <unordered_set>
 
 #include "nyan_ops.h"
+#include "nyan_value.h"
 
 namespace nyan {
 
@@ -13,60 +15,59 @@ class NyanObject;
 
 /**
  * Stores a member of a NyanObject.
+ * Also responsible for validating applied operators.
  */
 class NyanMember {
-	friend class NyanObject;
-
 public:
 	NyanMember();
 	virtual ~NyanMember() = default;
 
-	virtual std::string str();
+	std::string str();
+	virtual NyanValue *get() const = 0;
+
+	nyan_op get_operation() const;
+
+	void cache_save(std::unique_ptr<NyanValue> &&value);
+	NyanValue *cache_get() const;
+	void cache_reset();
 
 protected:
-	std::unordered_set<nyan_op> operations;
-	NyanObject *object;
+	nyan_op operation;
+
+	std::unique_ptr<NyanValue> cached_value;
 };
 
 
 /**
- * Nyan value to store a member that doesn't have a value yet.
+ * Member to store a nyan value as owned pointer.
  */
-class NyanNone : public NyanMember {
+class NyanOwningMember : public NyanMember {
 public:
-	NyanNone();
-	virtual ~NyanNone() = default;
+	NyanOwningMember(std::unique_ptr<NyanValue> &&value=nullptr);
+
+	/**
+	 * Return the pointer to the contained value.
+	 */
+	NyanValue *get() const override;
+
+protected:
+	std::unique_ptr<NyanValue> value;
 };
 
-
 /**
- * Nyan value to store text.
+ * Member to store a value owned elsewhere.
  */
-class NyanText : public NyanMember {
+class NyanPtrMember : public NyanMember {
 public:
-	NyanText();
-	virtual ~NyanText() = default;
-};
+	NyanPtrMember(NyanValue *value=nullptr);
 
+	/**
+	 * Return the contained NyanObject pointer.
+	 */
+	NyanValue *get() const override;
 
-/**
- * Nyan value to store a filename member which preserves the relative
- * location to the nyan file it was defined in.
- */
-class NyanFilename : public NyanMember {
-public:
-	NyanFilename();
-	virtual ~NyanFilename() = default;
-};
-
-
-/**
- * Nyan value to store a number.
- */
-class NyanInt : public NyanMember {
-public:
-	NyanInt();
-	virtual ~NyanInt() = default;
+protected:
+	NyanValue *value;
 };
 
 

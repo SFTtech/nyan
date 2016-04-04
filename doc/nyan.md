@@ -154,7 +154,6 @@ PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
   `member_name : type = value`
 * A member can never be defined if it was not declared
 * A *NyanObject* is "abstract" iff it contains at least one undefined member
-* A *NyanObject* is not "abstract" iff all members are defined
 * A *NyanObject* member **type** can never be changed once declared
 
 * It is a patch iff `<Target>` is written in the definition or the object

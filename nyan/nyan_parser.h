@@ -25,6 +25,7 @@ public:
 protected:
 	std::vector<NyanToken> tokenize(const std::string &input);
 	NyanAST create_ast(const std::vector<NyanToken> &tokens);
+	std::vector<NyanObject> create_objects(const NyanAST &ast);
 
 	NyanStore *store;
 };

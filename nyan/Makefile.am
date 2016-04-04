@@ -21,7 +21,8 @@ libnyan_la_SOURCES = \
                      nyan_parser.cpp \
                      nyan_store.cpp \
                      nyan_token.cpp \
-                     nyan_util.cpp
+                     nyan_util.cpp \
+                     nyan_value.cpp
 
 nyanincludedir = $(includedir)/nyan
 nyaninclude_HEADERS = \
@@ -37,7 +38,8 @@ nyaninclude_HEADERS = \
                       nyan_parser.h \
                       nyan_store.h \
                       nyan_token.h \
-                      nyan_util.h
+                      nyan_util.h \
+                      nyan_value.h
 
 # nyan executable
 bin_PROGRAMS = nyan

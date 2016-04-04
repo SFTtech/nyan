@@ -36,6 +36,31 @@ protected:
 	int line_offset;
 };
 
+/**
+ * Exception for name access problems.
+ */
+class NameError : public NyanError {
+public:
+	NameError(const std::string &msg, const std::string &name="");
+	virtual ~NameError() = default;
+
+	std::string str() const override;
+
+protected:
+	std::string name;
+};
+
+
+/**
+ * Thrown when encountering type problems.
+ */
+class TypeError : public NyanError {
+public:
+	TypeError(const std::string &msg);
+	virtual ~TypeError() = default;
+};
+
+
 } // namespace nyan
 
 #endif

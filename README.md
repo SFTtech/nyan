@@ -22,8 +22,8 @@ The foundation of **nyan**:
 Technology             | Component
 -----------------------|----------
 **C++14**              | nyan core
-**Bison** & **Flex**   | Parser generator
-**GNU Make**           | Build "system"
+**Flex**               | Tokenizer generator
+**GNU Autocancer**     | Build "system"
 **Humans**             | Doing it wrong all the time
 
 

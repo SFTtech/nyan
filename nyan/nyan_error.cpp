@@ -33,5 +33,26 @@ std::string ParserError::str() const {
 	return builder.str();
 }
 
+NameError::NameError(const std::string &msg,
+                     const std::string &name)
+	:
+	NyanError{msg},
+	name{name} {}
+
+std::string NameError::str() const {
+	if (not this->name.empty()) {
+		std::ostringstream builder;
+		builder << this->msg << ": '" << this->name << "'";
+		return builder.str();
+	}
+	else {
+		return this->msg;
+	}
+}
+
+TypeError::TypeError(const std::string &msg)
+	:
+	NyanError{msg} {}
+
 
 } // namespace nyan

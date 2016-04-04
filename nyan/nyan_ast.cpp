@@ -11,11 +11,17 @@ using namespace std::string_literals;
 
 namespace nyan {
 
-std::string NyanASTBase::str() {
+std::string NyanASTBase::str() const {
 	std::ostringstream builder;
 	this->strb(builder);
 	return builder.str();
 }
+
+
+const std::vector<NyanASTObject> &NyanAST::get_objects() const {
+	return this->objects;
+}
+
 
 NyanAST::NyanAST(util::Iterator<NyanToken> &tokens) {
 	while (tokens.full()) {
@@ -74,7 +80,7 @@ NyanASTObject::NyanASTObject(const std::string &name,
 }
 
 void NyanASTObject::ast_targets(util::Iterator<NyanToken> &tokens) {
-	this->targets = comma_list(tokens, token_type::RANGLE);
+	this->targets = this->comma_list(tokens, token_type::RANGLE);
 }
 
 void NyanASTObject::ast_inheritance_mod(util::Iterator<NyanToken> &tokens) {
@@ -115,7 +121,7 @@ void NyanASTObject::ast_inheritance_mod(util::Iterator<NyanToken> &tokens) {
 }
 
 void NyanASTObject::ast_inheritance(util::Iterator<NyanToken> &tokens) {
-	this->inheritance = comma_list(tokens, token_type::RPAREN);
+	this->inheritance = this->comma_list(tokens, token_type::RPAREN);
 }
 
 void NyanASTObject::ast_members(util::Iterator<NyanToken> &tokens) {
@@ -199,8 +205,9 @@ NyanASTMember::NyanASTMember(const std::string &name,
 }
 
 
-std::vector<std::string> comma_list(util::Iterator<NyanToken> &tokens,
-                                    token_type end) {
+std::vector<std::string> NyanASTBase::comma_list(
+	util::Iterator<NyanToken> &tokens, token_type end) const {
+
 	std::vector<std::string> ret;
 
 	auto token = tokens.next();
@@ -228,7 +235,7 @@ std::vector<std::string> comma_list(util::Iterator<NyanToken> &tokens,
 }
 
 
-void NyanAST::strb(std::ostringstream &builder) {
+void NyanAST::strb(std::ostringstream &builder) const {
 	builder << "### nyan tree ###" << std::endl;
 
 	size_t count = 0;
@@ -239,7 +246,7 @@ void NyanAST::strb(std::ostringstream &builder) {
 }
 
 
-void NyanASTObject::strb(std::ostringstream &builder) {
+void NyanASTObject::strb(std::ostringstream &builder) const {
 	builder << this->name;
 
 	// print <target, target, >
@@ -267,7 +274,7 @@ void NyanASTObject::strb(std::ostringstream &builder) {
 }
 
 
-void NyanASTMember::strb(std::ostringstream &builder) {
+void NyanASTMember::strb(std::ostringstream &builder) const {
 	builder << this->name;
 	if (this->type.size() > 0) {
 		builder << " : " << this->type;

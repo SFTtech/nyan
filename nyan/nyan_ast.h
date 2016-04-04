@@ -23,10 +23,13 @@ public:
 	 * Return a string representation of this AST element
 	 * and maybe its children.
 	 */
-	std::string str();
+	std::string str() const;
+
+	std::vector<std::string> comma_list(util::Iterator<NyanToken> &tokens,
+	                                    token_type end) const;
 
 protected:
-	virtual void strb(std::ostringstream &builder) = 0;
+	virtual void strb(std::ostringstream &builder) const = 0;
 };
 
 
@@ -38,7 +41,7 @@ public:
 	NyanASTMember(const std::string &name, util::Iterator<NyanToken> &tokens);
 	virtual ~NyanASTMember() = default;
 
-	void strb(std::ostringstream &builder) override;
+	void strb(std::ostringstream &builder) const override;
 
 protected:
 	std::string name;
@@ -60,7 +63,7 @@ public:
 	void ast_inheritance(util::Iterator<NyanToken> &tokens);
 	void ast_members(util::Iterator<NyanToken> &tokens);
 
-	void strb(std::ostringstream &builder) override;
+	void strb(std::ostringstream &builder) const override;
 
 protected:
 	std::string name;
@@ -78,7 +81,8 @@ public:
 	NyanAST(util::Iterator<NyanToken> &tokens);
 	virtual ~NyanAST() = default;
 
-	void strb(std::ostringstream &builder) override;
+	void strb(std::ostringstream &builder) const override;
+	const std::vector<NyanASTObject> &get_objects() const;
 
 protected:
 	std::vector<NyanASTObject> objects;

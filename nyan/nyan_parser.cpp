@@ -23,12 +23,14 @@ std::vector<NyanObject> NyanParser::parse(const std::string &input) {
 	// If you are some parser junkie and I trigger your rage mode now,
 	// feel free to rewrite the parser or a tool like bison.
 
-	std::vector<NyanObject> ret;
-
+	// tokenize input
 	std::vector<NyanToken> tokens = this->tokenize(input);
+
+	// create ast from tokens
 	NyanAST root = this->create_ast(tokens);
 
-	std::cout << root.str() << std::endl;
+	// create objects from tokens
+	std::vector<NyanObject> ret = this->create_objects(root);
 
 	return ret;
 }
@@ -60,5 +62,17 @@ NyanAST NyanParser::create_ast(const std::vector<NyanToken> &tokens) {
 	NyanAST root{token_iter};
 	return root;
 }
+
+
+std::vector<NyanObject> NyanParser::create_objects(const NyanAST &ast) {
+	std::vector<NyanObject> ret;
+
+	for (auto &obj : ast.get_objects()) {
+		std::cout << obj.str() << std::endl;
+	}
+
+	return ret;
+}
+
 
 } // namespace nyan
