@@ -20,6 +20,12 @@ public:
 	NyanNamespace();
 	virtual ~NyanNamespace() = default;
 
+	NyanObject *add_obj(std::unique_ptr<NyanObject> &&obj);
+	void add_namespace(const std::string &name);
+
+	NyanObject *get_obj(const std::string &name) const;
+	NyanNamespace *get_namespace(const std::string &name) const;
+
 protected:
 	/**
 	 * Object name -> Object map.

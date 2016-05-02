@@ -3,6 +3,8 @@
 #define NYAN_LEXER_H_
 
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <vector>
 #include <queue>
 
@@ -12,6 +14,7 @@
 #  include "nyan_flex_lexer.h"
 #endif
 
+#include "nyan_error.h"
 #include "nyan_token.h"
 
 
@@ -21,14 +24,21 @@
 
 namespace nyan {
 
+class NyanFile;
+
 class NyanLexer : public NyanFlexLexer {
 public:
 	/**
-	 * Create a lexer for the given input stream.
-	 * stdin is used if the ptr is null.
+	 * Create a lexer for the given file.
 	 */
-	NyanLexer(std::istream *input=nullptr);
+	NyanLexer(const NyanFile &file);
 	virtual ~NyanLexer() = default;
+
+	// no moves and copies
+	NyanLexer(NyanLexer &&other) = delete;
+	NyanLexer(const NyanLexer &other) = delete;
+	NyanLexer &operator =(NyanLexer &&other) = delete;
+	NyanLexer &operator =(const NyanLexer &other) = delete;
 
 	/**
 	 * Return the next available token.
@@ -36,11 +46,6 @@ public:
 	NyanToken get_next_token();
 
 protected:
-	/**
-	 * The indentation stack remembers the levels of indent.
-	 */
-	std::vector<int> indent_stack;
-
 	/**
 	 * Defined by the flex lexer generator.
 	 * Produces a token by reading the input.
@@ -72,7 +77,7 @@ protected:
 	void advance_linepos();
 
 	/**
-	 * Reset the line position.
+	 * Reset the line position to the beginning.
 	 */
 	void reset_linepos();
 
@@ -80,6 +85,21 @@ protected:
 	 * The default line positon at the very beginning of one line.
 	 */
 	static constexpr int linepos_start = 0;
+
+	/**
+	 * The indentation stack remembers the levels of indent.
+	 */
+	std::vector<int> indent_stack;
+
+	/**
+	 * Filename used for tokenization.
+	 */
+	const NyanFile &file;
+
+	/**
+	 * String stream which is fed into the lexer.
+	 */
+	std::istringstream input;
 
 	/**
 	 * Current position in a line.
@@ -95,6 +115,15 @@ protected:
 	 * Indicates whether the tokenization has reached the end.
 	 */
 	bool finished;
+};
+
+
+/**
+ * Exception for lexer problems.
+ */
+class LexerError : public NyanFileError {
+public:
+	LexerError(const NyanLocation &location, const std::string &msg);
 };
 
 

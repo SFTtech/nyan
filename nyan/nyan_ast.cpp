@@ -11,6 +11,7 @@ using namespace std::string_literals;
 
 namespace nyan {
 
+
 std::string NyanASTBase::str() const {
 	std::ostringstream builder;
 	this->strb(builder);
@@ -27,18 +28,24 @@ NyanAST::NyanAST(util::Iterator<NyanToken> &tokens) {
 	while (tokens.full()) {
 		auto token = tokens.next();
 		if (token->type == token_type::ID) {
-			this->objects.push_back(NyanASTObject(token->value, tokens));
+			this->objects.push_back(NyanASTObject{*token, tokens});
 		}
 		else if (token->type == token_type::ENDFILE) {
 			// we're done!
+			if (tokens.empty()) {
+				return;
+			}
+			else {
+				throw NyanError{"some token came after EOF."};
+			}
 		}
 		else {
-			throw ASTError("expected object name, but got", *token);
+			throw ASTError{"expected object name, but got", *token};
 		}
 	}
 }
 
-NyanASTObject::NyanASTObject(const std::string &name,
+NyanASTObject::NyanASTObject(const NyanToken &name,
                              util::Iterator<NyanToken> &tokens)
 	:
 	name{name} {
@@ -100,7 +107,7 @@ void NyanASTObject::ast_inheritance_mod(util::Iterator<NyanToken> &tokens) {
 
 		if (action != nyan_op::ADD) {
 			throw ASTError("expected + operator,"
-			               "instead got: '"s + token->value +
+			               "instead got: '"s + token->get() +
 			               "' when using", *token);
 		}
 		token = tokens.next();
@@ -108,7 +115,7 @@ void NyanASTObject::ast_inheritance_mod(util::Iterator<NyanToken> &tokens) {
 		// add parent
 		if (token->type == token_type::ID) {
 			if (action == nyan_op::ADD) {
-				this->inheritance_add.push_back(token->value);
+				this->inheritance_add.push_back(*token);
 			}
 			expect_comma = true;
 		}
@@ -131,7 +138,7 @@ void NyanASTObject::ast_members(util::Iterator<NyanToken> &tokens) {
 	       token->type != token_type::ENDFILE) {
 
 		if (token->type == token_type::ID) {
-			this->members.push_back(NyanASTMember(token->value, tokens));
+			this->members.push_back(NyanASTMember(*token, tokens));
 		}
 		else if (token->type == token_type::PASS) {
 			// "empty" member entry.
@@ -146,13 +153,12 @@ void NyanASTObject::ast_members(util::Iterator<NyanToken> &tokens) {
 			throw ASTError("expected member identifier, but got", *token);
 		}
 
-
 		token = tokens.next();
 	}
 }
 
 
-NyanASTMember::NyanASTMember(const std::string &name,
+NyanASTMember::NyanASTMember(const NyanToken &name,
                              util::Iterator<NyanToken> &tokens)
 	:
 	name{name} {
@@ -160,15 +166,17 @@ NyanASTMember::NyanASTMember(const std::string &name,
 	auto token = tokens.next();
 	bool had_def_or_decl = false;
 
-	// type specifier
+	// type specifier (the ": text" etc part)
 	if (token->type == token_type::COLON) {
 		token = tokens.next();
+
 		if (token->type == token_type::ID) {
-			this->type = token->value;
+			this->type = NyanASTMemberType{*token, tokens};
 			had_def_or_decl = true;
 		} else {
-			throw ASTError("expected type name, instead got", *token);
+			throw ASTError{"expected type name, instead got", *token};
 		}
+
 		token = tokens.next();
 	}
 
@@ -176,19 +184,34 @@ NyanASTMember::NyanASTMember(const std::string &name,
 	if (token->type == token_type::OPERATOR) {
 		this->operation = op_from_token(*token);
 
+		if (this->operation == nyan_op::INVALID) {
+			throw ASTError{"invalid operation", *token};
+		}
+
 		token = tokens.next();
 
-		if (token->type == token_type::ID or
-		    token->type == token_type::INT or
-		    token->type == token_type::FLOAT or
-		    token->type == token_type::STRING) {
+		if (token->type == token_type::LANGLE or
+		    token->type == token_type::LBRACE) {
+			// multi-value container
 
-			this->value = token->value;
-			had_def_or_decl = true;
+			nyan_container_type ctype;
+			if (token->type == token_type::LANGLE) {
+				ctype = nyan_container_type::ORDEREDSET;
+			} else if (token->type == token_type::LBRACE) {
+				ctype = nyan_container_type::SET;
+			} else {
+				throw NyanError{"unhandled multi value container type"};
+			}
+
+			this->value = NyanASTMemberValue{ctype, tokens};
 		}
 		else {
-			throw ASTError("expected some value but there is", *token);
+			// single-value
+			this->value = NyanASTMemberValue{*token};
 		}
+
+		had_def_or_decl = true;
+
 		token = tokens.next();
 	}
 	else if (had_def_or_decl == false) {
@@ -205,10 +228,98 @@ NyanASTMember::NyanASTMember(const std::string &name,
 }
 
 
-std::vector<std::string> NyanASTBase::comma_list(
+NyanASTMemberType::NyanASTMemberType()
+	:
+	exists{false},
+	has_payload{false} {}
+
+
+NyanASTMemberType::NyanASTMemberType(const NyanToken &name,
+                                     util::Iterator<NyanToken> &tokens)
+	:
+	exists{true},
+	name{name},
+	has_payload{false} {
+
+	auto token = tokens.next();
+	if (token->type == token_type::LPAREN) {
+		token = tokens.next();
+		if (token->type == token_type::ID) {
+			this->payload = *token;
+			this->has_payload = true;
+		}
+		else {
+			throw ASTError("expected type identifier, but got", *token);
+		}
+
+		token = tokens.next();
+
+		if (token->type != token_type::RPAREN) {
+			throw ASTError("expected closing parens, but encountered", *token);
+		}
+	} else {
+		tokens.reinsert(token);
+	}
+}
+
+
+NyanASTMemberValue::NyanASTMemberValue()
+	:
+	exists{false} {}
+
+
+NyanASTMemberValue::NyanASTMemberValue(const NyanToken &token)
+	:
+	exists{true},
+	container_type{nyan_container_type::SINGLE} {
+
+	this->values.push_back(token);
+}
+
+
+NyanASTMemberValue::NyanASTMemberValue(nyan_container_type type,
+                                       util::Iterator<NyanToken> &tokens)
+	:
+	exists{true},
+	container_type{type} {
+
+	auto token = tokens.next();
+
+	bool had_value = false;
+
+	// add values until the matching parenthesis
+	while (true) {
+		if (this->container_type == nyan_container_type::SET and
+		    token->type == token_type::RBRACE) {
+			break;
+		}
+		else if (this->container_type == nyan_container_type::ORDEREDSET and
+		         token->type == token_type::RANGLE) {
+			break;
+		}
+
+		if (had_value) {
+			if (token->type == token_type::COMMA) {
+				token = tokens.next();
+			}
+			else {
+				throw ASTError{"expected comma, but got", *token};
+			}
+		}
+
+		this->values.push_back(*token);
+		had_value = true;
+
+		// now the container is over, or a comma must follow
+		token = tokens.next();
+	}
+}
+
+
+std::vector<NyanToken> NyanASTBase::comma_list(
 	util::Iterator<NyanToken> &tokens, token_type end) const {
 
-	std::vector<std::string> ret;
+	std::vector<NyanToken> ret;
 
 	auto token = tokens.next();
 	bool expect_comma = false;
@@ -223,7 +334,7 @@ std::vector<std::string> NyanASTBase::comma_list(
 		}
 
 		if (token->type == token_type::ID) {
-			ret.push_back(token->value);
+			ret.push_back(*token);
 			expect_comma = true;
 		}
 		else {
@@ -247,20 +358,32 @@ void NyanAST::strb(std::ostringstream &builder) const {
 
 
 void NyanASTObject::strb(std::ostringstream &builder) const {
-	builder << this->name;
+	builder << this->name.get();
+
+	auto token_str = [](const auto &in) {
+		return in.get();
+	};
 
 	// print <target, target, >
 	if (this->targets.size() > 0) {
-		builder << "<" << util::strjoin(", ", this->targets) << ">";
+		builder << "<"
+		        << util::strjoin<NyanToken>(", ", this->targets, token_str)
+		        << ">";
 	}
 
+
 	if (this->inheritance_add.size() > 0) {
-		builder << "[+" << util::strjoin(", +", this->inheritance_add)
+		builder << "[+"
+		        << util::strjoin<NyanToken>(", +", this->inheritance_add,
+		                                    token_str)
 		        << "]";
 	}
 
-	builder << "(" << util::strjoin(", ", this->inheritance) << "):"
+	builder << "("
+	        << util::strjoin<NyanToken>(", ", this->inheritance, token_str)
+	        << "):"
 	        << std::endl;
+
 
 	if (this->members.size() > 0) {
 		for (auto &member : this->members) {
@@ -275,34 +398,86 @@ void NyanASTObject::strb(std::ostringstream &builder) const {
 
 
 void NyanASTMember::strb(std::ostringstream &builder) const {
-	builder << this->name;
-	if (this->type.size() > 0) {
-		builder << " : " << this->type;
+	builder << this->name.get();
+
+	if (this->type.exists) {
+		builder << " : ";
+		this->type.strb(builder);
 	}
 
-	if (this->value.size() > 0) {
+	if (this->value.exists) {
 		builder << " "
 		        << op_to_string(this->operation)
-		        << " " << this->value;
+		        << " ";
+
+		this->value.strb(builder);
 	}
 
 	builder << std::endl;
 }
 
 
-ASTError::ASTError(const std::string &msg, int line, int line_offset)
-	:
-	ParserError{msg, line, line_offset} {}
+void NyanASTMemberType::strb(std::ostringstream &builder) const {
+	builder << this->name.get();
 
-ASTError::ASTError(const std::string &msg, const NyanToken &token)
-	:
-	ParserError{"", token.line, token.line_offset} {
+	if (this->has_payload) {
+		builder << "(" << this->payload.get() << ")";
+	}
+}
 
+
+void NyanASTMemberValue::strb(std::ostringstream &builder) const {
+	switch (this->container_type) {
+	case nyan_container_type::SINGLE:
+		builder << this->values[0].get();
+		return;
+
+	case nyan_container_type::SET:
+		builder << "{"; break;
+
+	case nyan_container_type::ORDEREDSET:
+		builder << "<"; break;
+
+	default:
+		throw NyanError{"unhandled container type"};
+	}
+
+	bool first = true;
+	for (auto &value : values) {
+		if (not first) {
+			builder << ", ";
+			first = false;
+		}
+		builder << value.get();
+	}
+
+	switch (this->container_type) {
+	case nyan_container_type::SET:
+		builder << "}"; break;
+
+	case nyan_container_type::ORDEREDSET:
+		builder << ">"; break;
+
+	default:
+		throw NyanError{"unhandled container type"};
+	}
+}
+
+
+ASTError::ASTError(const std::string &msg, const NyanToken &token,
+                   bool add_token)
+	:
+	NyanFileError{NyanLocation{token}, ""} {
+
+	if (add_token) {
 		std::ostringstream builder;
 		builder << msg << ": "
 		        << token_type_str(token.type);
 		this->msg = builder.str();
 	}
-
+	else {
+		this->msg = msg;
+	}
+}
 
 } // namespace nyan

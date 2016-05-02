@@ -1,19 +1,30 @@
 # test nyan file
 First():
-    member = value
+    member : int = 1
+
 Second():
     pass
 
-Test():
-    member : int = 1337
-    lol += 42
-    stuff : NyanObject
+Test(First):
+    member += 1337
+    stuff : Second
     gschicht : int
 
-Patch<Test, More, Stuff>[+lol,  + gschicht, + dafuq ](asdf, ie):
-    ie : gschicht
-    stuff = 10
-    wtf |= 13374242
+Patch<Test, Second>():
+    ie : Second
+    stuff : int = 10
+    wtf : float = 13374242.0
 
-Anothertest(Patch, Test, something):
-    ie = lol
+PatchPatch<Patch>():
+    stuff += 15
+
+
+# unit example
+Unit():
+    hp : int = 0
+
+Villager(Unit):
+    hp += 20
+
+Patch<Unit>():
+    hp += 10

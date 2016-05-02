@@ -12,6 +12,12 @@
 
 namespace nyan {
 
+NyanObject::NyanObject(const NyanLocation &location, NyanStore *store)
+	:
+	location{location},
+	store{store} {}
+
+
 const std::string &NyanObject::get_name() const {
 	return this->name;
 }
@@ -22,35 +28,28 @@ bool NyanObject::is_registered() const {
 }
 
 
-const NyanValue *NyanObject::get(const std::string &member) {
-	auto it = this->members.find(member);
-	if (it == std::end(this->members)) {
-		std::ostringstream builder;
-		builder << "Could not find member '" << member
-		        << "' in object '" << this->get_name() << "'" << std::endl;
-		throw NameError{builder.str()};
-	}
+const NyanValue &NyanObject::get(const std::string &member) {
+	NyanMember *obj_member = this->get_member(member);
 
 	// first, try the cache lookup.
-	NyanValue *cached = it->second->cache_get();
+	const NyanValue *cached = obj_member->cache_get();
 	if (cached != nullptr) {
-		return cached;
+		return *cached;
 	}
 
 	// first, find origin of the member.
 	// linearize the parent classes.
-	std::unordered_set<NyanObject *> seen;
-	auto &linearization = this->linearize(seen);
+	auto &linearization = this->linearize();
 
 	// find the last value assigning with =
 	// it sets the base value where we apply the modifications then
 	size_t defined_by = 0;
-	NyanValue *base_value = nullptr;
-	for (const NyanObject *obj : linearization) {
+	const NyanValue *base_value = nullptr;
+	for (NyanObject *obj : linearization) {
 		NyanMember *obj_member = obj->get_member(member);
 		if (obj_member != nullptr) {
 			if (obj_member->get_operation() == nyan_op::ASSIGN) {
-				base_value = obj_member->get();
+				base_value = obj_member->get_value();
 				break;
 			}
 		}
@@ -65,7 +64,7 @@ const NyanValue *NyanObject::get(const std::string &member) {
 
 	// if this object defines the value, return it directly.
 	if (defined_by == 0) {
-		return base_value;
+		return *base_value;
 	}
 
 	// create a "working copy" of the value
@@ -74,7 +73,7 @@ const NyanValue *NyanObject::get(const std::string &member) {
 
 	// Walk back and apply the value changes.
 	while (true) {
-		NyanMember *change = linearization[defined_by]->get_member(member);
+		NyanMember *change = linearization[defined_by]->get_member_ptr(member);
 		if (change != nullptr) {
 			result->apply(change);
 		}
@@ -84,19 +83,74 @@ const NyanValue *NyanObject::get(const std::string &member) {
 		defined_by -= 1;
 	}
 
-	// Save result to cache.
-	NyanValue *result_ptr = result.get();
-	it->second->cache_save(std::move(result));
+	// Remember the data ptr.
+	const NyanValue &result_ref = *result.get();
 
-	// and return the ptr.
-	return result_ptr;
+	// Move result to cache,
+	obj_member->cache_save(std::move(result));
+
+	// and return the reference.
+	return result_ref;
 }
 
 
-NyanMember *NyanObject::get_member(const std::string &member) const {
+/*
+ * determine the type of a member.
+ * look at the parents and get the member there.
+ * if they don't have it, return nullptr.
+ */
+NyanType *NyanObject::infer_type(const std::string &member) {
+	// test if the member is already declared in this object
+	NyanMember *obj_member = this->get_member_ptr(member);
+	if (obj_member != nullptr) {
+		// this object has this member.
+		return obj_member->get_type();
+	}
+
+	// this object doesn't have the member.
+	// determine the type from its parents.
+	auto &linearization = this->linearize();
+
+	// assumption: all parents must be valid objects.
+	// walk over the parents to find the latest type specialization
+	for (NyanObject *obj : linearization) {
+		NyanMember *member_ptr = obj->get_member_ptr(member);
+
+		// parent has the member, it has to be valid
+		// because of the assumption
+		// and the linearization fixes the multi inheritance.
+		if (member_ptr != nullptr) {
+			return member_ptr->get_type();
+		}
+	}
+
+	return nullptr;
+}
+
+
+const NyanType &NyanObject::get_type(const std::string &member) {
+	return *this->get_member(member)->get_type();
+}
+
+
+NyanMember *NyanObject::get_member(const std::string &member) {
+	NyanMember *ret = this->get_member_ptr(member);
+
+	if (ret == nullptr) {
+		std::ostringstream builder;
+		builder << "Could not find member '" << member
+		        << "' in object '" << this->get_name() << "'" << std::endl;
+		throw NameError{this->location, builder.str()};
+	}
+
+	return ret;
+}
+
+
+NyanMember *NyanObject::get_member_ptr(const std::string &member) {
 	auto it = this->members.find(member);
 	if (it != std::end(this->members)) {
-		return it->second.get();
+		return &it->second;
 	}
 	else {
 		return nullptr;
@@ -109,17 +163,51 @@ bool NyanObject::has(const std::string &member) const {
 }
 
 
+bool NyanObject::is_child_of(const NyanObject *parent) {
+	if (this == parent) {
+		return true;
+	}
+
+	auto &linearization = this->linearize();
+
+	for (const NyanObject *obj : linearization) {
+		if (parent == obj) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
 void NyanObject::patch(const NyanObject *top) {
-	if (not top->has("__patch__")) {
-		throw TypeError{"patch object doesn't have __patch__ member"};
+	if (not top->is_patch()) {
+		// TODO: also display the `top` location.
+		throw TypeError{
+			this->location,
+			"provided patch doesn't specify <target> "
+			"(or has __patch__) member"
+		};
 	}
 	// TODO: verify if we're in the patch target set
 	this->apply_value(top, nyan_op::INVALID);
 }
 
 
+bool NyanObject::is_patch() const {
+	return this->has("__patch__");
+}
+
+
 void NyanObject::apply_value(const NyanValue *value, nyan_op operation) {
-	throw NyanError{"TODO: implement"};
+	const NyanObject *change = dynamic_cast<const NyanObject *>(value);
+
+	switch (operation) {
+	case nyan_op::PATCH:
+		this->patch(change);
+
+	default:
+		throw NyanError{"unknown operation requested"};
+	}
 }
 
 
@@ -139,6 +227,21 @@ bool NyanObject::equals(const NyanValue &other) const {
 }
 
 
+const std::unordered_set<nyan_op> &NyanObject::allowed_operations() const {
+	const static std::unordered_set<nyan_op> ops{
+		nyan_op::ASSIGN,
+	};
+
+	return ops;
+}
+
+
+std::vector<NyanObject *> &NyanObject::linearize() {
+	std::unordered_set<NyanObject *> seen;
+	return this->linearize_walk(seen);
+}
+
+
 /*
  * c3 linearization of cls(a, b, ...):
  * c3(cls) = [cls] + merge(c3(a), c3(b), ..., [a, b, ...])
@@ -150,7 +253,7 @@ bool NyanObject::equals(const NyanValue &other) const {
  * if all heads of the lists appear somewhere in a tail,
  * no linearization exists.
  */
-std::vector<NyanObject *> &NyanObject::linearize(std::unordered_set<NyanObject *> &seen) {
+std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<NyanObject *> &seen) {
 
 	if (not this->is_registered()) {
 		// Can't linearize because we store the result in the cache.
@@ -179,7 +282,7 @@ std::vector<NyanObject *> &NyanObject::linearize(std::unordered_set<NyanObject *
 	std::vector<std::vector<NyanObject *>> par_linearizations;
 	for (auto &parent : this->parents) {
 		// Recursive call to get the linearization of the parent
-		par_linearizations.push_back(parent->linearize(seen));
+		par_linearizations.push_back(parent->linearize_walk(seen));
 	}
 
 	// Add the list of parents to the lists to merge

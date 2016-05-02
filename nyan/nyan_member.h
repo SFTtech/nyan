@@ -6,8 +6,12 @@
 #include <string>
 #include <unordered_set>
 
+#include "nyan_location.h"
 #include "nyan_ops.h"
+#include "nyan_type.h"
+#include "nyan_type_container.h"
 #include "nyan_value.h"
+#include "nyan_value_container.h"
 
 namespace nyan {
 
@@ -19,55 +23,107 @@ class NyanObject;
  */
 class NyanMember {
 public:
-	NyanMember();
+	/**
+	 * Member without value.
+	 */
+	NyanMember(NyanTypeContainer &&type, const NyanLocation &location);
+
+	/**
+	 * Member with value.
+	 */
+	NyanMember(NyanTypeContainer &&type, nyan_op operation,
+	           NyanValueContainer &&value, const NyanLocation &location);
+
+	NyanMember(NyanMember &&other);
+	const NyanMember &operator =(NyanMember &&other);
+
+	NyanMember(const NyanMember &other) = delete;
+	const NyanMember &operator =(const NyanMember &other) = delete;
+
 	virtual ~NyanMember() = default;
 
-	std::string str();
-	virtual NyanValue *get() const = 0;
+	/**
+	 * String representation of this member.
+	 */
+	std::string str() const;
 
+	/**
+	 * Return the value of this member.
+	 * @returns nullptr if there is no value yet.
+	 */
+	NyanValue *get_value() const;
+
+	/**
+	 * Replace the value of this member.
+	 */
+	void set_value(NyanValueContainer &&val);
+
+	/**
+	 * Replace the value of this member within the container.
+	 */
+	void set_value(std::unique_ptr<NyanValue> &&val);
+
+	/**
+	 * Return the type of this member.
+	 */
+	NyanType *get_type() const;
+
+	/**
+	 * Provide the operation stored in the member.
+	 */
 	nyan_op get_operation() const;
 
+	/**
+	 * Save a previous result of `get_value` to bypass calculation
+	 * next time.
+	 */
 	void cache_save(std::unique_ptr<NyanValue> &&value);
+
+	/**
+	 * Return the content of the value calculation cache.
+	 * nullptr if the cache is empty.
+	 */
 	NyanValue *cache_get() const;
+
+	/**
+	 * Clear the value calculation cache.
+	 */
 	void cache_reset();
 
+	/**
+	 * Get the location where this member was defined.
+	 */
+	const NyanLocation &get_location() const;
+
 protected:
+	/**
+	 * The type of this member.
+	 * Either, this member defines the type, or it points
+	 * to the definition at another member.
+	 */
+	NyanTypeContainer type;
+
+	/**
+	 * operation specified for this member.
+	 */
 	nyan_op operation;
 
+	/**
+	 * Value to cache the calculation result.
+	 * It stores the result of the application of all operations on
+	 * the inheritance tree.
+	 */
 	std::unique_ptr<NyanValue> cached_value;
-};
-
-
-/**
- * Member to store a nyan value as owned pointer.
- */
-class NyanOwningMember : public NyanMember {
-public:
-	NyanOwningMember(std::unique_ptr<NyanValue> &&value=nullptr);
 
 	/**
-	 * Return the pointer to the contained value.
+	 * Value of just this member.
 	 */
-	NyanValue *get() const override;
-
-protected:
-	std::unique_ptr<NyanValue> value;
-};
-
-/**
- * Member to store a value owned elsewhere.
- */
-class NyanPtrMember : public NyanMember {
-public:
-	NyanPtrMember(NyanValue *value=nullptr);
+	NyanValueContainer value;
 
 	/**
-	 * Return the contained NyanObject pointer.
+	 * Location where this member was defined.
 	 */
-	NyanValue *get() const override;
-
-protected:
-	NyanValue *value;
+	NyanLocation location;
 };
 
 

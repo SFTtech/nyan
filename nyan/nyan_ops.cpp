@@ -21,6 +21,7 @@ nyan_op op_from_string(const std::string &str) {
 		{"/=", nyan_op::DIVIDE_ASSIGN},
 		{"|=", nyan_op::UNION_ASSIGN},
 		{"&=", nyan_op::INTERSECT_ASSIGN},
+		{"@=", nyan_op::PATCH},
 	};
 
 	auto it = str_to_op.find(str);
@@ -32,37 +33,21 @@ nyan_op op_from_string(const std::string &str) {
 	}
 }
 
-const char *op_to_string(nyan_op op) {
-	// fak you c++. somebody please find a sane way to purge the redundancy.
-	switch (op) {
-	case nyan_op::ASSIGN:             return "=";
-	case nyan_op::ADD:                return "+";
-	case nyan_op::SUBTRACT:           return "-";
-	case nyan_op::MULTIPLY:           return "*";
-	case nyan_op::DIVIDE:             return "/";
-	case nyan_op::ADD_ASSIGN:         return "+=";
-	case nyan_op::SUBTRACT_ASSIGN:    return "-=";
-	case nyan_op::MULTIPLY_ASSIGN:    return "*=";
-	case nyan_op::DIVIDE_ASSIGN:      return "/=";
-	case nyan_op::UNION_ASSIGN:       return "|=";
-	case nyan_op::INTERSECT_ASSIGN:   return "&=";
-	case nyan_op::INVALID:            return "=INVALID=";
-	}
-}
-
 
 nyan_op op_from_token(const NyanToken &token) {
 	if (token.type == token_type::OPERATOR) {
-		return op_from_string(token.value);
+		return op_from_string(token.get());
 	}
 	else {
 		throw ASTError("expected operator, but got", token);
 	}
 }
 
+
 NyanOperator::NyanOperator(const NyanToken &token)
 	:
 	op{op_from_token(token)} {}
+
 
 const nyan_op &NyanOperator::get() {
 	return this->op;

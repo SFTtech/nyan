@@ -2,6 +2,7 @@
 #ifndef NYAN_UTIL_H_
 #define NYAN_UTIL_H_
 
+#include <functional>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -18,19 +19,42 @@
 
 namespace nyan {
 namespace util {
+
+/**
+ * Determine the size of a file.
+ */
+size_t file_size(const std::string &filename);
+
 /**
  * Read a file from the filesystem and return the contents.
+ * Optionally, open it in binary mode, which will leave newlines untouched.
  */
-std::string read_file(const std::string &filename);
+std::string read_file(const std::string &filename, bool binary=false);
+
+
+/**
+ * Demangles a symbol name.
+ *
+ * On failure, the mangled symbol name is returned.
+ */
+std::string demangle(const char *symbol);
+
+/**
+ * Return the demangled symbol name for a given code address.
+ */
+std::string symbol_name(const void *addr, bool require_exact_addr=true, bool no_pure_addrs=false);
 
 
 /**
  * Just like python's "delim".join(container)
+ * func is a function to extract the string
+ * from each element of the container.
  * Fak u C++.
  */
 template <typename T>
 std::string strjoin(const std::string &delim,
-                    const std::vector<T> &container) {
+                    const std::vector<T> &container,
+                    const std::function<std::string(const T &)> func=[](const auto in) {return in;}) {
 
 	std::ostringstream builder;
 
@@ -39,7 +63,8 @@ std::string strjoin(const std::string &delim,
 		if (cnt > 0) {
 			builder << delim;
 		}
-		builder << entry;
+
+		builder << func(entry);
 		cnt += 1;
 	}
 
@@ -57,27 +82,43 @@ public:
 	Iterator(const containerT &container)
 		:
 		container{container},
-		idx{0} {}
+		iter{std::begin(container)},
+		reinserted{nullptr} {}
 
 	virtual ~Iterator() = default;
 
 	const containerT &container;
-	size_t idx;
+	const std::string source;
+	typename containerT::const_iterator iter;
+	const T *reinserted;
 
 	const T *next() {
-		if (not this->full()) {
-			throw ParserError("reached end of file");
+		if (this->reinserted != nullptr) {
+			const T *ret = this->reinserted;
+			this->reinserted = nullptr;
+			return ret;
 		}
-		return &this->container[this->idx++];
-	}
-	const T *preview() {
+
 		if (not this->full()) {
-			throw ParserError("can't look ahead: reached end of file");
+			throw NyanError{"requested item from empty list"};
 		}
-		return &this->container[this->idx];
+
+		auto ret = &(*this->iter);
+		this->iter = std::next(this->iter);
+		return ret;
 	}
-	bool full() const { return this->idx < this->container.size(); }
-	bool empty() const { return not this->full(); }
+
+	bool full() const {
+		return this->iter != std::end(this->container);
+	}
+
+	bool empty() const {
+		return not this->full();
+	}
+
+	void reinsert(const T *item) {
+		this->reinserted = item;
+	}
 };
 
 } // namespace util

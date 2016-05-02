@@ -2,13 +2,22 @@
 
 #include "nyan_lexer.h"
 
+#include <sstream>
+
+#include "nyan_file.h"
+
 namespace nyan {
 
-NyanLexer::NyanLexer(std::istream *input)
+NyanLexer::NyanLexer(const NyanFile &file)
 	:
-	NyanFlexLexer(input),
+	NyanFlexLexer{},
+	file{file},
+	input{file.get()},
 	linepos{linepos_start},
 	finished{false} {
+
+	// set the input stream in the flex class
+	this->switch_streams(&this->input, nullptr);
 
 	// The base indentation is zero of course.
 	this->indent_stack.push_back(0);
@@ -39,12 +48,23 @@ NyanToken NyanLexer::get_next_token() {
  * Fetch the current lexer state variables and create a token.
  */
 void NyanLexer::token(token_type type) {
-	this->tokens.push(NyanToken{
-		this->yylineno,
-		this->linepos - this->yyleng,
-		type,
-		this->yytext
-	});
+	if (token_needs_payload(type)) {
+		this->tokens.push(NyanToken{
+			this->file,
+			this->yylineno,
+			this->linepos - this->yyleng,
+			type,
+			this->yytext
+		});
+	}
+	else {
+		this->tokens.push(NyanToken{
+			this->file,
+			this->yylineno,
+			this->linepos - this->yyleng,
+			type
+		});
+	}
 }
 
 /*
@@ -52,9 +72,12 @@ void NyanLexer::token(token_type type) {
  */
 TokenizeError NyanLexer::error(const std::string &msg) {
 	return TokenizeError{
-		msg,
-		this->yylineno,
-		this->linepos - this->yyleng
+		NyanLocation{
+			this->file,
+			this->yylineno,
+			this->linepos - this->yyleng
+		},
+		msg
 	};
 }
 
@@ -123,5 +146,11 @@ int NyanLexer::handle_indent(const char *line) {
 
 	return depth - last_depth;
 }
+
+
+LexerError::LexerError(const NyanLocation &location,
+                       const std::string &msg)
+	:
+	NyanFileError{location, msg} {}
 
 } // namespace nyan

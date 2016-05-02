@@ -23,8 +23,8 @@ public:
 	NyanStore();
 	virtual ~NyanStore() = default;
 
-	void add(NyanObject obj);
-	NyanObject *get(const std::string &name);
+	NyanObject *add(std::unique_ptr<NyanObject> &&obj);
+	NyanObject *get(const std::string &name) const;
 
 protected:
 	// TODO: caching for:

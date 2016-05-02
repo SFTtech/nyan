@@ -7,19 +7,23 @@
 #include <unordered_map>
 #include <vector>
 
+#include "nyan_location.h"
 #include "nyan_member.h"
 #include "nyan_value.h"
 
 namespace nyan {
 
+class NyanParser;
 class NyanStore;
 
 /**
  * Data definition with members and inheritance.
  */
 class NyanObject : public NyanValue {
+	friend class NyanParser;
+
 public:
-	NyanObject(NyanStore *store=nullptr);
+	NyanObject(const NyanLocation &location, NyanStore *store=nullptr);
 	virtual ~NyanObject() = default;
 
 	/**
@@ -33,16 +37,20 @@ public:
 	const std::string &get_name() const;
 
 	/**
-	 * Get a member value of this object.
+	 * Get a member of this object.
+	 * throws NameError if the member doesn't exist.
 	 */
-	virtual const NyanValue *get(const std::string &member);
+	NyanMember *get_member(const std::string &member);
 
 	/**
-	 * Get the member entry of this object.
-	 *
-	 * Returns nullptr if the member was not found.
+	 * Get a member value of this object.
 	 */
-	virtual NyanMember *get_member(const std::string &member) const;
+	virtual const NyanValue &get(const std::string &member);
+
+	/**
+	 * Get the type of some member.
+	 */
+	virtual const NyanType &get_type(const std::string &member);
 
 	/**
 	 * Test if this object has a member of given name.
@@ -50,9 +58,20 @@ public:
 	virtual bool has(const std::string &member) const;
 
 	/**
+	 * Test if this object is a child of the given parent.
+	 * Returns true if parent equals this object.
+	 */
+	virtual bool is_child_of(const NyanObject *parent);
+
+	/**
 	 * Patch this object with a patch object.
 	 */
 	void patch(const NyanObject *top);
+
+	/**
+	 * Check if this object is a patch.
+	 */
+	bool is_patch() const;
 
 	/**
 	 * Return a copy of this NyanObject.
@@ -74,10 +93,10 @@ public:
 	NyanObject bake(const std::string &new_name) const;
 
 	/**
-	 * Implements the C3 multi inheritance linearization algorithm
-	 * to bring the parents of this object into the "right" order.
+	 * Invokes the C3 multi inheritance linearization to determine
+	 * the "right" parent order.
 	 */
-	std::vector<NyanObject *> &linearize(std::unordered_set<NyanObject *> &seen);
+	std::vector<NyanObject *> &linearize();
 
 	/**
 	 * Return a string representation of this object.
@@ -92,6 +111,26 @@ public:
 
 protected:
 	/**
+	 * Implements the C3 multi inheritance linearization algorithm
+	 * to bring the parents of this object into the "right" order.
+	 */
+	std::vector<NyanObject *> &linearize_walk(std::unordered_set<NyanObject *> &seen);
+
+	/**
+	 * Get the member entry of this object.
+	 *
+	 * @returns nullptr if the member was not found.
+	 */
+	virtual NyanMember *get_member_ptr(const std::string &member);
+
+	/**
+	 * Determine the most specialized type as set by parents for the
+	 * given member name.
+	 * @returns nullptr if it could not be inferred
+	 */
+	NyanType *infer_type(const std::string &member);
+
+	/**
 	 * Apply changes in an NyanObject to this NyanObject.
 	 * This basically updates the values and may add members.
 	 * This does the real patching work.
@@ -102,6 +141,16 @@ protected:
 	 * Comparison for two NyanObjects.
 	 */
 	bool equals(const NyanValue &other) const override;
+
+	/**
+	 * Allowed operations for a NyanObject.
+	 */
+	const std::unordered_set<nyan_op> &allowed_operations() const override;
+
+	/**
+	 * Where this object was created.
+	 */
+	NyanLocation location;
 
 	/**
 	 * The name of this NyanObject.
@@ -118,7 +167,7 @@ protected:
 	 * This is the main key->value store.
 	 * Soooo much daaataaaa!
 	 */
-	std::unordered_map<std::string, std::unique_ptr<NyanMember>> members;
+	std::unordered_map<std::string, NyanMember> members;
 
 	/**
 	 * The storage this object is associated to.

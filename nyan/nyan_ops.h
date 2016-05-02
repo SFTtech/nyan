@@ -14,18 +14,19 @@ class NyanToken;
  * Operation identifiers for all builtin member types
  */
 enum class nyan_op {
-	ASSIGN,
 	ADD,
-	SUBTRACT,
-	MULTIPLY,
-	DIVIDE,
 	ADD_ASSIGN,
-	SUBTRACT_ASSIGN,
-	MULTIPLY_ASSIGN,
+	ASSIGN,
+	DIVIDE,
 	DIVIDE_ASSIGN,
-	UNION_ASSIGN,
 	INTERSECT_ASSIGN,
 	INVALID,
+	MULTIPLY,
+	MULTIPLY_ASSIGN,
+	PATCH,
+	SUBTRACT,
+	SUBTRACT_ASSIGN,
+	UNION_ASSIGN,
 };
 
 /**
@@ -35,9 +36,26 @@ nyan_op op_from_string(const std::string &str);
 
 
 /**
- * Return the string representation of
+ * Return the string representation of a nyan operator.
  */
-const char *op_to_string(nyan_op op);
+constexpr const char *op_to_string(nyan_op op) {
+	switch (op) {
+	case nyan_op::ADD:                return "+";
+	case nyan_op::ADD_ASSIGN:         return "+=";
+	case nyan_op::ASSIGN:             return "=";
+	case nyan_op::DIVIDE:             return "/";
+	case nyan_op::DIVIDE_ASSIGN:      return "/=";
+	case nyan_op::INTERSECT_ASSIGN:   return "&=";
+	case nyan_op::INVALID:            return "=INVALID=";
+	case nyan_op::MULTIPLY:           return "*";
+	case nyan_op::MULTIPLY_ASSIGN:    return "*=";
+	case nyan_op::PATCH:              return "@=";
+	case nyan_op::SUBTRACT:           return "-";
+	case nyan_op::SUBTRACT_ASSIGN:    return "-=";
+	case nyan_op::UNION_ASSIGN:       return "|=";
+	}
+	return "unhandled nyan_op";
+}
 
 
 /**

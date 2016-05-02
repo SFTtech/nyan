@@ -2,17 +2,21 @@
 #ifndef NYAN_NYAN_VALUE_H_
 #define NYAN_NYAN_VALUE_H_
 
+#include <cstdint>
 #include <list>
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "nyan_ops.h"
+#include "nyan_type.h"
 
 namespace nyan {
 
 class NyanObject;
 class NyanMember;
+class NyanValueContainer;
 
 
 /**
@@ -31,9 +35,8 @@ public:
 	/**
 	 * Apply the given change to this value.
 	 * The operation and value are applied.
-	 * @returns if the parent values were already included because of caching
 	 */
-	bool apply(const NyanMember *change);
+	void apply(const NyanMember *change);
 
 	/**
 	 * Sting representation of the value.
@@ -73,8 +76,22 @@ protected:
 	/**
 	 * Allowed operations for this value type.
 	 */
-	std::unordered_set<nyan_op> operations;
+	virtual const std::unordered_set<nyan_op> &allowed_operations() const = 0;
 };
+
+
+/**
+ * NyanValue that can store other NyanValues.
+ */
+class NyanContainer : public NyanValue {
+public:
+	virtual bool contains(const NyanValue &value) = 0;
+
+	virtual void add(NyanValueContainer &&value) = 0;
+	virtual void add(const NyanValueContainer &value) = 0;
+	virtual void remove(const NyanValueContainer &value) = 0;
+};
+
 
 } // namespace nyan
 
@@ -91,46 +108,5 @@ struct hash<nyan::NyanValue *> {
 };
 
 } // namespace std
-
-namespace nyan {
-
-
-/**
- * Nyan value to store text.
- */
-class NyanText : public NyanValue {
-public:
-	NyanText(const std::string &value);
-
-	std::unique_ptr<NyanValue> copy() const override;
-	std::string str() const override;
-	size_t hash() const override;
-
-protected:
-	void apply_value(const NyanValue *value, nyan_op operation) override;
-	bool equals(const NyanValue &other) const override;
-	std::string value;
-};
-
-
-/**
- * Nyan value to store a number.
- */
-class NyanInt : public NyanValue {
-public:
-	NyanInt(int64_t value);
-
-	std::unique_ptr<NyanValue> copy() const override;
-	std::string str() const override;
-	size_t hash() const override;
-
-protected:
-	void apply_value(const NyanValue *value, nyan_op operation) override;
-	bool equals(const NyanValue &other) const override;
-	int64_t value;
-};
-
-
-} // namespace nyan
 
 #endif

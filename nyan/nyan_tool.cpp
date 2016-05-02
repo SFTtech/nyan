@@ -14,16 +14,16 @@
 
 namespace nyan {
 
-void test_parser(const std::string &data) {
+void test_parser(const NyanFile &file) {
 	NyanStore store;
 
 	NyanParser parser(&store);
-	std::vector<NyanObject> objs = parser.parse(data);
+	std::vector<NyanObject *> objs = parser.parse(file);
 
 	size_t i = 0;
 	for (auto &obj : objs) {
 		std::cout << "object " << i << " :" << std::endl;
-		std::cout << obj.str() << std::endl;
+		std::cout << obj->str() << std::endl;
 		i += 1;
 	}
 }
@@ -32,22 +32,22 @@ int run(flags_t flags, params_t params) {
 	try {
 		if (flags[option_flag::TEST_PARSER]) {
 			const std::string &filename = params[option_param::FILE];
-			std::string content = util::read_file(filename);
+			NyanFile input{filename};
 
-			nyan::test_parser(content);
+			nyan::test_parser(input);
 		} else {
 			std::cout << "no action selected" << std::endl << std::endl;
 			help();
 		}
 	}
-	catch (ParserError &err) {
-		std::cout << "\x1b[33;1mparser error:\x1b[m\n"
-		          << err.str() << std::endl;
+	catch (NyanFileError &err) {
+		std::cout << "\x1b[33;1mfile error:\x1b[m\n"
+		          << err << std::endl;
 		return 1;
 	}
 	catch (NyanError &err) {
 		std::cout << "\x1b[31;1merror:\x1b[m\n"
-		          << err.str() << std::endl;
+		          << err << std::endl;
 		return 1;
 	}
 	return 0;

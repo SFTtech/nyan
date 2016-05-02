@@ -2,4 +2,4 @@
 
 set -e
 
-autoreconf --install
+autoreconf --install --symlink

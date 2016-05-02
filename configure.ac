@@ -14,6 +14,10 @@ AC_CONFIG_MACRO_DIRS([m4])
 
 LT_INIT
 
+AC_CHECK_LIB([c], [dladdr], LIBDL_LDFLAGS="",
+             [AC_CHECK_LIB([dl], [dladdr], LIBDL_LDFLAGS="-ldl")])
+AC_SUBST(LIBDL_LDFLAGS)
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile
                  nyan/Makefile])

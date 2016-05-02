@@ -155,11 +155,15 @@ PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
 * A member can never be defined if it was not declared
 * A *NyanObject* is "abstract" iff it contains at least one undefined member
 * A *NyanObject* member **type** can never be changed once declared
+* The parents of a *NyanObject* are stored in a member
+  `__parents__ : orderedset(NyanObject)`
+  * Getting this member will provide the inheritance linearization
 
 * It is a patch iff `<Target>` is written in the definition or the object
   has a member `__patch__ : orderedset(NyanObject)`
-  * A patch can have member `__parentadd__ : orderedset(NyanObject)`
-  * It is used to add new objects the target should inherit from
+  * A patch can have member `__parents_add__ : orderedset(NyanObject)`
+  * It is used to add new objects the target should inherit from when the
+    patch is applied
   * This can be used to inject a "middle object" in between two inheriting
     objects, because the multi inheritance linearization resolves the order
     * Imagine something like `TentacleMonster -> Unit`
@@ -302,7 +306,7 @@ the calculation is done like this:
     - `int`:      `1337`           - (some number)
     - `float`:    `42.235`, `inf`  - (some floating point number)
     - `bool`:     `True`, `False`  - (some boolean value)
-    - `file`:     `file("./name")` - (some filename,
+    - `file`:     `"./name" `      - (some filename,
                                       relative to the directory
                                       the defining nyan file is located at)
   * ordered set of elements of a type: `orderedset(type)`
@@ -324,17 +328,21 @@ the calculation is done like this:
 * Many other operators are defined on the primitive types
   * `text`: `=`, `+=`
   * `int` and `float`: `=`, `+=`, `*=`, `-=`, `/=`
+  * `bool`: `=`, `&=`, `|=`
+  * `file`:`= "./delicious_cake.png"`
   * `set(type)`:
     * assignment: `= {value, value, ...}`
     * union: ` += {..}, |= {..}` -> add objects to set
     * subtract: `-= {..}` -> remove those objects
-    * difference: `&= {..}` -> keep only objects element of both
+    * intersection: `&= {..}` -> keep only objects element of both
   * `orderedset(type)`:
     * assignment: `= <value, value, ...>`
     * append: `+= <..>` -> add objects to the end if not existing
     * subtract: `-= {..}` -> remove those objects
-    * difference: `&= {..}` -> keep only objects element of both
-  * No operator is defined on a *NyanObject* member, except `=` of course
+    * intersection: `&= {..}` -> keep only objects element of both
+  * *NyanObject* member:
+    * `=` set the reference to some other *NyanObject*
+    * `@=` patch the *NyanObject* member with a compatible patch
 
 
 ### Namespaces and imports
