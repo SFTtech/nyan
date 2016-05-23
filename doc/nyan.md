@@ -83,21 +83,20 @@ Concept:
   * *NyanObject*s remain abstract until all members have values
   * There exists no order of members
 * **NyanPatch**: is a *NyanObject* and denominates a patch
-  * A *NyanPatch* has a member named `__patch__`
-  * A patch is created for one or more *NyanObject*s
+  * It is created for exactly one *NyanObject*,
+    stored in a member named `__patch__`
   * Can modify **member values** of the assigned *NyanObject*
-  * Can modify the **inheritance orderedset** of a *NyanObject* by adding
-    and removing elements
-  * They can add new members, but not remove them
+  * Can add **inheritance** parents of the target *NyanObject*
+  * Can add new members, but not remove them
 * A *NyanObject* can inherit from an ordered set of *NyanObject*s
-  (-> from a *NyanPatch* as well).
+  (-> from a *NyanPatch* as well)
   * Members of parent objects are inherited
   * When inheriting, existing values can be modified by operators
     defined for the member type
   * Member values are calculated accross the inheritance upwards
-    * This allows a parent object patch to impact all children
+    * That way, patching a parent object impacts all children
     * When a value from a *NyanObject* is retrieved,
-      walk up every time and sum up the value.
+      walk up every time and sum up the value
   * If there is a member name clash, there can be two reasons for it
     * The member originates from a common base object (aka the [diamond problem](https://en.wikipedia.org/wiki/Multiple_inheritance#The_diamond_problem))
       * We use [C3 linearization](https://en.wikipedia.org/wiki/C3_linearization) to determine the calculation order
@@ -160,8 +159,11 @@ PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
   * Getting this member will provide the inheritance linearization
 
 * It is a patch iff `<Target>` is written in the definition or the object
-  has a member `__patch__ : orderedset(NyanObject)`
-  * A patch can have member `__parents_add__ : orderedset(NyanObject)`
+  has a member `__patch__ : NyanObject`
+  * The patch can only be applied for the specified object or
+    any child of it
+  * A patch can have member `__parents_add__ : orderedset(NyanObject)`,
+    the `[+AdditionalParent, ...]` syntax constructs it
   * It is used to add new objects the target should inherit from when the
     patch is applied
   * This can be used to inject a "middle object" in between two inheriting
@@ -172,12 +174,12 @@ PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
     * What we next is patch `TentacleMonster -> Unit, MonsterBase` with `+`
     * The linearization will result in `TentacleMonster -> MonsterBase -> Unit`
 * The patch will fail to be loaded if:
-  * Any of the patch targets is now known
-  * Any of changed members is not present in all the patch targets
+  * The patch target is not known
+  * Any of changed members is not present in the patch target
   * Any of the added parents is not known
   * -> Blind patching is not allowed
 * The patch will succeed to load if:
-  * Any patch target already has the parent to be added
+  * The patch target already inherits from a parent to be added
   * -> Inheritance patching doesn't conflict with other patches
 
 
@@ -229,7 +231,7 @@ LOLWhat(A, B, C):
     # A and B both declare `otherentry` independently
     # C declares `entry` and `otherentry` independently
     # LOLWhat now inherits from all, so it has
-    # * `entry` from Top
+    # * `entry` from Top or through A or B
     # * `entry` from C
     # * `otherentry` from A
     # * `otherentry` from B
@@ -237,7 +239,7 @@ LOLWhat(A, B, C):
     # ->
     # to access any of those, the name must be qualified:
 
-    A.entry += 1     # or B.entry is the same!
+    A.entry += 1     # or B.entry/Top.entry is the same!
     C.entry += 1
     A.otherentry += 1
     B.otherentry += 1
@@ -255,11 +257,13 @@ OHNoes(LOLWhat):
 The detection of the qualification requirement works as follows:
 
 * The inheritance list of `LOLWhat` determined by `C3` is `[A, B, Top, C]`
-* When the `LOLWhat` `C.entry` value is requested, that list is walked
+* When in `LOLWhat` the `C.entry` value is requested, that list is walked
   through until a value declaration for each member was found:
   * `A` declares `otherentry` and `specialentry`, it changes `entry`
   * `B` declares `otherentry` and changes `entry`
     * Here, nyan detects that `otherentry` was declared twice
+    * If it was defined without declaration, it errors because no parent
+      declared `otherentry`
     * The use of `otherentry` is therefore enforced to be qualified
   * `Top` declares `entry`
   * `C` declares `entry` and `otherentry`
