@@ -29,7 +29,7 @@ bool NyanObject::is_registered() const {
 
 
 const NyanValue &NyanObject::get(const std::string &member) {
-	NyanMember *obj_member = this->get_member(member);
+	NyanMember *obj_member = this->get_member_ptr_rw(member);
 
 	// first, try the cache lookup.
 	const NyanValue *cached = obj_member->cache_get();
@@ -39,17 +39,17 @@ const NyanValue &NyanObject::get(const std::string &member) {
 
 	// first, find origin of the member.
 	// linearize the parent classes.
-	auto &linearization = this->linearize();
+	auto &linearization = this->get_linearization();
 
 	// find the last value assigning with =
 	// it sets the base value where we apply the modifications then
 	size_t defined_by = 0;
 	const NyanValue *base_value = nullptr;
 	for (NyanObject *obj : linearization) {
-		NyanMember *obj_member = obj->get_member(member);
+		const NyanMember *obj_member = obj->get_member(member);
 		if (obj_member != nullptr) {
 			if (obj_member->get_operation() == nyan_op::ASSIGN) {
-				base_value = obj_member->get_value();
+				base_value = obj_member->get_value_ptr();
 				break;
 			}
 		}
@@ -57,6 +57,7 @@ const NyanValue &NyanObject::get(const std::string &member) {
 	}
 
 	// no operator = was found for this member
+	// -> no parent assigned a value.
 	// TODO: detect this at load time!
 	if (defined_by >= linearization.size()) {
 		throw NyanError{"no operator = found for member"};
@@ -73,7 +74,7 @@ const NyanValue &NyanObject::get(const std::string &member) {
 
 	// Walk back and apply the value changes.
 	while (true) {
-		NyanMember *change = linearization[defined_by]->get_member_ptr(member);
+		const NyanMember *change = linearization[defined_by]->get_member_ptr(member);
 		if (change != nullptr) {
 			result->apply(change);
 		}
@@ -99,9 +100,9 @@ const NyanValue &NyanObject::get(const std::string &member) {
  * look at the parents and get the member there.
  * if they don't have it, return nullptr.
  */
-NyanType *NyanObject::infer_type(const std::string &member) {
+NyanType *NyanObject::infer_type(const std::string &member) const {
 	// test if the member is already declared in this object
-	NyanMember *obj_member = this->get_member_ptr(member);
+	const NyanMember *obj_member = this->get_member_ptr(member);
 	if (obj_member != nullptr) {
 		// this object has this member.
 		return obj_member->get_type();
@@ -109,12 +110,12 @@ NyanType *NyanObject::infer_type(const std::string &member) {
 
 	// this object doesn't have the member.
 	// determine the type from its parents.
-	auto &linearization = this->linearize();
+	auto &linearization = this->get_linearization();
 
 	// assumption: all parents must be valid objects.
 	// walk over the parents to find the latest type specialization
 	for (NyanObject *obj : linearization) {
-		NyanMember *member_ptr = obj->get_member_ptr(member);
+		const NyanMember *member_ptr = obj->get_member_ptr(member);
 
 		// parent has the member, it has to be valid
 		// because of the assumption
@@ -128,13 +129,13 @@ NyanType *NyanObject::infer_type(const std::string &member) {
 }
 
 
-const NyanType &NyanObject::get_type(const std::string &member) {
+const NyanType &NyanObject::get_type(const std::string &member) const {
 	return *this->get_member(member)->get_type();
 }
 
 
-NyanMember *NyanObject::get_member(const std::string &member) {
-	NyanMember *ret = this->get_member_ptr(member);
+const NyanMember *NyanObject::get_member(const std::string &member) const {
+	const NyanMember *ret = this->get_member_ptr(member);
 
 	if (ret == nullptr) {
 		std::ostringstream builder;
@@ -147,7 +148,18 @@ NyanMember *NyanObject::get_member(const std::string &member) {
 }
 
 
-NyanMember *NyanObject::get_member_ptr(const std::string &member) {
+const NyanMember *NyanObject::get_member_ptr(const std::string &member) const {
+	auto it = this->members.find(member);
+	if (it != std::end(this->members)) {
+		return &it->second;
+	}
+	else {
+		return nullptr;
+	}
+}
+
+
+NyanMember *NyanObject::get_member_ptr_rw(const std::string &member) {
 	auto it = this->members.find(member);
 	if (it != std::end(this->members)) {
 		return &it->second;
@@ -163,12 +175,12 @@ bool NyanObject::has(const std::string &member) const {
 }
 
 
-bool NyanObject::is_child_of(const NyanObject *parent) {
+bool NyanObject::is_child_of(const NyanObject *parent) const {
 	if (this == parent) {
 		return true;
 	}
 
-	auto &linearization = this->linearize();
+	auto &linearization = this->get_linearization();
 
 	for (const NyanObject *obj : linearization) {
 		if (parent == obj) {
@@ -189,6 +201,7 @@ void NyanObject::patch(const NyanObject *top) {
 		};
 	}
 	// TODO: verify if we're in the patch target set
+	// TODO: recalculate linearization of this object if the parents changed.
 	this->apply_value(top, nyan_op::INVALID);
 }
 
@@ -227,16 +240,28 @@ bool NyanObject::equals(const NyanValue &other) const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanObject::allowed_operations() const {
+const std::unordered_set<nyan_op> &NyanObject::allowed_operations(nyan_type value_type) const {
+
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
+		nyan_op::PATCH,
 	};
 
-	return ops;
+	if (value_type == nyan_type::OBJECT) {
+		return ops;
+	}
+	else {
+		return no_nyan_ops;
+	}
 }
 
 
-std::vector<NyanObject *> &NyanObject::linearize() {
+const std::vector<NyanObject *> &NyanObject::get_linearization() const {
+	return this->linearization;
+}
+
+
+const std::vector<NyanObject *> &NyanObject::generate_linearization() {
 	std::unordered_set<NyanObject *> seen;
 	return this->linearize_walk(seen);
 }
@@ -253,12 +278,7 @@ std::vector<NyanObject *> &NyanObject::linearize() {
  * if all heads of the lists appear somewhere in a tail,
  * no linearization exists.
  */
-std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<NyanObject *> &seen) {
-
-	if (not this->is_registered()) {
-		// Can't linearize because we store the result in the cache.
-		throw NyanError{"c3 linearization only for registered objects"};
-	}
+const std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<NyanObject *> &seen) {
 
 	// test for inheritance loops
 	if (seen.find(this) != std::end(seen)) {
@@ -267,16 +287,14 @@ std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<NyanObj
 		seen.insert(this);
 	}
 
-	std::vector<NyanObject *> ret;
-
-	// Cache lookup
-	auto cache = this->store->linearizations.find(this);
-	if (cache != std::end(this->store->linearizations)) {
-		return cache->second;
+	// TODO: cache invalidation
+	// if already calculated, return directly.
+	if (this->linearization.size() > 0) {
+		return this->linearization;
 	}
 
 	// The current object is always the first in the returned list
-	ret.push_back(this);
+	this->linearization.push_back(this);
 
 	// Calculate the parent linearization recursively
 	std::vector<std::vector<NyanObject *>> par_linearizations;
@@ -304,17 +322,17 @@ std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<NyanObj
 
 		// Try to find a head that is not element of any tail
 		for (size_t i = 0; i < par_linearizations.size(); i++) {
-			const auto &linearization = par_linearizations[i];
+			const auto &par_linearization = par_linearizations[i];
 			const size_t headpos = sublists_heads[i];
 
 			// The head position has reached the end
-			if (headpos >= linearization.size()) {
+			if (headpos >= par_linearization.size()) {
 				sublists_available -= 1;
 				continue;
 			}
 
 			// Pick a head
-			candidate = linearization[headpos];
+			candidate = par_linearization[headpos];
 			candidate_ok = true;
 
 			// Test if the candidate is in any tail
@@ -347,15 +365,15 @@ std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<NyanObj
 
 		// We found a candidate, add it to the return list
 		if (candidate_ok) {
-			ret.push_back(candidate);
+			this->linearization.push_back(candidate);
 
 			// Advance all the lists where the candidate was the head
 			for (size_t i = 0; i < par_linearizations.size(); i++) {
-				const auto &linearization = par_linearizations[i];
+				const auto &par_linearization = par_linearizations[i];
 				const size_t headpos = sublists_heads[i];
 
-				if (headpos < linearization.size()) {
-					if (linearization[headpos] == candidate) {
+				if (headpos < par_linearization.size()) {
+					if (par_linearization[headpos] == candidate) {
 						sublists_heads[i] += 1;
 					}
 				}
@@ -364,13 +382,13 @@ std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<NyanObj
 
 		// No more sublists have any entry
 		if (sublists_available == 0) {
-			// Store in cache and return reference to it
-			return (this->store->linearizations[this] = std::move(ret));
+			return this->linearization;
 		}
 	}
 
 	throw NyanError{"cyclic hierarchy, c3 linearization impossible"};
 }
+
 
 std::string NyanObject::str() const {
 	// TODO: nice string representation

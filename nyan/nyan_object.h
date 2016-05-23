@@ -40,7 +40,7 @@ public:
 	 * Get a member of this object.
 	 * throws NameError if the member doesn't exist.
 	 */
-	NyanMember *get_member(const std::string &member);
+	const NyanMember *get_member(const std::string &member) const;
 
 	/**
 	 * Get a member value of this object.
@@ -50,7 +50,7 @@ public:
 	/**
 	 * Get the type of some member.
 	 */
-	virtual const NyanType &get_type(const std::string &member);
+	virtual const NyanType &get_type(const std::string &member) const;
 
 	/**
 	 * Test if this object has a member of given name.
@@ -61,7 +61,7 @@ public:
 	 * Test if this object is a child of the given parent.
 	 * Returns true if parent equals this object.
 	 */
-	virtual bool is_child_of(const NyanObject *parent);
+	virtual bool is_child_of(const NyanObject *parent) const;
 
 	/**
 	 * Patch this object with a patch object.
@@ -93,10 +93,17 @@ public:
 	NyanObject bake(const std::string &new_name) const;
 
 	/**
+	 * Provide the linearization of this object.
+	 * Will return an empty vector if the linearization was not
+	 * generated before.
+	 */
+	const std::vector<NyanObject *> &get_linearization() const;
+
+	/**
 	 * Invokes the C3 multi inheritance linearization to determine
 	 * the "right" parent order.
 	 */
-	std::vector<NyanObject *> &linearize();
+	const std::vector<NyanObject *> &generate_linearization();
 
 	/**
 	 * Return a string representation of this object.
@@ -114,21 +121,27 @@ protected:
 	 * Implements the C3 multi inheritance linearization algorithm
 	 * to bring the parents of this object into the "right" order.
 	 */
-	std::vector<NyanObject *> &linearize_walk(std::unordered_set<NyanObject *> &seen);
+	const std::vector<NyanObject *> &linearize_walk(std::unordered_set<NyanObject *> &seen);
 
 	/**
 	 * Get the member entry of this object.
 	 *
 	 * @returns nullptr if the member was not found.
 	 */
-	virtual NyanMember *get_member_ptr(const std::string &member);
+	virtual const NyanMember *get_member_ptr(const std::string &member) const;
+	/**
+	 * Get the member entry of this object and allow write access to it.
+	 *
+	 * @returns nullptr if the member was not found.
+	 */
+	virtual NyanMember *get_member_ptr_rw(const std::string &member);
 
 	/**
 	 * Determine the most specialized type as set by parents for the
 	 * given member name.
 	 * @returns nullptr if it could not be inferred
 	 */
-	NyanType *infer_type(const std::string &member);
+	NyanType *infer_type(const std::string &member) const;
 
 	/**
 	 * Apply changes in an NyanObject to this NyanObject.
@@ -145,7 +158,7 @@ protected:
 	/**
 	 * Allowed operations for a NyanObject.
 	 */
-	const std::unordered_set<nyan_op> &allowed_operations() const override;
+	const std::unordered_set<nyan_op> &allowed_operations(nyan_type value_type) const override;
 
 	/**
 	 * Where this object was created.
@@ -173,6 +186,11 @@ protected:
 	 * The storage this object is associated to.
 	 */
 	NyanStore *store;
+
+	/**
+	 * all linearized parents.
+	 */
+	std::vector<NyanObject *> linearization;
 };
 
 

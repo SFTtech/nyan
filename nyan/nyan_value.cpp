@@ -14,12 +14,13 @@ void NyanValue::apply(const NyanMember *change) {
 	// extract the member's value,
 	// this is just the data of the member,
 	// no parent data is included.
-	const NyanValue *value = change->get_value();
+	const NyanValue *value = change->get_value_ptr();
 
 	// TODO: cache usage: if the value has a cached value,
 	//       stop the patch loop and just use this value.
 	//       BUT this will fail if one is in a diamond?
 
+	// TODO: this check is too strict. child classes are allowed as well.
 	if (typeid(value) != typeid(this)) {
 		throw TypeError{
 			change->get_location(),

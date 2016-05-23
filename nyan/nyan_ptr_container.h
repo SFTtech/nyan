@@ -26,6 +26,11 @@ public:
 	using this_type = NyanPtrContainer<T>;
 
 	/**
+	 * Entry data type.
+	 */
+	using entry_type = T *;
+
+	/**
 	 * Create a non-owning container from a raw pointer.
 	 */
 	NyanPtrContainer(T *val)
@@ -101,6 +106,15 @@ public:
 
 
 	/**
+	 * Return another ptr container which contains a ptr to the
+	 * data stored in this container.
+	 */
+	this_type get_ref() const noexcept {
+		return this_type{this->get()};
+	};
+
+
+	/**
 	 * Provide a reference to the data.
 	 */
 	T &operator *() const noexcept {
@@ -136,7 +150,15 @@ public:
 	/**
 	 * Compare the contained values.
 	 */
-	bool operator ==(const this_type &other) {
+	bool operator ==(const T &other) const {
+		return this->get() == other;
+	}
+
+
+	/**
+	 * Compare a container with a value.
+	 */
+	bool operator ==(const NyanPtrContainer<T> &other) const {
 		return this->get() == other.get();
 	}
 
@@ -144,8 +166,8 @@ public:
 	/**
 	 * Check if contained values are not equal.
 	 */
-	bool operator !=(const this_type &other) {
-		return this->get() != other.get();
+	bool operator !=(const this_type &other) const {
+		return not (this->get() == other.get());
 	}
 
 protected:

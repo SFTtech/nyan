@@ -51,6 +51,11 @@ protected:
 	void add_inheritance(NyanObject *obj, const NyanASTObject &astobj) const;
 
 	/**
+	 * Add the patch target objects from the AST to the object.
+	 */
+	void add_patch_targets(NyanObject *obj, const NyanASTObject &astobj) const ;
+
+	/**
 	 * Determine the types of members, optionally consult parent objects
 	 * in the store to get the type.
 	 */
@@ -71,11 +76,6 @@ protected:
 	 * Create a NyanValue from an AST member value.
 	 */
 	NyanValueContainer create_member_value(const NyanASTMemberValue &astmembervalue) const;
-
-	/**
-	 * Add the patch target objects from the AST to the object.
-	 */
-	void add_patch_targets(NyanObject *obj, const NyanASTObject &astobj) const ;
 
 	/**
 	 * Store the inheritance modifications of a patch.

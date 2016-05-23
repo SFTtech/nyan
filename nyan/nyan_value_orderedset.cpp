@@ -2,6 +2,9 @@
 
 #include "nyan_value_orderedset.h"
 
+#include "nyan_value_container.h"
+
+
 namespace nyan {
 
 NyanOrderedSet::NyanOrderedSet() {}
@@ -18,15 +21,20 @@ std::unique_ptr<NyanValue> NyanOrderedSet::copy() const {
 
 
 std::string NyanOrderedSet::str() const {
+
+	throw NyanInternalError{"TODO"};
+
 	std::ostringstream builder;
 	builder << "<";
 
 	size_t cnt = 0;
+
 	for (auto &value : this->values) {
 		if (cnt > 0) {
 			builder << ", ";
 		}
-		builder << value->str();
+		// TODO: fix the iterator!
+		builder << value->value->str();
 		cnt += 1;
 	}
 
@@ -36,26 +44,21 @@ std::string NyanOrderedSet::str() const {
 
 
 size_t NyanOrderedSet::hash() const {
-	throw NyanInternalError{"TODO"};
+	throw NyanError{"NyanOrderedSet is not hashable."};
 }
 
 
-bool NyanOrderedSet::contains(const NyanValue &value) {
-	throw NyanInternalError{"TODO"};
+bool NyanOrderedSet::add(NyanValueContainer &&value) {
+	return this->values.add(std::move(value));
 }
 
 
-void NyanOrderedSet::add(NyanValueContainer &&value) {
-	throw NyanInternalError{"TODO"};
+bool NyanOrderedSet::contains(NyanValue *value) {
+	return this->values.contains(value);
 }
 
 
-void NyanOrderedSet::add(const NyanValueContainer &value) {
-	throw NyanInternalError{"TODO"};
-}
-
-
-void NyanOrderedSet::remove(const NyanValueContainer &value) {
+bool NyanOrderedSet::remove(NyanValue *value) {
 	throw NyanInternalError{"TODO"};
 }
 
@@ -70,10 +73,21 @@ bool NyanOrderedSet::equals(const NyanValue &other) const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations() const {
-	throw NyanInternalError{"TODO"};
-}
+const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_type value_type) const {
 
+	// TODO: use value_type to check the op-value-pair validity
+
+	const static std::unordered_set<nyan_op> ops{
+		nyan_op::ASSIGN,
+		nyan_op::ADD_ASSIGN,
+		nyan_op::UNION_ASSIGN,
+		nyan_op::SUBTRACT_ASSIGN,
+		nyan_op::MULTIPLY_ASSIGN,
+		nyan_op::INTERSECT_ASSIGN,
+	};
+
+	return ops;
+}
 
 
 } // namespace nyan

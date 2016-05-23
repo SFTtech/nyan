@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "nyan_container.h"
 #include "nyan_ptr_container.h"
 #include "nyan_value.h"
 #include "nyan_value_container.h"
@@ -26,15 +27,14 @@ public:
 	std::string str() const override;
 	size_t hash() const override;
 
-	bool contains(const NyanValue &value) override;
-	void add(NyanValueContainer &&value) override;
-	void add(const NyanValueContainer &value) override;
-	void remove(const NyanValueContainer &value) override;
+	bool add(NyanValueContainer &&value) override;
+	bool contains(NyanValue *value) override;
+	bool remove(NyanValue *value) override;
 
 protected:
 	void apply_value(const NyanValue *value, nyan_op operation) override;
 	bool equals(const NyanValue &other) const override;
-	const std::unordered_set<nyan_op> &allowed_operations() const override;
+	const std::unordered_set<nyan_op> &allowed_operations(nyan_type value_type) const override;
 
 	std::unordered_set<NyanValueContainer> values;
 };

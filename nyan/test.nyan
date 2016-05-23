@@ -2,6 +2,9 @@
 First():
     member : int = 1
 
+FirstPatch<First>():
+    member += 1
+
 Second():
     pass
 
@@ -10,13 +13,14 @@ Test(First):
     stuff : Second
     gschicht : int
 
-Patch<Test, Second>():
+Patch<Test>():
     ie : Second
-    stuff : int = 10
+    moarstuff : int = 10
+    gschicht = 235
     wtf : float = 13374242.0
 
 PatchPatch<Patch>():
-    stuff += 15
+    member += 15
 
 
 # unit example
@@ -26,5 +30,5 @@ Unit():
 Villager(Unit):
     hp += 20
 
-Patch<Unit>():
+UPatch<Unit>():
     hp += 10

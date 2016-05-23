@@ -50,13 +50,18 @@ bool NyanText::equals(const NyanValue &other) const {
 	return this->value == other_val.value;
 }
 
-const std::unordered_set<nyan_op> &NyanText::allowed_operations() const {
+const std::unordered_set<nyan_op> &NyanText::allowed_operations(nyan_type value_type) const {
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
 	};
 
-	return ops;
+	if (value_type == nyan_type::TEXT) {
+		return ops;
+	}
+	else {
+		return no_nyan_ops;
+	}
 }
 
 } // namespace nyan

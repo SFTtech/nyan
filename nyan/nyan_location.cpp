@@ -16,7 +16,7 @@ NyanLocation::NyanLocation(const NyanToken &token)
 NyanLocation::NyanLocation(const NyanFile &file,
                            int line, int line_offset)
 	:
-	filename{file.get_name()},
+	file{&file},
 	line{line},
 	line_offset{line_offset} {}
 
@@ -31,8 +31,13 @@ int NyanLocation::get_line_offset() const {
 }
 
 
+std::string NyanLocation::get_line_content() const {
+	return this->file->get_line(this->get_line());
+}
+
+
 void NyanLocation::str(std::ostringstream &builder) const {
-	builder << this->filename << ":"
+	builder << this->file->get_name() << ":"
 	        << this->line << ":"
 	        << this->line_offset << ": ";
 }

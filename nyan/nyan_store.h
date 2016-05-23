@@ -2,10 +2,8 @@
 #ifndef NYAN_NYAN_STORE_H_
 #define NYAN_NYAN_STORE_H_
 
-
+#include <memory>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 #include "nyan_namespace.h"
 
@@ -23,12 +21,20 @@ public:
 	NyanStore();
 	virtual ~NyanStore() = default;
 
+	/**
+	 * Add the given nyan object to the store.
+	 * returns a pointer to the storage position.
+	 */
 	NyanObject *add(std::unique_ptr<NyanObject> &&obj);
+
+	/**
+	 * Return the NyanObject with given name.
+	 * returns nullptr if not found.
+	 */
 	NyanObject *get(const std::string &name) const;
 
 protected:
 	// TODO: caching for:
-	//       * values
 	//       * namespaces
 	//       * nyan object namespace paths
 
@@ -36,13 +42,7 @@ protected:
 	 * The root namespace
 	 */
 	NyanNamespace root;
-
-	/**
-	 * Cache for the linearization calculation.
-	 */
-	std::unordered_map<NyanObject *, std::vector<NyanObject *>> linearizations;
 };
-
 
 } // namespace nyan
 

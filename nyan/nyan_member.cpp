@@ -57,7 +57,7 @@ NyanType *NyanMember::get_type() const {
 }
 
 
-NyanValue *NyanMember::get_value() const {
+NyanValue *NyanMember::get_value_ptr() const {
 	return this->value.get();
 }
 

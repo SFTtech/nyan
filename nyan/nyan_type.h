@@ -77,6 +77,9 @@ public:
 
 	/**
 	 * Use an object as a type.
+	 * This creates a nyan type that matches the given object
+	 * or any child of it.
+	 * nullptr means it can match any object.
 	 */
 	NyanType(NyanObject *target);
 
@@ -116,6 +119,11 @@ public:
 	 * Return if this type is a container that stores multiple values.
 	 */
 	bool is_container() const;
+
+	/**
+	 * Test if is a container of the given type.
+	 */
+	bool is_container(nyan_container_type type) const;
 
 	/**
 	 * Check if this type is a child of another type.

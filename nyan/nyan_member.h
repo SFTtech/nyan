@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 
 #include "nyan_location.h"
@@ -51,7 +52,19 @@ public:
 	 * Return the value of this member.
 	 * @returns nullptr if there is no value yet.
 	 */
-	NyanValue *get_value() const;
+	NyanValue *get_value_ptr() const;
+
+	/**
+	 * Get a member value and cast the result to the
+	 * specified output type.
+	 */
+	template <typename T>
+	T *get_value() const {
+		static_assert(std::is_base_of<NyanValue, T>::value,
+		              "only nyan value types are supported");
+
+		return dynamic_cast<T *>(this->get_value_ptr());
+	}
 
 	/**
 	 * Replace the value of this member.

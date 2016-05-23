@@ -8,22 +8,30 @@
 
 namespace nyan {
 
-NyanFile::NyanFile(const std::string &path)
-	:
-	name{path},
-	data{util::read_file(path)} {}
-
-
-NyanFile::NyanFile(const std::string &virtual_name, const std::string &data)
-	:
-	name{virtual_name},
-	data{data} {}
-
 
 NyanFile::NyanFile(const std::string &virtual_name, std::string &&data)
 	:
 	name{virtual_name},
-	data{std::move(data)} {}
+	data{data} {
+
+	size_t pos = 0;
+	size_t len = 0;
+	for (size_t i = 0; i < this->data.size(); i++) {
+		if (this->data[i] == '\n') {
+			this->lines.push_back(line_info{pos, len});
+			pos = i + 1;
+			len = 0;
+		} else {
+			len++;
+		}
+	}
+	this->lines.push_back(line_info{pos, len});
+}
+
+
+NyanFile::NyanFile(const std::string &path)
+	:
+	NyanFile{path, util::read_file(path)} {}
 
 
 NyanFile::NyanFile(NyanFile &&other)
@@ -46,6 +54,12 @@ const std::string &NyanFile::get_name() const {
 
 const std::string &NyanFile::get() const {
 	return this->data;
+}
+
+
+std::string NyanFile::get_line(size_t n) const {
+	line_info lineinfo = this->lines[n - 1];
+	return this->data.substr(lineinfo.offset, lineinfo.len);
 }
 
 

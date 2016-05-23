@@ -3,6 +3,7 @@
 #define NYAN_OPS_H_
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "nyan_error.h"
 
@@ -28,6 +29,17 @@ enum class nyan_op {
 	SUBTRACT_ASSIGN,
 	UNION_ASSIGN,
 };
+
+
+/**
+ * Convenience variable to be used whenever no operation is allowed.
+ * It comes in handy as the allowance sets are const static function
+ * variables normally, and the function returns a reference.
+ * As this variable exists globally, we can return a reference
+ * without redefining an empty set again and again.
+ */
+extern const std::unordered_set<nyan_op> no_nyan_ops;
+
 
 /**
  * Return the operator

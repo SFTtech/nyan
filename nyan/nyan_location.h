@@ -24,10 +24,12 @@ public:
 	int get_line() const;
 	int get_line_offset() const;
 
+	std::string get_line_content() const;
+
 	void str(std::ostringstream &builder) const;
 
 protected:
-	std::string filename;
+	const NyanFile *file;
 	int line;
 	int line_offset;
 };

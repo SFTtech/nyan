@@ -116,6 +116,7 @@ public:
 	virtual ~NyanToken() = default;
 
 	std::string str() const;
+	bool exists() const;
 
 	const std::string &get() const;
 

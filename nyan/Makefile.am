@@ -5,7 +5,7 @@
 # c++14 plus all warnings
 AM_CXXFLAGS = -Wall -Wextra -pedantic -ftemplate-backtrace-limit=0
 
-if GCC 
+if GCC
 # GCC : the version is necessarly >= 5.1 and supports -std=c++14
 AM_CXXFLAGS+= -std=c++14
 else
@@ -26,6 +26,7 @@ libnyan_la_LDFLAGS = -no-undefined
 libnyan_la_LIBADD = @LIBDL_LDFLAGS@
 libnyan_la_SOURCES = \
                      nyan_ast.cpp \
+                     nyan_container.cpp \
                      nyan_error.cpp \
                      nyan_file.cpp \
                      nyan_flex_lexer.lpp \
@@ -35,6 +36,7 @@ libnyan_la_SOURCES = \
                      nyan_namespace.cpp \
                      nyan_object.cpp \
                      nyan_ops.cpp \
+                     nyan_orderedset.cpp \
                      nyan_parser.cpp \
                      nyan_ptr_container.cpp \
                      nyan_store.cpp \
@@ -54,6 +56,7 @@ nyanincludedir = $(includedir)/nyan
 nyaninclude_HEADERS = \
                       nyan.h \
                       nyan_ast.h \
+                      nyan_container.h \
                       nyan_error.h \
                       nyan_file.h \
                       nyan_flex_lexer.h \
@@ -63,6 +66,7 @@ nyaninclude_HEADERS = \
                       nyan_namespace.h \
                       nyan_object.h \
                       nyan_ops.h \
+                      nyan_orderedset.h \
                       nyan_parser.h \
                       nyan_ptr_container.h \
                       nyan_store.h \

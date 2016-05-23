@@ -81,11 +81,24 @@ std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
 			this->store
 		);
 
+		// the object name, valid in its namespace.
 		obj->name = astobj.name.get();
+
+		// check if the name is unique
+		if (this->store->get(obj->name) != nullptr) {
+			// TODO: show other location!
+			throw NyanFileError{astobj.name, "object name already used"};
+		}
 
 		// first: inheritance parents
 		// that way, these can already be queried to get type infos
-		add_inheritance(obj.get(), astobj);
+		this->add_inheritance(obj.get(), astobj);
+
+		// update the inheritance linearization
+		obj->generate_linearization();
+
+		// allowed patch targets are stored as __patch__ member
+		this->add_patch_targets(obj.get(), astobj);
 
 		// detect if the members have type declarations.
 		// if not, take the declaration of some parent to
@@ -95,9 +108,6 @@ std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
 		// then, go over them again and assign values,
 		// the types must be known by now.
 		auto members = this->create_members(obj.get(), astobj, member_types);
-
-		// allowed patch targets are stored as __patch__ member
-		this->add_patch_targets(obj.get(), astobj);
 
 		// store inheritance parent modifications
 		this->inheritance_mod(obj.get(), astobj);
@@ -125,6 +135,38 @@ void NyanParser::add_inheritance(NyanObject *obj,
 }
 
 
+void NyanParser::add_patch_targets(NyanObject *obj, const NyanASTObject &astobj) const {
+
+	// if patch targets were specified, store them in the __patch__ member
+	if (astobj.target.exists()) {
+
+		// fetch the denoted patch target object
+		NyanObject *tobj = this->store->get(astobj.target.get());
+
+		if (tobj == nullptr) {
+			throw NyanFileError{
+				astobj.target,
+				"unknown patch target object"
+			};
+		}
+
+		// create the __patch__ member to contain the target
+		NyanMember patch_member{
+			NyanTypeContainer{std::make_unique<NyanType>(
+					nullptr
+					// ^ = nullptr object, so any NyanObject is allowed
+				)},
+			nyan_op::ASSIGN,
+			NyanValueContainer{tobj},
+			NyanLocation{astobj.target}
+		};
+
+		// create the member entry
+		obj->members.emplace("__patch__", std::move(patch_member));
+	}
+}
+
+
 std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creation(NyanObject *obj, const NyanASTObject &astobj) const {
 
 	// maps member_name -> type
@@ -134,13 +176,83 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 	// if they have a type declaration
 	// if it's not there, require it to be inferred from some parent
 	for (auto &astmember : astobj.members) {
+
+		// test if a member with the same name was already used in the object
+		if (member_types.find(astmember.name.get()) != std::end(member_types)) {
+			// TODO: show previous location
+			throw ASTError{
+				"member already used in this object",
+				astmember.name
+			};
+		}
+
 		// type that is inferred from parent objects
 		// the new member must be compatible to this type.
 		// if nullptr, this member defines the member as a new one.
 		NyanType *inferred_type = obj->infer_type(astmember.name.get());
 
-		// TODO: detect if two base classes define the same member
-		//       independently
+		// TODO: detect if two base classes declare the same member
+		//       independently. One member must be defined by exactly
+		//       one object, else, it's a name clash which must be
+		//       resolved used qualified names.
+
+		// infer type from patch targets and check if they are compatible
+		const NyanMember *patch_target_member = obj->get_member_ptr("__patch__");
+
+		NyanType *patch_inferred_type = nullptr;
+
+		// walk up the whole patch tree to find a potential source
+		while (patch_target_member != nullptr) {
+			// if we have a patch, try using the target object
+			// for inferrng member types
+
+			const NyanType *type = patch_target_member->get_type();
+			if (not type->is_child_of(NyanType{nullptr})) {
+				throw TypeError{
+					patch_target_member->get_location(),
+					"patch targets must store a NyanObject"
+				};
+			}
+
+			// get the patch target object
+			NyanObject *patch_target = patch_target_member->get_value<NyanObject>();
+
+			patch_inferred_type = patch_target->infer_type(astmember.name.get());
+
+			if (patch_inferred_type != nullptr) {
+				// the current patch target declares the queried member,
+				// no need to check more of the patches.
+				break;
+			}
+			else {
+				// the current patch target didn't define it.
+				// but the patch target has another target to patch,
+				// so try again with it and see if we can find it there.
+				patch_target_member = patch_target->get_member_ptr("__patch__");
+			}
+		}
+
+		// check if the type could be fetched by the inheritance parents
+		if (inferred_type == nullptr) {
+			// use the inferred type of the patch target.
+			inferred_type = patch_inferred_type;
+		}
+		else if (patch_inferred_type != nullptr) {
+			// a type could be inferred from both the patch target
+			// and some parent.
+			// check if the patch target member type
+			// is more specialized than the by-inheritance type.
+			// only then can the patch be applied.
+			if (not patch_inferred_type->is_child_of(*inferred_type)) {
+				// TODO: show both origins!
+				throw TypeError{
+					astmember.name.location,
+					"incompatible types between a parent object "
+					"and a patch target"
+				};
+			}
+		}
+
 
 		// if there is an explicit type specification
 		if (astmember.type.exists) {
@@ -165,6 +277,7 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 			);
 		}
 		else {
+			// could not find a parent that declares the member type
 			if (inferred_type == nullptr) {
 				throw TypeError{
 					astmember.name,
@@ -248,8 +361,6 @@ void NyanParser::check_member_value_type(const NyanTypeContainer &member_type, n
 	size_t value_idx = 0;
 
 	for (const NyanToken &value : astmembervalue.values) {
-		NyanType value_type{value, *this->store};
-
 		// multiple values given for non-container member
 		if (value_idx > 1 and not member_type->is_container()) {
 			throw TypeError{
@@ -259,10 +370,13 @@ void NyanParser::check_member_value_type(const NyanTypeContainer &member_type, n
 			};
 		}
 
+		NyanType value_type{value, *this->store};
+
 		// test if value (optionally in a container)
 		// is compatible with the type required for the member
 		if (member_type->is_container()) {
 			if (not value_type.can_be_in(*member_type)) {
+				// TODO: show other location!
 				throw TypeError{
 					value,
 					"value type incompatible to container type"
@@ -271,6 +385,7 @@ void NyanParser::check_member_value_type(const NyanTypeContainer &member_type, n
 		}
 		else {
 			if (not value_type.is_child_of(*member_type)) {
+				// TODO: show other location
 				throw TypeError{
 					value,
 					"value type incompatible to member type"
@@ -329,63 +444,18 @@ NyanValueContainer NyanParser::create_member_value(const NyanASTMemberValue &ast
 		};
 		break;
 	}
-	case nyan_container_type::ORDEREDSET:
-		throw NyanInternalError{"TODO create orderedset"};
+	case nyan_container_type::ORDEREDSET: {
+		member_value = NyanValueContainer{
+			std::make_unique<NyanOrderedSet>(astmembervalue.values)
+		};
 		break;
+	}
 
 	default:
 		throw NyanInternalError{"unhandled container type"};
 	}
 
 	return member_value;
-}
-
-
-void NyanParser::add_patch_targets(NyanObject *obj, const NyanASTObject &astobj) const {
-
-	// if patch targets were specified, store them in the __patch__ member
-	if (astobj.targets.size() > 0) {
-		const NyanMember *patchmember = obj->get_member_ptr("__patch__");
-		if (patchmember != nullptr) {
-			throw NyanFileError{
-				patchmember->get_location(),
-				"explicit __patch__ member encountered "
-				"when using <target> notation"
-			};
-		}
-
-		// create the __patch__ member to contain the targets.
-		// it's an orderedset of nyan objects.
-		NyanMember patch_member{
-			NyanTypeContainer{std::make_unique<NyanType>(
-				nyan_container_type::ORDEREDSET,
-				std::make_unique<NyanType>(nullptr)
-				// ^ = nullptr object, so any NyanObject is allowed.
-			)},
-			NyanLocation{astobj.targets[0]}
-		};
-
-		// create the orderedset of patch target objects
-		auto patch_targets = std::make_unique<NyanOrderedSet>();
-
-		// add each patch target to the __patch__ member
-		for (auto &target_name : astobj.targets) {
-			NyanObject *tobj = this->store->get(target_name.get());
-			if (tobj == nullptr) {
-				throw NyanFileError{
-					target_name,
-					"unknown patch target object"
-				};
-			}
-			patch_targets->add(NyanValueContainer{tobj});
-		}
-
-		// set the set as member value
-		patch_member.set_value(std::move(patch_targets));
-
-		// create the member entry
-		obj->members.emplace("__patch__", std::move(patch_member));
-	}
 }
 
 

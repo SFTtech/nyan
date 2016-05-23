@@ -122,7 +122,7 @@ public:
 
 protected:
 	NyanToken name;
-	std::vector<NyanToken> targets;
+	NyanToken target;
 	std::vector<NyanToken> inheritance_add;
 	std::vector<NyanToken> inheritance;
 	std::vector<NyanASTMember> members;

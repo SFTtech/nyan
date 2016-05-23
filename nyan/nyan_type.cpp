@@ -194,11 +194,40 @@ bool NyanType::is_container() const {
 }
 
 
+bool NyanType::is_container(nyan_container_type type) const {
+	return this->get_container_type() == type;
+}
+
+
 bool NyanType::is_child_of(const NyanType &other) const {
+	// two non-primitive types need special handling
 	if (not this->is_primitive() and
 	    not other.is_primitive()) {
 
-		throw NyanError{"TODO check type compatiblility"};
+		if (this->type != other.type) {
+			return false;
+		}
+
+		switch (this->type) {
+		case nyan_type::OBJECT:
+			if (other.target == nullptr) {
+				// if the target is nullptr, any object is allowed!
+				return true;
+			}
+
+			return this->target->is_child_of(other.target);
+
+		case nyan_type::CONTAINER:
+			if (this->value_type.get() == nullptr or
+			    other.value_type.get() == nullptr) {
+				throw NyanInternalError{"container type without value type"};
+			}
+
+			return other.value_type->is_child_of(*this->value_type);
+
+		default:
+			throw NyanInternalError{"invalid non-primitive type encountered"};
+		}
 	}
 	else if (this->type == other.type) {
 		return true;

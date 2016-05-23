@@ -28,22 +28,28 @@ void test_parser(const NyanFile &file) {
 	}
 }
 
+
 int run(flags_t flags, params_t params) {
 	try {
 		if (flags[option_flag::TEST_PARSER]) {
 			const std::string &filename = params[option_param::FILE];
 			NyanFile input{filename};
 
-			nyan::test_parser(input);
-		} else {
+			try {
+				nyan::test_parser(input);
+			}
+			catch (NyanFileError &err) {
+				std::cout << "\x1b[33;1mfile error:\x1b[m\n"
+				          << err << std::endl
+				          << err.show_problem_origin()
+				          << std::endl << std::endl;
+				return 1;
+			}
+		}
+		else {
 			std::cout << "no action selected" << std::endl << std::endl;
 			help();
 		}
-	}
-	catch (NyanFileError &err) {
-		std::cout << "\x1b[33;1mfile error:\x1b[m\n"
-		          << err << std::endl;
-		return 1;
 	}
 	catch (NyanError &err) {
 		std::cout << "\x1b[31;1merror:\x1b[m\n"
@@ -70,6 +76,7 @@ void help() {
 }
 
 } // namespace nyan
+
 
 int main(int argc, char **argv) {
 	nyan::flags_t flags{
@@ -118,12 +125,6 @@ int main(int argc, char **argv) {
 		                "returned character code 0%o\n", c);
 		}
 	}
-
-	/*
-	// positional arguments:
-	while (optind < argc)
-		printf("%s ", argv[optind++]);
-	*/
 
 	try {
 		return nyan::run(flags, params);

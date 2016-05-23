@@ -16,7 +16,6 @@ namespace nyan {
 
 class NyanObject;
 class NyanMember;
-class NyanValueContainer;
 
 
 /**
@@ -74,26 +73,13 @@ protected:
 	virtual void apply_value(const NyanValue *value, nyan_op operation) = 0;
 
 	/**
-	 * Allowed operations for this value type.
+	 * Allowed operations for this value type with a given operand.
 	 */
-	virtual const std::unordered_set<nyan_op> &allowed_operations() const = 0;
+	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_type value_type) const = 0;
 };
-
-
-/**
- * NyanValue that can store other NyanValues.
- */
-class NyanContainer : public NyanValue {
-public:
-	virtual bool contains(const NyanValue &value) = 0;
-
-	virtual void add(NyanValueContainer &&value) = 0;
-	virtual void add(const NyanValueContainer &value) = 0;
-	virtual void remove(const NyanValueContainer &value) = 0;
-};
-
 
 } // namespace nyan
+
 
 namespace std {
 

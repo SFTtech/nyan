@@ -161,9 +161,25 @@ NyanFileError::NyanFileError(const NyanLocation &location,
 std::string NyanFileError::str() const {
 	std::ostringstream builder;
 
+	builder << "\x1b[1m";
+
 	this->location.str(builder);
 
-	builder << "\x1b[31;1merror:\x1b[m " << this->msg;
+	builder << "\x1b[31;1merror:\x1b[39;49m " << this->msg
+	        << "\x1b[0m";
+
+	return builder.str();
+}
+
+
+std::string NyanFileError::show_problem_origin() const {
+	std::ostringstream builder;
+
+	size_t offset = this->location.get_line_offset();
+
+	builder << this->location.get_line_content() << std::endl
+	        << std::string(offset, ' ') << "\x1b[36;1m^~~~~~~\x1b[m";
+
 	return builder.str();
 }
 
@@ -214,8 +230,8 @@ std::ostream &operator <<(std::ostream &os, const NyanError &e) {
 		os << "origin:" << std::endl;
 	}
 
-	os << e.type_name() << ": ";
-	os << e.str() << std::endl;
+	os << e.type_name() << ":" << std::endl;
+	os << e.str();
 
 	return os;
 }

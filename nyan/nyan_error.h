@@ -185,6 +185,8 @@ public:
 
 	std::string str() const override;
 
+	virtual std::string show_problem_origin() const;
+
 protected:
 	NyanLocation location;
 };

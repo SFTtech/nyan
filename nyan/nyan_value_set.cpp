@@ -6,6 +6,8 @@
 #include "nyan_ops.h"
 #include "nyan_token.h"
 
+#include "nyan_value_container.h"
+
 
 namespace nyan {
 
@@ -23,7 +25,7 @@ NyanSet::NyanSet(const NyanSet &other) {
 
 
 std::unique_ptr<NyanValue> NyanSet::copy() const {
-	return std::make_unique<NyanSet>(dynamic_cast<const NyanSet &>(*this));
+	return std::make_unique<NyanSet>(*this);
 }
 
 
@@ -46,27 +48,22 @@ std::string NyanSet::str() const {
 
 
 size_t NyanSet::hash() const {
-	throw NyanInternalError{"TODO"};
+	throw NyanError{"NyanSet is not hashable."};
 }
 
 
-bool NyanSet::contains(const NyanValue &value) {
-	throw NyanInternalError{"TODO"};
+bool NyanSet::add(NyanValueContainer &&value) {
+	return std::get<1>(this->values.insert(std::move(value)));
 }
 
 
-void NyanSet::add(NyanValueContainer &&value) {
-	throw NyanInternalError{"TODO"};
+bool NyanSet::contains(NyanValue *value) {
+	return (this->values.find(value) != std::end(this->values));
 }
 
 
-void NyanSet::add(const NyanValueContainer &value) {
-	throw NyanInternalError{"TODO"};
-}
-
-
-void NyanSet::remove(const NyanValueContainer &value) {
-	throw NyanInternalError{"TODO"};
+bool NyanSet::remove(NyanValue *value) {
+	return (1 == this->values.erase(value));
 }
 
 
@@ -98,21 +95,28 @@ void NyanSet::apply_value(const NyanValue *value, nyan_op operation) {
 }
 
 
+/* test if the same values are in there */
 bool NyanSet::equals(const NyanValue &other) const {
 	auto &other_val = dynamic_cast<const NyanSet &>(other);
-	throw NyanInternalError{"TODO"};
+	throw NyanInternalError{"TODO set equality"};
 }
 
 
-const std::unordered_set<nyan_op> &NyanSet::allowed_operations() const {
+const std::unordered_set<nyan_op> &NyanSet::allowed_operations(nyan_type value_type) const {
+
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
 		nyan_op::UNION_ASSIGN,
 		nyan_op::SUBTRACT_ASSIGN,
-		nyan_op::MULTIPLY_ASSIGN,
 		nyan_op::INTERSECT_ASSIGN,
 	};
+
+	// TODO: check for container type.
+
+	if (value_type != nyan_type::CONTAINER) {
+		return no_nyan_ops;
+	}
 
 	return ops;
 }

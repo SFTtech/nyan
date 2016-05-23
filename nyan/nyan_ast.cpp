@@ -87,7 +87,19 @@ NyanASTObject::NyanASTObject(const NyanToken &name,
 }
 
 void NyanASTObject::ast_targets(util::Iterator<NyanToken> &tokens) {
-	this->targets = this->comma_list(tokens, token_type::RANGLE);
+	auto token = tokens.next();
+	if (token->type == token_type::ID) {
+		this->target = *token;
+	}
+	else {
+		throw ASTError("expected identifier, encountered", *token);
+	}
+
+	token = tokens.next();
+
+	if (token->type != token_type::RANGLE) {
+		throw ASTError("expected > as patch target end, there is", *token);
+	}
 }
 
 void NyanASTObject::ast_inheritance_mod(util::Iterator<NyanToken> &tokens) {
@@ -351,8 +363,9 @@ void NyanAST::strb(std::ostringstream &builder) const {
 
 	size_t count = 0;
 	for (auto &obj : this->objects) {
-		builder << std::endl << "# [object " << count++ << "]" << std::endl;
+		builder << std::endl << "# [object " << count << "]" << std::endl;
 		obj.strb(builder);
+		count += 1;
 	}
 }
 
@@ -364,10 +377,10 @@ void NyanASTObject::strb(std::ostringstream &builder) const {
 		return in.get();
 	};
 
-	// print <target, target, >
-	if (this->targets.size() > 0) {
+	// print <target>
+	if (this->target.exists()) {
 		builder << "<"
-		        << util::strjoin<NyanToken>(", ", this->targets, token_str)
+		        << this->target.get()
 		        << ">";
 	}
 

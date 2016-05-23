@@ -8,6 +8,9 @@
 
 namespace nyan {
 
+const std::unordered_set<nyan_op> no_nyan_ops{};
+
+
 nyan_op op_from_string(const std::string &str) {
 	static const std::unordered_map<std::string, nyan_op> str_to_op{
 		{"=", nyan_op::ASSIGN},

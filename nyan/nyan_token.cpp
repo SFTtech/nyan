@@ -36,6 +36,7 @@ const std::string &NyanToken::get() const {
 	return this->value;
 }
 
+
 std::string NyanToken::str() const {
 	std::ostringstream builder;
 	builder << "(" << this->location.get_line() << ":"
@@ -46,6 +47,11 @@ std::string NyanToken::str() const {
 	}
 	builder << ")";
 	return builder.str();
+}
+
+
+bool NyanToken::exists() const {
+	return this->get().size() > 0;
 }
 
 
