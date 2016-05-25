@@ -106,6 +106,13 @@ public:
 	const std::vector<NyanObject *> &generate_linearization();
 
 	/**
+	 * Remove the calculated multi inheritance linearization.
+	 * This needs to be done whenever a patch is applied
+	 * that modifies the inheritance of this object.
+	 */
+	void delete_linearization();
+
+	/**
 	 * Return a string representation of this object.
 	 */
 	std::string str() const override;

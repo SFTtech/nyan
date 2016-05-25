@@ -267,6 +267,12 @@ const std::vector<NyanObject *> &NyanObject::generate_linearization() {
 }
 
 
+void NyanObject::delete_linearization() {
+	this->linearization.clear();
+}
+
+
+
 /*
  * c3 linearization of cls(a, b, ...):
  * c3(cls) = [cls] + merge(c3(a), c3(b), ..., [a, b, ...])
@@ -287,7 +293,6 @@ const std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<N
 		seen.insert(this);
 	}
 
-	// TODO: cache invalidation
 	// if already calculated, return directly.
 	if (this->linearization.size() > 0) {
 		return this->linearization;
