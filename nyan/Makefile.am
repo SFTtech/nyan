@@ -3,7 +3,7 @@
 #all-am: print_build_config
 
 # c++14 plus all warnings
-AM_CXXFLAGS = -Wall -Wextra -pedantic -ftemplate-backtrace-limit=0 -rdynamic
+AM_CXXFLAGS = -Wall -Wextra -pedantic -ftemplate-backtrace-limit=0
 
 if GCC
 # GCC : the version is necessarly >= 5.1 and supports -std=c++14
@@ -85,4 +85,5 @@ nyaninclude_HEADERS = \
 # nyan executable
 bin_PROGRAMS = nyan
 nyan_SOURCES = nyan_tool.cpp
+nyan_LDFLAGS = -rdynamic
 nyan_LDADD = libnyan.la
