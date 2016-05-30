@@ -15,7 +15,21 @@ TypeError::TypeError(const NyanLocation &location, const std::string &msg)
 	NyanFileError{location, msg} {}
 
 
-nyan_type type_from_token(const NyanToken &tok) {
+bool type_is_primitive(nyan_type type) {
+	switch (type) {
+	case nyan_type::TEXT:
+	case nyan_type::FILENAME:
+	case nyan_type::INT:
+	case nyan_type::FLOAT:
+		return true;
+	case nyan_type::CONTAINER:
+	case nyan_type::OBJECT:
+		return false;
+	}
+}
+
+
+nyan_type type_from_value_token(const NyanToken &tok) {
 	nyan_type value_type;
 
 	switch (tok.type) {
@@ -38,12 +52,8 @@ nyan_type type_from_token(const NyanToken &tok) {
 }
 
 
-NyanType::NyanType(const NyanASTMemberType &ast_type,
-                   const NyanStore &store)
-	:
-	value_type{nullptr},
-	target{nullptr} {
-
+std::pair<nyan_type, nyan_container_type>
+type_from_type_token(const NyanToken &tok) {
 	// primitive type name map
 	static const std::unordered_map<std::string, nyan_type> primitive_types = {
 		{"text", nyan_type::TEXT},
@@ -58,23 +68,55 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 		{"orderedset", nyan_container_type::ORDEREDSET}
 	};
 
-	// primitive type like int or text
-	auto it0 = primitive_types.find(ast_type.name.get());
-	if (it0 != std::end(primitive_types)) {
+
+	nyan_type type = nyan_type::OBJECT;
+	nyan_container_type container_type = nyan_container_type::SINGLE;
+
+	switch (tok.type) {
+	case token_type::ID: {
+		auto it0 = primitive_types.find(tok.get());
+		if (it0 != std::end(primitive_types)) {
+			type = it0->second;
+		}
+
+		auto it1 = container_types.find(tok.get());
+		if (it1 != std::end(container_types)) {
+			type = nyan_type::CONTAINER;
+			container_type = it1->second;
+		}
+		break;
+	}
+	default:
+		throw ASTError("expected some type name but there is", tok);
+	}
+
+	return std::make_pair(type, container_type);
+}
+
+
+NyanType::NyanType(const NyanASTMemberType &ast_type,
+                   const NyanStore &store)
+	:
+	value_type{nullptr},
+	target{nullptr} {
+
+	auto parsed_type = type_from_type_token(ast_type.name);
+	this->type = std::get<0>(parsed_type);
+	this->container_type = std::get<1>(parsed_type);
+
+	// test if the type is primitive (int, float, text, ...)
+	if (type_is_primitive(this->type)) {
 		if (ast_type.has_payload) {
 			throw ASTError{
 				"primitive type can't have a type payload",
 				ast_type.payload, false
 			};
 		}
-		this->type = it0->second;
-		this->container_type = nyan_container_type::SINGLE;
 		return;
 	}
 
 	// container type like set(something)
-	auto it1 = container_types.find(ast_type.name.get());
-	if (it1 != std::end(container_types)) {
+	if (this->type == nyan_type::CONTAINER) {
 		if (not ast_type.has_payload) {
 			throw ASTError{
 				"container value type not specified",
@@ -82,13 +124,15 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 			};
 		}
 
-		this->type = nyan_type::CONTAINER;
-		this->container_type = it1->second;
 		this->value_type = std::make_unique<NyanType>(
 			ast_type.payload,
-			store
+			store,
+			true
 		);
+		return;
 	}
+
+	// here, type must be a OBJECT.
 
 	// type is not builtin, but has a payload
 	if (ast_type.has_payload) {
@@ -127,13 +171,22 @@ NyanType::NyanType(nyan_container_type container_type,
 	target{nullptr} {}
 
 
-/* type payload parsing */
+/* create a nyan_type from some token, used e.g. for type payload parsing */
 NyanType::NyanType(const NyanToken &token,
-                   const NyanStore &store)
+                   const NyanStore &store,
+                   bool is_type_decl)
 	:
-	type{type_from_token(token)},
 	container_type{nyan_container_type::SINGLE},
 	value_type{nullptr} {
+
+	if (is_type_decl) {
+		auto parsed_type = type_from_type_token(token);
+		this->type = std::get<0>(parsed_type);
+		this->container_type = std::get<1>(parsed_type);
+	}
+	else {
+		this->type = type_from_value_token(token);
+	}
 
 	switch (this->type) {
 	case nyan_type::OBJECT:
@@ -176,16 +229,7 @@ NyanType &NyanType::operator =(NyanType &&other) {
 
 
 bool NyanType::is_primitive() const {
-	switch (this->type) {
-	case nyan_type::TEXT:
-	case nyan_type::FILENAME:
-	case nyan_type::INT:
-	case nyan_type::FLOAT:
-		return true;
-	case nyan_type::CONTAINER:
-	case nyan_type::OBJECT:
-		return false;
-	}
+	return type_is_primitive(this->type);
 }
 
 
@@ -255,6 +299,24 @@ nyan_container_type NyanType::get_container_type() const {
 
 nyan_type NyanType::get_type() const {
 	return this->type;
+}
+
+
+std::string NyanType::str() const {
+	if (this->is_primitive()) {
+		return type_to_string(this->get_type());
+	}
+	else {
+		if (this->type == nyan_type::OBJECT) {
+			if (this->target == nullptr) {
+				return "__any__";
+			}
+			else {
+				return this->target->repr();
+			}
+		}
+		return "TODO container";
+	}
 }
 
 } // namespace nyan

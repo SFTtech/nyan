@@ -54,7 +54,7 @@ std::string symbol_name(const void *addr, bool require_exact_addr=true, bool no_
 template <typename T>
 std::string strjoin(const std::string &delim,
                     const std::vector<T> &container,
-                    const std::function<std::string(const T &)> func=[](const auto in) {return in;}) {
+                    const std::function<const std::string(const T &)> func=[](const T &in) {return in;}) {
 
 	std::ostringstream builder;
 

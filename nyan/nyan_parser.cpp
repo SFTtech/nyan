@@ -279,6 +279,8 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 		else {
 			// could not find a parent that declares the member type
 			if (inferred_type == nullptr) {
+				// TODO: and no patch target
+				// TODO: which object caused the error
 				throw TypeError{
 					astmember.name,
 					"no parent object declares a type for this member"
@@ -370,13 +372,14 @@ void NyanParser::check_member_value_type(const NyanTypeContainer &member_type, n
 			};
 		}
 
-		NyanType value_type{value, *this->store};
+		NyanType value_type{value, *this->store, false};
 
 		// test if value (optionally in a container)
 		// is compatible with the type required for the member
 		if (member_type->is_container()) {
 			if (not value_type.can_be_in(*member_type)) {
 				// TODO: show other location!
+				//       and both types
 				throw TypeError{
 					value,
 					"value type incompatible to container type"
@@ -386,6 +389,7 @@ void NyanParser::check_member_value_type(const NyanTypeContainer &member_type, n
 		else {
 			if (not value_type.is_child_of(*member_type)) {
 				// TODO: show other location
+				//       and both types
 				throw TypeError{
 					value,
 					"value type incompatible to member type"
@@ -406,7 +410,7 @@ NyanValueContainer NyanParser::create_member_value(const NyanASTMemberValue &ast
 	switch (astmembervalue.container_type) {
 	case nyan_container_type::SINGLE: {
 		const NyanToken &value_token = astmembervalue.values[0];
-		nyan_type value_type = type_from_token(value_token);
+		nyan_type value_type = type_from_value_token(value_token);
 
 		// create the NyanValue
 		switch (value_type) {

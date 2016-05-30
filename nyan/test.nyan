@@ -8,6 +8,9 @@ FirstPatch<First>():
 Second():
     pass
 
+Third(Second):
+    rolf : int = 42
+
 Test(First):
     member += 1337
     stuff : Second
@@ -21,6 +24,7 @@ Patch<Test>():
 
 PatchPatch<Patch>():
     member += 15
+    ie = Third
 
 
 # unit example

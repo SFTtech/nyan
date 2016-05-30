@@ -14,13 +14,16 @@ NyanText::NyanText(const std::string &value)
 	:
 	value{value} {}
 
+
 NyanText::NyanText(const NyanToken &token)
 	:
 	value{token.get()} {}
 
+
 std::unique_ptr<NyanValue> NyanText::copy() const {
 	return std::make_unique<NyanText>(dynamic_cast<const NyanText &>(*this));
 }
+
 
 void NyanText::apply_value(const NyanValue *value, nyan_op operation) {
 	const NyanText *change = dynamic_cast<const NyanText *>(value);
@@ -37,18 +40,27 @@ void NyanText::apply_value(const NyanValue *value, nyan_op operation) {
 	}
 }
 
+
 std::string NyanText::str() const {
 	return this->value;
 }
+
+
+std::string NyanText::repr() const {
+	return this->str();
+}
+
 
 size_t NyanText::hash() const {
 	return std::hash<std::string>{}(this->value);
 }
 
+
 bool NyanText::equals(const NyanValue &other) const {
 	auto &other_val = dynamic_cast<const NyanText &>(other);
 	return this->value == other_val.value;
 }
+
 
 const std::unordered_set<nyan_op> &NyanText::allowed_operations(nyan_type value_type) const {
 	const static std::unordered_set<nyan_op> ops{

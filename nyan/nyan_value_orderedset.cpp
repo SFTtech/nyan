@@ -43,6 +43,11 @@ std::string NyanOrderedSet::str() const {
 }
 
 
+std::string NyanOrderedSet::repr() const {
+	return this->str();
+}
+
+
 size_t NyanOrderedSet::hash() const {
 	throw NyanError{"NyanOrderedSet is not hashable."};
 }

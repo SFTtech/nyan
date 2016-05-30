@@ -48,7 +48,21 @@ const NyanMember &NyanMember::operator =(NyanMember &&other) {
 
 
 std::string NyanMember::str() const {
-	return "TODO string representation of member";
+	std::ostringstream builder;
+
+	if (this->type.is_owning()) {
+		builder << " : " << this->type->str();
+	}
+
+	if (this->operation != nyan_op::INVALID) {
+		builder << " " << op_to_string(this->operation);
+	}
+
+	if (this->value.has_data()) {
+		builder << " " << this->value->repr();
+	}
+
+	return builder.str();
 }
 
 

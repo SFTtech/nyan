@@ -82,20 +82,19 @@ float          -?{digit}+\.{digit}*
 "\n"                    { this->token(nyan::token_type::ENDLINE);
                           this->reset_linepos(); return; }
 
-<INITIAL>{
-    "("                 { this->token(nyan::token_type::LPAREN); return; }
-    ")"                 { this->token(nyan::token_type::RPAREN); return; }
-    "<"                 { this->token(nyan::token_type::LANGLE); return; }
-    ">"                 { this->token(nyan::token_type::RANGLE); return; }
-    "["                 { this->token(nyan::token_type::LBRACKET); return; }
-    "]"                 { this->token(nyan::token_type::RBRACKET); return; }
-    "{"                 { this->token(nyan::token_type::LBRACE); return; }
-    "}"                 { this->token(nyan::token_type::RBRACE); return; }
-}
+"("                     { this->token(nyan::token_type::LPAREN); return; }
+")"                     { this->token(nyan::token_type::RPAREN); return; }
+"<"                     { this->token(nyan::token_type::LANGLE); return; }
+">"                     { this->token(nyan::token_type::RANGLE); return; }
+"["                     { this->token(nyan::token_type::LBRACKET); return; }
+"]"                     { this->token(nyan::token_type::RBRACKET); return; }
+"{"                     { this->token(nyan::token_type::LBRACE); return; }
+"}"                     { this->token(nyan::token_type::RBRACE); return; }
 
 "pass"                  { this->token(nyan::token_type::PASS); return; }
 "import"                { this->token(nyan::token_type::IMPORT); return; }
 "from"                  { this->token(nyan::token_type::FROM); return; }
+"as"                    { this->token(nyan::token_type::FROM); return; }
 {punct}|{assignpunct}|[=] { this->token(nyan::token_type::OPERATOR); return; }
 {int}                   { this->token(nyan::token_type::INT); return; }
 {float}                 { this->token(nyan::token_type::FLOAT); return; }

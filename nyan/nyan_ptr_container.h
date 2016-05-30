@@ -16,7 +16,7 @@ class NyanPtrContainer {
 public:
 	NyanPtrContainer()
 		:
-		is_owning{false},
+		is_ptr{true},
 		data_owned{nullptr},
 		data_ptr{nullptr} {}
 
@@ -35,7 +35,7 @@ public:
 	 */
 	NyanPtrContainer(T *val)
 		:
-		is_owning{false},
+		is_ptr{true},
 		data_owned{nullptr},
 		data_ptr{val} {}
 
@@ -44,7 +44,7 @@ public:
 	 */
 	NyanPtrContainer(std::unique_ptr<T> &&val)
 		:
-		is_owning{true},
+		is_ptr{false},
 		data_owned{std::move(val)},
 		data_ptr{nullptr} {}
 
@@ -53,7 +53,7 @@ public:
 	 */
 	NyanPtrContainer(NyanPtrContainer &&other)
 		:
-		is_owning{other.is_owning},
+		is_ptr{other.is_ptr},
 		data_owned{std::move(other.data_owned)},
 		data_ptr{other.data_ptr} {}
 
@@ -61,7 +61,7 @@ public:
 	 * Move assignment from another container.
 	 */
 	NyanPtrContainer &operator =(NyanPtrContainer &&other) {
-		this->is_owning = other.is_owning;
+		this->is_ptr = other.is_ptr;
 		this->data_owned = std::move(other.data_owned);
 		this->data_ptr = other.data_ptr;
 		return *this;
@@ -78,7 +78,7 @@ public:
 	 * Set the value to an owned unique_ptr.
 	 */
 	void set(std::unique_ptr<T> &&val) {
-		this->is_owning = true;
+		this->is_ptr = false;
 		this->data_owned = std::move(val);
 		this->data_ptr = nullptr;
 	}
@@ -87,7 +87,7 @@ public:
 	 * Set the value to a non-owning pointer.
 	 */
 	void set(T *val) {
-		this->is_owning = false;
+		this->is_ptr = true;
 		this->data_owned = nullptr;
 		this->data_ptr = val;
 	}
@@ -97,10 +97,10 @@ public:
 	 * Return a pointer to the contained data.
 	 */
 	T *get() const noexcept {
-		if (this->is_owning) {
-			return this->data_owned.get();
-		} else {
+		if (this->is_ptr) {
 			return this->data_ptr;
+		} else {
+			return this->data_owned.get();
 		}
 	}
 
@@ -139,11 +139,11 @@ public:
 
 
 	/**
-	 * Return true if this container is a pointer
-	 * and does not own a value.
+	 * Return true if this container owns the value
+	 * and does not only store a ptr to it.
 	 */
-	bool is_ptr() const {
-		return not this->is_owning;
+	bool is_owning() const {
+		return not this->is_ptr;
 	}
 
 
@@ -171,7 +171,7 @@ public:
 	}
 
 protected:
-	bool is_owning;
+	bool is_ptr;
 	std::unique_ptr<T> data_owned;
 	T *data_ptr;
 };

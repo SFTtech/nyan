@@ -87,6 +87,12 @@ std::string NyanNumber<T>::str() const {
 
 
 template <typename T>
+std::string NyanNumber<T>::repr() const {
+	return this->str();
+}
+
+
+template <typename T>
 size_t NyanNumber<T>::hash() const {
 	return this->value;
 }

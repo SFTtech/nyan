@@ -396,8 +396,34 @@ const std::vector<NyanObject *> &NyanObject::linearize_walk(std::unordered_set<N
 
 
 std::string NyanObject::str() const {
-	// TODO: nice string representation
-	throw NyanError{"not implemented yet"};
+	std::ostringstream builder;
+
+	builder << this->name << "(";
+	if (this->parents.size() > 0) {
+		builder << util::strjoin<NyanObject *>(
+			",", this->parents,
+			[](const auto obj) {return obj->name;}
+		);
+	}
+	builder << "):" << std::endl;
+
+	if (this->members.size() == 0) {
+		builder << "    pass" << std::endl;
+	}
+	else {
+		for (auto &entry : this->members) {
+			builder << "    " << entry.first
+			        << entry.second.str()
+			        << std::endl;
+		}
+	}
+
+	return builder.str();
+}
+
+
+std::string NyanObject::repr() const {
+	return this->name;
 }
 
 } // namespace nyan

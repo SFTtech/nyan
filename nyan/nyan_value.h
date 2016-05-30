@@ -38,9 +38,14 @@ public:
 	void apply(const NyanMember *change);
 
 	/**
-	 * Sting representation of the value.
+	 * String representation of the value.
 	 */
 	virtual std::string str() const = 0;
+
+	/**
+	 * Smaller string representation of the value.
+	 */
+	virtual std::string repr() const = 0;
 
 	/**
 	 * Hash function for the value.

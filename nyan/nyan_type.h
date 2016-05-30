@@ -56,11 +56,44 @@ enum class nyan_container_type {
 
 
 /**
- * Test if the given token indicates a valid nyan_type,
+ * Return whether the given type is primitive.
+ * Primitive types are int, float, text, etc.
+ */
+bool type_is_primitive(nyan_type type);
+
+/**
+ * Test if the given value token indicates a valid nyan_type,
  * then return it.
+ * A value token is e.g. "1337", "'rofl'" or "SomeThing".
  * throws ASTError if it fails.
  */
-nyan_type type_from_token(const NyanToken &token);
+nyan_type type_from_value_token(const NyanToken &token);
+
+/**
+ * Test if the given type token declares a valid nyan_type,
+ * returns it. Also returns the container type.
+ * A type token is e.g. "int" or "float" or "SomeObject".
+ * If it is e.g. "set", type will be CONTAINER and the container type SET.
+ * throws ASTError if it fails.
+ */
+std::pair<nyan_type, nyan_container_type>
+type_from_type_token(const NyanToken &token);
+
+
+/**
+ * Get a string representation of a basic nyan type.
+ */
+constexpr const char *type_to_string(nyan_type type) {
+	switch (type) {
+	case nyan_type::TEXT:          return "text";
+	case nyan_type::FILENAME:      return "file";
+	case nyan_type::INT:           return "int";
+	case nyan_type::FLOAT:         return "float";
+	case nyan_type::CONTAINER:     return "container";
+	case nyan_type::OBJECT:        return "object";
+	}
+	return "unhandled nyan_type";
+}
 
 
 /**
@@ -92,13 +125,18 @@ public:
 
 	/**
 	 * Construct a type from a parser token.
-	 * Used to determine single value types.
+	 * Used to construct a type for a value specification
+	 * or from a type declaration.
 	 *
 	 * As this can look up nyanobjects,
 	 * the object store is required.
+	 *
+	 * @param is_type_decl specifies whether the token denotes a type
+	 *                     declaration or a value.
 	 */
 	NyanType(const NyanToken &token,
-	         const NyanStore &store);
+	         const NyanStore &store,
+	         bool is_type_decl);
 
 	// move to other type
 	NyanType(NyanType &&other);
@@ -146,6 +184,11 @@ public:
 	 * Return the basic type of this NyanType.
 	 */
 	nyan_type get_type() const;
+
+	/**
+	 * Return a string representation of this type.
+	 */
+	std::string str() const;
 
 protected:
 	/**

@@ -19,6 +19,7 @@ public:
 
 	std::unique_ptr<NyanValue> copy() const override;
 	std::string str() const override;
+	std::string repr() const override;
 	size_t hash() const override;
 
 protected:

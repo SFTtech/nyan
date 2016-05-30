@@ -113,9 +113,14 @@ public:
 	void delete_linearization();
 
 	/**
-	 * Return a string representation of this object.
+	 * Return a full string representation of this object.
 	 */
 	std::string str() const override;
+
+	/**
+	 * Return a smaller string representation of this object.
+	 */
+	std::string repr() const override;
 
 	/**
 	 * Hash function for the object.

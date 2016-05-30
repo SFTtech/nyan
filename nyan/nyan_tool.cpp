@@ -130,7 +130,8 @@ int main(int argc, char **argv) {
 		return nyan::run(flags, params);
 	}
 	catch (std::exception &exc) {
-		std::cout << "\x1b[31;1merror:\x1b[m " << exc.what() << std::endl;
+		std::cout << "\x1b[31;1mfatal error:\x1b[m "
+		          << exc.what() << std::endl;
 		return 1;
 	}
 }

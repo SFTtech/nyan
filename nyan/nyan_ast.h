@@ -106,6 +106,22 @@ protected:
 
 
 /**
+ * An import in a nyan file is represented by this AST entry.
+ */
+class NyanASTImport : public NyanASTBase {
+	friend class NyanParser;
+public:
+	NyanASTImport(const NyanToken &name, util::Iterator<NyanToken> &tokens);
+
+	void strb(std::ostringstream &builder) const override;
+
+protected:
+	NyanToken namespace_name;
+	NyanToken alias;
+};
+
+
+/**
  * The abstract syntax tree representation of a nyan object.
  */
 class NyanASTObject : public NyanASTBase {
@@ -141,6 +157,7 @@ public:
 	const std::vector<NyanASTObject> &get_objects() const;
 
 protected:
+	std::vector<NyanASTImport> imports;
 	std::vector<NyanASTObject> objects;
 };
 

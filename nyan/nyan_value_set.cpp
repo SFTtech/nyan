@@ -47,6 +47,11 @@ std::string NyanSet::str() const {
 }
 
 
+std::string NyanSet::repr() const {
+	return this->str();
+}
+
+
 size_t NyanSet::hash() const {
 	throw NyanError{"NyanSet is not hashable."};
 }
