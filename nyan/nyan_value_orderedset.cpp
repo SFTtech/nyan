@@ -10,8 +10,10 @@ namespace nyan {
 NyanOrderedSet::NyanOrderedSet() {}
 
 
-NyanOrderedSet::NyanOrderedSet(const std::vector<NyanToken> &tokens) {
-	throw NyanInternalError{"TODO"};
+NyanOrderedSet::NyanOrderedSet(std::vector<NyanValueContainer> &values) {
+	for (auto &value : values) {
+		this->values.add(std::move(value));
+	}
 }
 
 

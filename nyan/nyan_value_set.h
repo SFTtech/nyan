@@ -20,7 +20,7 @@ namespace nyan {
 class NyanSet : public NyanContainer {
 public:
 	NyanSet();
-	NyanSet(const std::vector<NyanToken> &tokens);
+	NyanSet(std::vector<NyanValueContainer> &values);
 	NyanSet(const NyanSet &other);
 
 	std::unique_ptr<NyanValue> copy() const override;

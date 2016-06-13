@@ -26,6 +26,9 @@ PatchPatch<Patch>():
     member += 15
     ie = Third
 
+SetTest():
+    member : set(int) = {1, 1, Test, "rofl", "rofl"}
+
 
 # unit example
 Unit():

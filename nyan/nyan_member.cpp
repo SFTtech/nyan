@@ -5,7 +5,8 @@
 namespace nyan {
 
 
-NyanMember::NyanMember(NyanTypeContainer &&type, const NyanLocation &location)
+NyanMember::NyanMember(const NyanLocation &location,
+                       NyanTypeContainer &&type)
 	:
 	type{std::move(type)},
 	operation{nyan_op::INVALID},
@@ -14,9 +15,9 @@ NyanMember::NyanMember(NyanTypeContainer &&type, const NyanLocation &location)
 	location{location} {}
 
 
-NyanMember::NyanMember(NyanTypeContainer &&type, nyan_op operation,
-                       NyanValueContainer &&value,
-                       const NyanLocation &location)
+NyanMember::NyanMember(const NyanLocation &location,
+                       NyanTypeContainer &&type, nyan_op operation,
+                       NyanValueContainer &&value)
 	:
 	type{std::move(type)},
 	operation{operation},
@@ -78,11 +79,13 @@ NyanValue *NyanMember::get_value_ptr() const {
 
 void NyanMember::set_value(NyanValueContainer &&val) {
 	// replace the container
+	// TODO: check type compatbility
 	this->value = std::move(val);
 }
 
 
 void NyanMember::set_value(std::unique_ptr<NyanValue> &&val) {
+	// TODO: check type compatibility
 	this->value.set(std::move(val));
 }
 
@@ -105,6 +108,7 @@ NyanValue *NyanMember::cache_get() const {
 void NyanMember::cache_reset() {
 	this->cached_value.reset(nullptr);
 }
+
 
 const NyanLocation &NyanMember::get_location() const {
 	return this->location;

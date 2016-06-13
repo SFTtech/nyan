@@ -14,8 +14,10 @@ namespace nyan {
 NyanSet::NyanSet() {}
 
 
-NyanSet::NyanSet(const std::vector<NyanToken> &tokens) {
-	throw NyanInternalError{"TODO"};
+NyanSet::NyanSet(std::vector<NyanValueContainer> &values) {
+	for (auto &value : values) {
+		this->values.insert(std::move(value));
+	}
 }
 
 
@@ -48,7 +50,20 @@ std::string NyanSet::str() const {
 
 
 std::string NyanSet::repr() const {
-	return this->str();
+	std::ostringstream builder;
+	builder << "{";
+
+	size_t cnt = 0;
+	for (auto &value : this->values) {
+		if (cnt > 0) {
+			builder << ", ";
+		}
+		builder << value->repr();
+		cnt += 1;
+	}
+
+	builder << "}";
+	return builder.str();
 }
 
 

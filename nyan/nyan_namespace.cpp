@@ -37,7 +37,6 @@ void NyanNamespace::add_namespace(const std::string &name) {
 }
 
 
-
 NyanObject *NyanNamespace::get_obj(const std::string &name) const {
 	auto it = this->objects.find(name);
 	if (it == std::end(this->objects)) {
@@ -47,6 +46,7 @@ NyanObject *NyanNamespace::get_obj(const std::string &name) const {
 		return it->second.get();
 	}
 }
+
 
 NyanNamespace *NyanNamespace::get_namespace(const std::string &name) const {
 	auto it = this->namespaces.find(name);

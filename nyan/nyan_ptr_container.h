@@ -151,7 +151,7 @@ public:
 	 * Compare the contained values.
 	 */
 	bool operator ==(const T &other) const {
-		return this->get() == other;
+		return *this->get() == other;
 	}
 
 
@@ -159,7 +159,7 @@ public:
 	 * Compare a container with a value.
 	 */
 	bool operator ==(const NyanPtrContainer<T> &other) const {
-		return this->get() == other.get();
+		return *this->get() == *other.get();
 	}
 
 
@@ -167,7 +167,7 @@ public:
 	 * Check if contained values are not equal.
 	 */
 	bool operator !=(const this_type &other) const {
-		return not (this->get() == other.get());
+		return not (*this->get() == *other.get());
 	}
 
 protected:

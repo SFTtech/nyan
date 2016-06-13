@@ -17,7 +17,7 @@ NyanText::NyanText(const std::string &value)
 
 NyanText::NyanText(const NyanToken &token)
 	:
-	value{token.get()} {}
+	NyanText{token.get()} {}
 
 
 std::unique_ptr<NyanValue> NyanText::copy() const {

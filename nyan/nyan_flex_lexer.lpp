@@ -18,7 +18,6 @@
 
 #include "nyan_lexer.h"
 #include "nyan_token.h"
-#include "nyan_parser.h"
 
 using namespace std::string_literals;
 

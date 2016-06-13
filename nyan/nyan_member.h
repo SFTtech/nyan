@@ -27,13 +27,14 @@ public:
 	/**
 	 * Member without value.
 	 */
-	NyanMember(NyanTypeContainer &&type, const NyanLocation &location);
+	NyanMember(const NyanLocation &location, NyanTypeContainer &&type);
 
 	/**
 	 * Member with value.
 	 */
-	NyanMember(NyanTypeContainer &&type, nyan_op operation,
-	           NyanValueContainer &&value, const NyanLocation &location);
+	NyanMember(const NyanLocation &location,
+	           NyanTypeContainer &&type, nyan_op operation,
+	           NyanValueContainer &&value);
 
 	NyanMember(NyanMember &&other);
 	const NyanMember &operator =(NyanMember &&other);

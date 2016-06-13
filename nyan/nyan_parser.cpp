@@ -10,8 +10,10 @@
 #include "nyan_store.h"
 #include "nyan_token.h"
 #include "nyan_type.h"
+#include "nyan_type_container.h"
 #include "nyan_util.h"
 #include "nyan_value.h"
+#include "nyan_value_container.h"
 #include "nyan_value_number.h"
 #include "nyan_value_orderedset.h"
 #include "nyan_value_set.h"
@@ -152,13 +154,13 @@ void NyanParser::add_patch_targets(NyanObject *obj, const NyanASTObject &astobj)
 
 		// create the __patch__ member to contain the target
 		NyanMember patch_member{
+			NyanLocation{astobj.target},
 			NyanTypeContainer{std::make_unique<NyanType>(
 					nullptr
 					// ^ = nullptr object, so any NyanObject is allowed
 				)},
 			nyan_op::ASSIGN,
-			NyanValueContainer{tobj},
-			NyanLocation{astobj.target}
+			NyanValueContainer{tobj}
 		};
 
 		// create the member entry
@@ -319,144 +321,127 @@ std::vector<std::unique_ptr<NyanMember>> NyanParser::create_members(NyanObject *
 		}
 
 		NyanTypeContainer &member_type = it->second;
-		nyan_op member_operation = nyan_op::INVALID;
 
 		// only add a value if the member entry has one
 		if (astmember.value.exists) {
-			// requested operation for the value
-			member_operation = astmember.operation;
-
-			// check if the ast value can be combined with the member type
-			this->check_member_value_type(member_type, member_operation, astmember.value);
 
 			// create the member value
-			member_value = this->create_member_value(astmember.value);
+			member_value = this->create_member_value(member_type.get(),
+			                                         astmember.value);
+
+			obj->members.emplace(
+				member_name,
+				NyanMember{
+					NyanLocation{astmember.name},
+					std::move(member_type),
+					astmember.operation,
+					std::move(member_value)
+				}
+			);
+
 		}
 		else {
-			// no value given, the default constructor of nyanvalue
-			// will do the job.
+			// no value given
+			obj->members.emplace(
+				member_name,
+				NyanMember{
+					NyanLocation{astmember.name},
+					std::move(member_type)
+				}
+			);
 		}
-
-		// create member
-		obj->members.emplace(
-			member_name,
-			NyanMember{
-				std::move(member_type),
-				member_operation,
-				std::move(member_value),
-				NyanLocation{astmember.name}
-			}
-		);
 	}
 
 	return members;
 }
 
 
-void NyanParser::check_member_value_type(const NyanTypeContainer &member_type, nyan_op member_operation, const NyanASTMemberValue &astmembervalue) const {
-
-	// TODO: also check the member_operation!
-
-	// TODO: move this block to NyanValue and generalize
-	// check if all the container values
-	// are compatible with the container type
-	size_t value_idx = 0;
-
-	for (const NyanToken &value : astmembervalue.values) {
-		// multiple values given for non-container member
-		if (value_idx > 1 and not member_type->is_container()) {
-			throw TypeError{
-				value,
-				"storing multiple values in "
-				"non-container member"
-			};
-		}
-
-		NyanType value_type{value, *this->store, false};
-
-		// test if value (optionally in a container)
-		// is compatible with the type required for the member
-		if (member_type->is_container()) {
-			if (not value_type.can_be_in(*member_type)) {
-				// TODO: show other location!
-				//       and both types
-				throw TypeError{
-					value,
-					"value type incompatible to container type"
-				};
-			}
-		}
-		else {
-			if (not value_type.is_child_of(*member_type)) {
-				// TODO: show other location
-				//       and both types
-				throw TypeError{
-					value,
-					"value type incompatible to member type"
-				};
-			}
-		}
-
-		value_idx += 1;
-	}
-}
-
-
-NyanValueContainer NyanParser::create_member_value(const NyanASTMemberValue &astmembervalue) const {
+NyanValueContainer NyanParser::create_member_value(const NyanType *member_type, const NyanASTMemberValue &astmembervalue) const {
 
 	NyanValueContainer member_value;
+
+	std::vector<NyanValueContainer> values;
+
+	// convert all tokens to values
+	for (auto &value_token : astmembervalue.values) {
+		NyanValueContainer value = this->value_from_value_token(value_token);
+		values.push_back(std::move(value));
+	}
 
 	// switch by container type determined in the ast
 	switch (astmembervalue.container_type) {
 	case nyan_container_type::SINGLE: {
-		const NyanToken &value_token = astmembervalue.values[0];
-		nyan_type value_type = type_from_value_token(value_token);
 
-		// create the NyanValue
-		switch (value_type) {
-		case nyan_type::TEXT:
-			member_value = NyanValueContainer{
-				std::make_unique<NyanText>(value_token)
+		if (astmembervalue.values.size() > 1) {
+			throw TypeError{
+				astmembervalue.values[1],
+				"storing multiple values in non-container member"
 			};
-			break;
-		case nyan_type::INT:
-			member_value = NyanValueContainer{
-				std::make_unique<NyanInt>(value_token)
-			};
-			break;
-		case nyan_type::FLOAT: {
-			member_value = NyanValueContainer{
-				std::make_unique<NyanFloat>(value_token)
-			};
-			break;
 		}
-		case nyan_type::OBJECT: {
-			member_value = NyanValueContainer{
-				this->store->get(value_token.get())
-			};
-			break;
-		}
-		default:
-			throw NyanInternalError{"non-implemented value type"};
-		}
+
+		member_value = std::move(values[0]);
+
 		break;
 	}
 	case nyan_container_type::SET: {
 		// create a set from the value list
 		member_value = NyanValueContainer{
-			std::make_unique<NyanSet>(astmembervalue.values)
+			std::make_unique<NyanSet>(values)
 		};
 		break;
 	}
 	case nyan_container_type::ORDEREDSET: {
 		member_value = NyanValueContainer{
-			std::make_unique<NyanOrderedSet>(astmembervalue.values)
+			std::make_unique<NyanOrderedSet>(values)
 		};
 		break;
 	}
 
 	default:
 		throw NyanInternalError{"unhandled container type"};
+	}
+
+	return member_value;
+}
+
+
+NyanValueContainer NyanParser::value_from_value_token(const NyanToken &value_token) const {
+	NyanValueContainer member_value;
+
+	nyan_type value_type = type_from_value_token(value_token);
+
+	switch (value_type) {
+	case nyan_type::TEXT:
+		member_value = NyanValueContainer{
+			std::make_unique<NyanText>(value_token)
+		};
+		break;
+	case nyan_type::INT:
+		member_value = NyanValueContainer{
+			std::make_unique<NyanInt>(value_token)
+		};
+		break;
+	case nyan_type::FLOAT: {
+		member_value = NyanValueContainer{
+			std::make_unique<NyanFloat>(value_token)
+		};
+		break;
+	}
+	case nyan_type::OBJECT: {
+		NyanObject *obj = this->store->get(value_token.get());
+		if (obj == nullptr) {
+			throw TypeError{
+				value_token,
+				"unknown object name"
+			};
+		}
+		member_value = NyanValueContainer{
+			obj
+		};
+		break;
+	}
+	default:
+		throw NyanInternalError{"non-implemented value type"};
 	}
 
 	return member_value;

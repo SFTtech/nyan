@@ -97,10 +97,29 @@ constexpr const char *type_to_string(nyan_type type) {
 
 
 /**
+ * Get a string represenation for a nyan container type.
+ */
+constexpr const char *container_type_to_string(nyan_container_type type) {
+	switch (type) {
+	case nyan_container_type::SINGLE:        return "single_value";
+	case nyan_container_type::SET:           return "set";
+	case nyan_container_type::ORDEREDSET:    return "orderedset";
+	}
+	return "unhandled nyan_container_type";
+}
+
+
+/**
  * Type handling for nyan values.
  */
 class NyanType {
 public:
+
+	/**
+	 * Construct from a basic type.
+	 */
+	NyanType(nyan_type type);
+
 	/**
 	 * Construct from the AST.
 	 * For type object target lookups, require the store.
@@ -134,8 +153,7 @@ public:
 	 * @param is_type_decl specifies whether the token denotes a type
 	 *                     declaration or a value.
 	 */
-	NyanType(const NyanToken &token,
-	         const NyanStore &store,
+	NyanType(const NyanToken &token, const NyanStore &store,
 	         bool is_type_decl);
 
 	// move to other type

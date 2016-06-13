@@ -94,6 +94,19 @@ type_from_type_token(const NyanToken &tok) {
 }
 
 
+NyanType::NyanType(nyan_type type)
+	:
+	type{type},
+	container_type{nyan_container_type::SINGLE} {
+
+	if (not this->is_primitive()) {
+		throw NyanInternalError{
+			"initialized NyanType constructor with non-primitive type"
+		};
+	}
+}
+
+
 NyanType::NyanType(const NyanASTMemberType &ast_type,
                    const NyanStore &store)
 	:
@@ -315,7 +328,21 @@ std::string NyanType::str() const {
 				return this->target->repr();
 			}
 		}
-		return "TODO container";
+
+		if (this->container_type == nyan_container_type::SINGLE) {
+			throw NyanInternalError{
+				"single value encountered when expecting container"
+			};
+		}
+
+		std::ostringstream builder;
+
+		builder << container_type_to_string(this->container_type)
+		        << "("
+		        << this->value_type->str()
+		        << ")";
+
+		return builder.str();
 	}
 }
 

@@ -22,7 +22,7 @@ namespace nyan {
 class NyanOrderedSet : public NyanContainer {
 public:
 	NyanOrderedSet();
-	NyanOrderedSet(const std::vector<NyanToken> &tokens);
+	NyanOrderedSet(std::vector<NyanValueContainer> &values);
 
 	std::unique_ptr<NyanValue> copy() const override;
 	std::string str() const override;

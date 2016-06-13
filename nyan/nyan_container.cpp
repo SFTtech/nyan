@@ -5,4 +5,6 @@
 
 namespace nyan {
 
+NyanContainer::NyanContainer() {}
+
 } // namespace nyan

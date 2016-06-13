@@ -17,6 +17,8 @@ class NyanValueContainer;
  */
 class NyanContainer : public NyanValue {
 public:
+	NyanContainer();
+	virtual ~NyanContainer() = default;
 
 	/**
 	 * Add the given value to this container.

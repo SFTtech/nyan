@@ -6,8 +6,6 @@
 
 #include "nyan_ast.h"
 #include "nyan_token.h"
-#include "nyan_type_container.h"
-#include "nyan_value_container.h"
 
 
 namespace nyan {
@@ -16,6 +14,8 @@ class NyanFile;
 class NyanMember;
 class NyanObject;
 class NyanStore;
+class NyanTypeContainer;
+class NyanValueContainer;
 
 /**
  * The parser for nyan.
@@ -67,15 +67,16 @@ protected:
 	std::vector<std::unique_ptr<NyanMember>> create_members(NyanObject *obj, const NyanASTObject &astobj, std::unordered_map<std::string, NyanTypeContainer> &member_types) const;
 
 	/**
+	 * Create a NyanValue from an AST member value.
 	 * Check if the ast value can be assigned (with the given operation)
 	 * to the member type determined already.
 	 */
-	void check_member_value_type(const NyanTypeContainer &member_type, nyan_op member_operation, const NyanASTMemberValue &astmembervalue) const;
+	NyanValueContainer create_member_value(const NyanType *member_type, const NyanASTMemberValue &astmembervalue) const;
 
 	/**
-	 * Create a NyanValue from an AST member value.
+	 * Create a NyanValue from a single value token.
 	 */
-	NyanValueContainer create_member_value(const NyanASTMemberValue &astmembervalue) const;
+	NyanValueContainer value_from_value_token(const NyanToken &value_token) const;
 
 	/**
 	 * Store the inheritance modifications of a patch.
