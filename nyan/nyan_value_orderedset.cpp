@@ -23,20 +23,15 @@ std::unique_ptr<NyanValue> NyanOrderedSet::copy() const {
 
 
 std::string NyanOrderedSet::str() const {
-
-	throw NyanInternalError{"TODO"};
-
 	std::ostringstream builder;
 	builder << "<";
 
 	size_t cnt = 0;
-
 	for (auto &value : this->values) {
 		if (cnt > 0) {
 			builder << ", ";
 		}
-		// TODO: fix the iterator!
-		builder << value->value->str();
+		builder << value->get()->str();
 		cnt += 1;
 	}
 
@@ -46,7 +41,20 @@ std::string NyanOrderedSet::str() const {
 
 
 std::string NyanOrderedSet::repr() const {
-	return this->str();
+	std::ostringstream builder;
+	builder << "<";
+
+	size_t cnt = 0;
+	for (auto &value : this->values) {
+		if (cnt > 0) {
+			builder << ", ";
+		}
+		builder << value->get()->repr();
+		cnt += 1;
+	}
+
+	builder << ">";
+	return builder.str();
 }
 
 

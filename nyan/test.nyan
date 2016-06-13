@@ -28,6 +28,7 @@ PatchPatch<Patch>():
 
 SetTest():
     member : set(int) = {1, 1, Test, "rofl", "rofl"}
+    orderedmember : orderedset(int) = <2, 2, "lol", Patch, "lol">
 
 
 # unit example

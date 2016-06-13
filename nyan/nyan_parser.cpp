@@ -362,6 +362,16 @@ NyanValueContainer NyanParser::create_member_value(const NyanType *member_type, 
 
 	std::vector<NyanValueContainer> values;
 
+	// don't allow more than one value for a single-value type
+	if (astmembervalue.container_type == nyan_container_type::SINGLE and
+	    astmembervalue.values.size() > 1) {
+
+		throw TypeError{
+			astmembervalue.values[1],
+			"storing multiple values in non-container member"
+		};
+	}
+
 	// convert all tokens to values
 	for (auto &value_token : astmembervalue.values) {
 		NyanValueContainer value = this->value_from_value_token(value_token);
