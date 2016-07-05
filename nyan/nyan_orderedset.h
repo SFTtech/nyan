@@ -3,7 +3,7 @@
 #define NYAN_ORDEREDSET_H_
 
 #include <list>
-#include <unordered_set>
+#include <unordered_map>
 
 #include "nyan_error.h"
 #include "nyan_ptr_container.h"
@@ -22,90 +22,107 @@ public:
 	virtual ~OrderedSet() {}
 
 protected:
-	// magic forward declaration
-	struct set_entry;
-
 	/**
 	 * Type of the list that preserves the element order.
 	 */
-	using order_list_t = std::list<const OrderedSet::set_entry *>;
+	using order_list_t = std::list<const T *>;
 
-	/**
-	 * list to preserve the set order.
-	 */
-	order_list_t value_order;
 
 	/**
 	 * Iterator for list elements.
 	 */
 	using list_iter = typename order_list_t::iterator;
 
-	/**
-	 * Hashmap entry to find the list index.
-	 */
-	struct set_entry {
-		set_entry(T &&val) : value{std::move(val)} {}
-		set_entry(T *val) : value{val} {}
-		set_entry(set_entry &&other)
-			:
-			value{std::move(other.value)},
-			list_iter{other.list_iter} {}
-
-		const T &operator ->() const { return this->value; }
-
-		const T &get() const { return this->value; }
-
-		struct hash {
-			size_t operator ()(const set_entry &entry) const {
-				return std::hash<T>{}(entry.value);
-			}
-		};
-
-		bool operator ==(const set_entry &other) const {
-			return this->value == other.value;
-		}
-
-		bool operator !=(const set_entry &other) const {
-			return this->value != other.value;
-		}
-
-		void set_list_iter(const list_iter &it) {
-			this->list_iter = it;
-		}
-
-		/**
-		 * Value of this entry.
-		 */
-		T value;
-
-		/**
-		 * Associated list element.
-		 */
-		list_iter list_iter;
-	};
-
 
 	/**
 	 * Type of the value set.
+	 * Stores to the ordered list iterator so we can access the order.
 	 */
-	using value_set_t = std::unordered_set<set_entry, typename set_entry::hash>;
-
-	/**
-	 * Element iterators type.
-	 */
-	using iterator = typename order_list_t::iterator;
+	using value_storage_t = std::unordered_map<T, list_iter>;
 
 
 	/**
-	 * Element const iterator type.
+	 * OrderedSet iterator.
+	 *
+	 * Basically relays to the list iterator, but it returns
+	 * a T& because of double-dereferencing.
+	 *
+	 * Thanks C++ for such a small and readable implementation.
 	 */
-	using const_iterator = typename order_list_t::const_iterator;
+	template<typename elem_type>
+	class OrderedSetIterator
+		: public std::iterator<std::forward_iterator_tag, T> {
+	public:
+		using iter_type = typename std::conditional<
+			std::is_const<elem_type>::value,
+			typename order_list_t::const_iterator,
+			typename order_list_t::iterator>::type;
+
+		using set_type = typename std::conditional<
+			std::is_const<elem_type>::value,
+			const OrderedSet,
+			OrderedSet>::type;
+
+		OrderedSetIterator(set_type *set, bool use_start)
+			:
+			iter{use_start ?
+			     set->value_order.begin()
+			     :
+			     set->value_order.end()} {}
+
+		virtual ~OrderedSetIterator() = default;
+
+		/**
+		 * Advance the inner iterator to the next element.
+		 */
+		OrderedSetIterator &operator ++() {
+			++this->iter;
+			return *this;
+		}
+
+		/**
+		 * Get the element the inner iterator points to.
+		 */
+		elem_type &operator *() const {
+			return *(*this->iter);
+		}
+
+		/**
+		 * Check if this iterator points to the same container element
+		 * as the other iterator.
+		 */
+		bool operator ==(const OrderedSetIterator& other) const {
+			return ((this->iter == other.iter) or
+			        (*this->iter == *other.iter));
+		}
+
+		/**
+		 * Check if the iterator does not point to the same
+		 * container element as the other iterator.
+		 */
+		bool operator !=(const OrderedSetIterator& other) const {
+			return not (*this == other);
+		}
+
+	protected:
+		iter_type iter;
+	};
+
+
+	using iterator = OrderedSetIterator<T>;
+	using const_iterator = OrderedSetIterator<const T>;
+
+
+	/**
+	 * list to preserve the set order.
+	 */
+	order_list_t value_order;
 
 
 	/**
 	 * unordered entry storage.
 	 */
-	value_set_t values;
+	value_storage_t values;
 
 
 public:
@@ -114,54 +131,67 @@ public:
 	 * If already in the set, move entry to the end.
 	 */
 	bool add(T &&value) {
-		auto inserted = this->values.insert(std::move(value));
+		// maybe it is even faster if we check existence with
+		// this->values.find(value) first, although then
+		// we need to hash value twice: once for the find
+		// and once for the insert.
+		// most of the time it won't be in the list,
+		// so i chose this approach.
 
-		// element where the ordered list will point to.
-		// can be the already known set entry.
-		auto insert_pos = std::get<0>(inserted);
+		// try new insert, get the iterator to the insertion place
+		// as list position, use a dummy which gets replaced below
+		list_iter list_pos{};
+		auto ins = this->values.insert(
+			std::make_pair(std::move(value), list_pos));
+		auto value_pos = std::get<0>(ins);
+		bool new_insert = std::get<1>(ins);
 
-		// true when the element is _not_ known and needs to be inserted
-		bool new_insert = std::get<1>(inserted);
-
-		// remove the old list entry to move it to the end then
 		if (not new_insert) {
-			this->value_order.erase(insert_pos->list_iter);
+			// inserted again -> move it to the back in the order list
+			this->value_order.erase(value_pos->second);
 		}
 
-		// add it to the element order list at the end
+		const T *value_ptr = &(value_pos->first);
+
+		// add a ptr to the value to the element order list at the end
 		auto list_ins = this->value_order.insert(
-			std::end(this->value_order), &(*insert_pos)
+			std::end(this->value_order), value_ptr
 		);
 
-		// in the set, remember where the element is in the list
-		// holy fuck is this dirty.
-		// somehow, the "insert_pos" is const, while the specification
-		// of unordered_set.insert() says it's not.
-		// so we need to get rid of the const in order to set
-		// the list position in the set element.
-		const_cast<set_entry *>(&(*insert_pos))->set_list_iter(list_ins);
-
+		// and store the list iterator to the map
+		value_pos->second = list_ins;
 		return new_insert;
 	}
 
+	/**
+	 * Is the specified value stored in this set?
+	 */
 	bool contains(T &&value) const {
-		throw NyanInternalError{"TODO orderedset contains"};
+		return (this->values.find(value) != std::end(this->values));
 	}
 
-	iterator begin() noexcept {
-		return this->value_order.begin();
+	/**
+	 * Return the number of elements stored.
+	 */
+	size_t size() const {
+		return this->value_order.size();
 	}
 
-	const_iterator begin() const noexcept {
-		return this->value_order.begin();
+
+	iterator begin() {
+		return OrderedSetIterator<T>{this, true};
 	}
 
-	iterator end() noexcept {
-		return this->value_order.end();
+	const_iterator begin() const {
+		return OrderedSetIterator<const T>{this, true};
 	}
 
-	const_iterator end() const noexcept {
-		return this->value_order.end();
+	iterator end() {
+		return OrderedSetIterator<T>{this, false};
+	}
+
+	const_iterator end() const {
+		return OrderedSetIterator<const T>{this, false};
 	}
 };
 

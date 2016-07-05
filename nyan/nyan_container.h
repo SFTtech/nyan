@@ -35,7 +35,7 @@ public:
 	/**
 	 * Advance the iterator to the next element.
 	 */
-	virtual void operator ++() = 0;
+	virtual this_type &operator ++() = 0;
 
 	/**
 	 * Get the element the iterator is currently pointing to.
@@ -104,7 +104,7 @@ public:
 	/**
 	 * Get the element the inner iterator points to.
 	 */
-	T &operator *() const {
+	elem_type &operator *() const {
 		return *(*this->iter);
 	}
 

@@ -31,7 +31,7 @@ std::string NyanOrderedSet::str() const {
 		if (cnt > 0) {
 			builder << ", ";
 		}
-		builder << value->get()->str();
+		builder << value->str();
 		cnt += 1;
 	}
 
@@ -49,7 +49,7 @@ std::string NyanOrderedSet::repr() const {
 		if (cnt > 0) {
 			builder << ", ";
 		}
-		builder << value->get()->repr();
+		builder << value->repr();
 		cnt += 1;
 	}
 

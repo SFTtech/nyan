@@ -23,6 +23,7 @@ class NyanSetIterator : public ContainerIterBase<elem_type> {
 public:
 
 	using this_type = NyanSetIterator<elem_type, set_type>;
+	using base_type = ContainerIterBase<elem_type>;
 
 	// magic: determine the iterator type used to access
 	//        data in the std::unordered_set of NyanSet.
@@ -40,8 +41,9 @@ public:
 	/**
 	 * Advance the iterator to the next element in the set.
 	 */
-	void operator ++() override {
+	base_type &operator ++() override {
 		this->iterator++;
+		return *this;
 	}
 
 	/**
@@ -56,12 +58,15 @@ protected:
 	/**
 	 * compare two iterators
 	 */
-	bool equals(const ContainerIterBase<elem_type> &other) const override {
+	bool equals(const base_type &other) const override {
 		auto other_me = dynamic_cast<const this_type &>(other);
 
 		return (this->iterator == other_me.iterator);
 	}
 
+	/**
+	 * The wrapped std::iterator, from the NyanSet std::unordered_set.
+	 */
 	iter_type iterator;
 };
 
