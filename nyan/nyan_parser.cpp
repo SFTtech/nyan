@@ -156,9 +156,9 @@ void NyanParser::add_patch_targets(NyanObject *obj, const NyanASTObject &astobj)
 		NyanMember patch_member{
 			NyanLocation{astobj.target},
 			NyanTypeContainer{std::make_unique<NyanType>(
-					nullptr
-					// ^ = nullptr object, so any NyanObject is allowed
-				)},
+				nullptr
+				// ^ = nullptr object, so any NyanObject is allowed
+			)},
 			nyan_op::ASSIGN,
 			NyanValueContainer{tobj}
 		};
@@ -338,7 +338,6 @@ std::vector<std::unique_ptr<NyanMember>> NyanParser::create_members(NyanObject *
 					std::move(member_value)
 				}
 			);
-
 		}
 		else {
 			// no value given
@@ -382,15 +381,7 @@ NyanValueContainer NyanParser::create_member_value(const NyanType *member_type, 
 	switch (astmembervalue.container_type) {
 	case nyan_container_type::SINGLE: {
 
-		if (astmembervalue.values.size() > 1) {
-			throw TypeError{
-				astmembervalue.values[1],
-				"storing multiple values in non-container member"
-			};
-		}
-
 		member_value = std::move(values[0]);
-
 		break;
 	}
 	case nyan_container_type::SET: {

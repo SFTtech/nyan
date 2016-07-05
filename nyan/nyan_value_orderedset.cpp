@@ -78,6 +78,26 @@ bool NyanOrderedSet::remove(NyanValue *value) {
 }
 
 
+NyanContainer::iterator NyanOrderedSet::begin() {
+	throw NyanInternalError{"TODO"};
+}
+
+
+NyanContainer::iterator NyanOrderedSet::end() {
+	throw NyanInternalError{"TODO"};
+}
+
+
+NyanContainer::const_iterator NyanOrderedSet::begin() const {
+	throw NyanInternalError{"TODO"};
+}
+
+
+NyanContainer::const_iterator NyanOrderedSet::end() const {
+	throw NyanInternalError{"TODO"};
+}
+
+
 void NyanOrderedSet::apply_value(const NyanValue *value, nyan_op operation) {
 	throw NyanInternalError{"TODO"};
 }

@@ -68,16 +68,6 @@ public:
 	}
 
 	/**
-	 * Replace the value of this member.
-	 */
-	void set_value(NyanValueContainer &&val);
-
-	/**
-	 * Replace the value of this member within the container.
-	 */
-	void set_value(std::unique_ptr<NyanValue> &&val);
-
-	/**
 	 * Return the type of this member.
 	 */
 	NyanType *get_type() const;

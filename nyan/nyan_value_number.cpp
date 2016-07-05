@@ -106,7 +106,8 @@ bool NyanNumber<T>::equals(const NyanValue &other) const {
 
 
 template <typename T>
-const std::unordered_set<nyan_op> &NyanNumber<T>::allowed_operations(nyan_type value_type) const {
+const std::unordered_set<nyan_op> &
+NyanNumber<T>::allowed_operations(nyan_type value_type) const {
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,

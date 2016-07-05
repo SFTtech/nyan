@@ -87,6 +87,74 @@ bool NyanSet::remove(NyanValue *value) {
 }
 
 
+NyanContainer::iterator NyanSet::begin() {
+	// does semi-magic:
+	// We create a heap-allocated NyanSetIterator.
+	// It is designed to be callable by a generic interface
+	// that all NyanContainer support,
+	// but specifically relays calls in the way NyanSet needs it.
+	//
+	// iterator::elem_type = the single element type of the iteration.
+	// NyanSet             = the target set class,
+	//                       which is non-const in this begin()
+	//                       implementation, but not in the begin() below.
+	// this, true          = use this set as target, use the beginning.
+	auto real_iterator = std::make_unique<
+		NyanSetIterator<iterator::elem_type, NyanSet>>(this, true);
+
+	return iterator{std::move(real_iterator)};
+}
+
+
+NyanContainer::iterator NyanSet::end() {
+	// see explanation in the begin() above
+	auto real_iterator = std::make_unique<
+		NyanSetIterator<iterator::elem_type, NyanSet>>(this, false);
+
+	return iterator{std::move(real_iterator)};
+}
+
+
+NyanContainer::const_iterator NyanSet::begin() const {
+	// see explanation in the begin() above
+	auto real_iterator = std::make_unique<
+		NyanSetIterator<const_iterator::elem_type,
+		                const NyanSet>>(this, true);
+
+	return const_iterator{std::move(real_iterator)};
+}
+
+
+NyanContainer::const_iterator NyanSet::end() const {
+	// see explanation in the begin() above
+	auto real_iterator = std::make_unique<
+		NyanSetIterator<const_iterator::elem_type,
+		                const NyanSet>>(this, false);
+
+	return const_iterator{std::move(real_iterator)};
+}
+
+
+NyanSet::value_storage::iterator NyanSet::values_begin() {
+	return this->values.begin();
+}
+
+
+NyanSet::value_storage::iterator NyanSet::values_end() {
+	return this->values.end();
+}
+
+
+NyanSet::value_storage::const_iterator NyanSet::values_begin() const {
+	return this->values.begin();
+}
+
+
+NyanSet::value_storage::const_iterator NyanSet::values_end() const {
+	return this->values.end();
+}
+
+
 void NyanSet::apply_value(const NyanValue *value, nyan_op operation) {
 	const NyanSet *change = dynamic_cast<const NyanSet *>(value);
 

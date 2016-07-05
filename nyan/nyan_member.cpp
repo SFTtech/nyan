@@ -2,6 +2,10 @@
 
 #include "nyan_member.h"
 
+#include <iostream>
+
+#include "nyan_container.h"
+
 namespace nyan {
 
 
@@ -26,6 +30,31 @@ NyanMember::NyanMember(const NyanLocation &location,
 	location{location} {
 
 	// TODO check if type, operation and value can work together
+
+
+	// TODO: maybe move to the container class!
+	// check if all the container values
+	// are compatible with the container type
+	if (this->type->is_container()) {
+		NyanContainer *container = dynamic_cast<NyanContainer *>(this->value.get());
+		if (container == nullptr) {
+			throw NyanInternalError{
+				"type said it was a container but could not be casted!"
+			};
+		}
+		else {
+			for (auto &value : *container) {
+				std::cout << "container check: "
+				          << value.repr() << std::endl;
+			}
+		}
+	}
+	else {
+		// TODO: check single value type
+		// if (not value_type.can_be_in(*member_type)) ...
+		std::cout << "single value check: "
+		          << this->value->repr() << std::endl;
+	}
 }
 
 
@@ -74,19 +103,6 @@ NyanType *NyanMember::get_type() const {
 
 NyanValue *NyanMember::get_value_ptr() const {
 	return this->value.get();
-}
-
-
-void NyanMember::set_value(NyanValueContainer &&val) {
-	// replace the container
-	// TODO: check type compatbility
-	this->value = std::move(val);
-}
-
-
-void NyanMember::set_value(std::unique_ptr<NyanValue> &&val) {
-	// TODO: check type compatibility
-	this->value.set(std::move(val));
 }
 
 

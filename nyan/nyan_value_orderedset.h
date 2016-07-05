@@ -21,6 +21,9 @@ namespace nyan {
  */
 class NyanOrderedSet : public NyanContainer {
 public:
+	using NyanContainer::iterator;
+	using NyanContainer::const_iterator;
+
 	NyanOrderedSet();
 	NyanOrderedSet(std::vector<NyanValueContainer> &values);
 
@@ -32,6 +35,11 @@ public:
 	bool add(NyanValueContainer &&value) override;
 	bool contains(NyanValue *value) override;
 	bool remove(NyanValue *value) override;
+
+	iterator begin() override;
+	iterator end() override;
+	const_iterator begin() const override;
+	const_iterator end() const override;
 
 protected:
 	void apply_value(const NyanValue *value, nyan_op operation) override;
