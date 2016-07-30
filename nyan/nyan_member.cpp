@@ -5,6 +5,8 @@
 #include <iostream>
 
 #include "nyan_container.h"
+#include "nyan_util.h"
+
 
 namespace nyan {
 
@@ -43,7 +45,8 @@ NyanMember::NyanMember(const NyanLocation &location,
 			};
 		}
 		else {
-			for (auto &value : *container) {
+
+			for (auto &value : util::as_const(*container)) {
 				std::cout << "container check: "
 				          << value.repr() << std::endl;
 			}

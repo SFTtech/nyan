@@ -145,6 +145,11 @@ public:
 	virtual ~NyanContainer() = default;
 
 	/**
+	 * Return the number of elements in this container.
+	 */
+	virtual size_t size() const = 0;
+
+	/**
 	 * Add the given value to this container.
 	 * @returns if the value was added successfully,
 	 * false if it was already in there.
@@ -182,6 +187,16 @@ public:
 	 * container.
 	 */
 	virtual const_iterator end() const = 0;
+
+	/**
+	 * Guarantee a const_iterator beginning.
+	 */
+	const_iterator cbegin() const { return this->begin(); };
+
+	/**
+	 * Guarantee a const_iterator end.
+	 */
+	const_iterator cend() const { return this->end(); };
 };
 
 } // namespace nyan

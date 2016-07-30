@@ -2,7 +2,7 @@
 
 #include "nyan_value_orderedset.h"
 
-#include "nyan_value_container.h"
+#include "nyan_error.h"
 
 
 namespace nyan {
@@ -18,7 +18,50 @@ NyanOrderedSet::NyanOrderedSet(std::vector<NyanValueContainer> &values) {
 
 
 std::unique_ptr<NyanValue> NyanOrderedSet::copy() const {
+	throw NyanInternalError{"TODO ordered set copy"};
+}
+
+
+bool NyanOrderedSet::add(NyanValueContainer &&value) {
+	return this->values.add(std::move(value));
+}
+
+
+bool NyanOrderedSet::contains(NyanValue *value) {
+	return this->values.contains(value);
+}
+
+
+bool NyanOrderedSet::remove(NyanValue *value) {
+	throw NyanInternalError{"TODO ordered set remove"};
+}
+
+
+void NyanOrderedSet::apply_value(const NyanValue *value, nyan_op operation) {
+	const NyanOrderedSet *change = dynamic_cast<const NyanOrderedSet *>(value);
+
 	throw NyanInternalError{"TODO"};
+
+	switch (operation) {
+	case nyan_op::ASSIGN:
+		break;
+
+	case nyan_op::ADD_ASSIGN:
+	case nyan_op::UNION_ASSIGN:
+		break;
+
+	case nyan_op::SUBTRACT_ASSIGN:
+		break;
+
+	case nyan_op::MULTIPLY_ASSIGN:
+		break;
+
+	case nyan_op::INTERSECT_ASSIGN:
+		break;
+
+	default:
+		throw NyanError{"unknown operation requested"};
+	}
 }
 
 
@@ -55,56 +98,6 @@ std::string NyanOrderedSet::repr() const {
 
 	builder << ">";
 	return builder.str();
-}
-
-
-size_t NyanOrderedSet::hash() const {
-	throw NyanError{"NyanOrderedSet is not hashable."};
-}
-
-
-bool NyanOrderedSet::add(NyanValueContainer &&value) {
-	return this->values.add(std::move(value));
-}
-
-
-bool NyanOrderedSet::contains(NyanValue *value) {
-	return this->values.contains(value);
-}
-
-
-bool NyanOrderedSet::remove(NyanValue *value) {
-	throw NyanInternalError{"TODO"};
-}
-
-
-NyanContainer::iterator NyanOrderedSet::begin() {
-	throw NyanInternalError{"TODO"};
-}
-
-
-NyanContainer::iterator NyanOrderedSet::end() {
-	throw NyanInternalError{"TODO"};
-}
-
-
-NyanContainer::const_iterator NyanOrderedSet::begin() const {
-	throw NyanInternalError{"TODO"};
-}
-
-
-NyanContainer::const_iterator NyanOrderedSet::end() const {
-	throw NyanInternalError{"TODO"};
-}
-
-
-void NyanOrderedSet::apply_value(const NyanValue *value, nyan_op operation) {
-	throw NyanInternalError{"TODO"};
-}
-
-
-bool NyanOrderedSet::equals(const NyanValue &other) const {
-	throw NyanInternalError{"TODO"};
 }
 
 

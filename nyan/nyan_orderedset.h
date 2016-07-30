@@ -21,7 +21,6 @@ public:
 	OrderedSet() {}
 	virtual ~OrderedSet() {}
 
-protected:
 	/**
 	 * Type of the list that preserves the element order.
 	 */
@@ -40,7 +39,7 @@ protected:
 	 */
 	using value_storage_t = std::unordered_map<T, list_iter>;
 
-
+protected:
 	/**
 	 * OrderedSet iterator.
 	 *
@@ -51,7 +50,7 @@ protected:
 	 */
 	template<typename elem_type>
 	class OrderedSetIterator
-		: public std::iterator<std::forward_iterator_tag, T> {
+		: public std::iterator<std::forward_iterator_tag, elem_type> {
 	public:
 		using iter_type = typename std::conditional<
 			std::is_const<elem_type>::value,
@@ -109,10 +108,13 @@ protected:
 	};
 
 
-	using iterator = OrderedSetIterator<T>;
+public:
+	// just have a const_iterator, because sets don't support
+	// changing values in them!
 	using const_iterator = OrderedSetIterator<const T>;
 
 
+protected:
 	/**
 	 * list to preserve the set order.
 	 */
@@ -148,9 +150,14 @@ public:
 
 		if (not new_insert) {
 			// inserted again -> move it to the back in the order list
+			// -> delete the current order list entry
 			this->value_order.erase(value_pos->second);
 		}
 
+		// the pointer is only invalidated when the element is deleted
+		// so we can store it in the order list
+		// the pointer is const, as the hashmap key must not change
+		// => this orderedset can't have modifying iterators!
 		const T *value_ptr = &(value_pos->first);
 
 		// add a ptr to the value to the element order list at the end
@@ -166,7 +173,7 @@ public:
 	/**
 	 * Is the specified value stored in this set?
 	 */
-	bool contains(T &&value) const {
+	bool contains(const T &value) const {
 		return (this->values.find(value) != std::end(this->values));
 	}
 
@@ -177,17 +184,8 @@ public:
 		return this->value_order.size();
 	}
 
-
-	iterator begin() {
-		return OrderedSetIterator<T>{this, true};
-	}
-
 	const_iterator begin() const {
 		return OrderedSetIterator<const T>{this, true};
-	}
-
-	iterator end() {
-		return OrderedSetIterator<T>{this, false};
 	}
 
 	const_iterator end() const {

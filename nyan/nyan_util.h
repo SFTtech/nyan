@@ -21,6 +21,14 @@ namespace nyan {
 namespace util {
 
 /**
+ * C++17 provides std::as_const, which does exactly the same:
+ * Constify a value by prepending const.
+ */
+template<typename T> constexpr const T &as_const(T &t) noexcept {
+	return t;
+}
+
+/**
  * Determine the size of a file.
  */
 size_t file_size(const std::string &filename);

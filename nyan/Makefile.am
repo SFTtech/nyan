@@ -2,20 +2,8 @@
 
 #all-am: print_build_config
 
-# c++14 plus all warnings
+# all warnings n stuff
 AM_CXXFLAGS = -Wall -Wextra -pedantic -ftemplate-backtrace-limit=0
-
-if GCC
-# GCC : the version is necessarly >= 5.1 and supports -std=c++14
-AM_CXXFLAGS+= -std=c++14
-else
-# clang : 3.5+ supports -std=c++14 wheras 3.4 only support -std=c++1y
-if CLANG34
-AM_CXXFLAGS+= -std=c++1y
-else
-AM_CXXFLAGS+= -std=c++14
-endif
-endif
 
 # flex flags
 AM_LFLAGS = -Ca
@@ -49,6 +37,7 @@ libnyan_la_SOURCES = \
                      nyan_value_number.cpp \
                      nyan_value_orderedset.cpp \
                      nyan_value_set.cpp \
+                     nyan_value_set_base.cpp \
                      nyan_value_text.cpp
 
 
@@ -79,6 +68,7 @@ nyaninclude_HEADERS = \
                       nyan_value_number.h \
                       nyan_value_orderedset.h \
                       nyan_value_set.h \
+                      nyan_value_set_base.h \
                       nyan_value_text.h
 
 
