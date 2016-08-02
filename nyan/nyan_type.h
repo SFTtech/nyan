@@ -128,7 +128,7 @@ public:
 	         const NyanStore &store);
 
 	/**
-	 * Use an object as a type.
+	 * Use an NyanObject as a type.
 	 * This creates a nyan type that matches the given object
 	 * or any child of it.
 	 * nullptr means it can match any object.
@@ -137,10 +137,10 @@ public:
 
 	/**
 	 * Create a container type.
-	 * Container value type must be provided.
+	 * Container element type must be provided.
 	 */
 	NyanType(nyan_container_type container_type,
-	         std::unique_ptr<NyanType> &&value_type);
+	         std::unique_ptr<NyanType> &&element_type);
 
 	/**
 	 * Construct a type from a parser token.
@@ -221,9 +221,9 @@ protected:
 	nyan_container_type container_type;
 
 	/**
-	 * If this type is a container, the value type is stored here.
+	 * If this type is a container, the element type is stored here.
 	 */
-	std::unique_ptr<NyanType> value_type;
+	std::unique_ptr<NyanType> element_type;
 
 	/**
 	 * If this type is an object, store the target here.

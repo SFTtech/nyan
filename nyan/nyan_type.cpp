@@ -110,7 +110,7 @@ NyanType::NyanType(nyan_type type)
 NyanType::NyanType(const NyanASTMemberType &ast_type,
                    const NyanStore &store)
 	:
-	value_type{nullptr},
+	element_type{nullptr},
 	target{nullptr} {
 
 	auto parsed_type = type_from_type_token(ast_type.name);
@@ -137,7 +137,7 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 			};
 		}
 
-		this->value_type = std::make_unique<NyanType>(
+		this->element_type = std::make_unique<NyanType>(
 			ast_type.payload,
 			store,
 			true
@@ -171,16 +171,16 @@ NyanType::NyanType(NyanObject *target)
 	:
 	type{nyan_type::OBJECT},
 	container_type{nyan_container_type::SINGLE},
-	value_type{nullptr},
+	element_type{nullptr},
 	target{target} {}
 
 
 NyanType::NyanType(nyan_container_type container_type,
-                   std::unique_ptr<NyanType> &&value_type)
+                   std::unique_ptr<NyanType> &&element_type)
 	:
 	type{nyan_type::CONTAINER},
 	container_type{container_type},
-	value_type{std::move(value_type)},
+	element_type{std::move(element_type)},
 	target{nullptr} {}
 
 
@@ -190,7 +190,7 @@ NyanType::NyanType(const NyanToken &token,
                    bool is_type_decl)
 	:
 	container_type{nyan_container_type::SINGLE},
-	value_type{nullptr} {
+	element_type{nullptr} {
 
 	if (is_type_decl) {
 		auto parsed_type = type_from_type_token(token);
@@ -228,14 +228,14 @@ NyanType::NyanType(NyanType &&other)
 	:
 	type{other.type},
 	container_type{other.container_type},
-	value_type{std::move(other.value_type)},
+	element_type{std::move(other.element_type)},
 	target{other.target} {}
 
 
 NyanType &NyanType::operator =(NyanType &&other) {
 	this->type = other.type;
 	this->container_type = other.container_type;
-	this->value_type = std::move(other.value_type);
+	this->element_type = std::move(other.element_type);
 	this->target = other.target;
 	return *this;
 }
@@ -275,12 +275,12 @@ bool NyanType::is_child_of(const NyanType &other) const {
 			return this->target->is_child_of(other.target);
 
 		case nyan_type::CONTAINER:
-			if (this->value_type.get() == nullptr or
-			    other.value_type.get() == nullptr) {
+			if (this->element_type.get() == nullptr or
+			    other.element_type.get() == nullptr) {
 				throw NyanInternalError{"container type without value type"};
 			}
 
-			return other.value_type->is_child_of(*this->value_type);
+			return other.element_type->is_child_of(*this->element_type);
 
 		default:
 			throw NyanInternalError{"invalid non-primitive type encountered"};
@@ -296,12 +296,12 @@ bool NyanType::is_child_of(const NyanType &other) const {
 
 
 bool NyanType::can_be_in(const NyanType &other) const {
+	// this check also guarantees that other.element_type exists:
 	if (not other.is_container()) {
-		// this also guarantees that other.value_type exists.
 		return false;
 	}
 
-	return this->is_child_of(*other.value_type);
+	return this->is_child_of(*other.element_type);
 }
 
 
@@ -339,7 +339,7 @@ std::string NyanType::str() const {
 
 		builder << container_type_to_string(this->container_type)
 		        << "("
-		        << this->value_type->str()
+		        << this->element_type->str()
 		        << ")";
 
 		return builder.str();
