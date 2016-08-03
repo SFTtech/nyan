@@ -10,10 +10,10 @@
 
 namespace nyan {
 
+class NyanDatabase;
 class NyanFile;
 class NyanMember;
 class NyanObject;
-class NyanStore;
 class NyanTypeContainer;
 class NyanValueContainer;
 
@@ -22,7 +22,7 @@ class NyanValueContainer;
  */
 class NyanParser {
 public:
-	NyanParser(NyanStore *store);
+	NyanParser(NyanDatabase *database);
 	virtual ~NyanParser() = default;
 
 	std::vector<NyanObject *> parse(const NyanFile &file);
@@ -39,7 +39,7 @@ protected:
 	NyanAST create_ast(const std::vector<NyanToken> &tokens) const;
 
 	/**
-	 * Create nyan objects and place them in the store
+	 * Create nyan objects and place them in the database
 	 * (which was specified in the constructor)
 	 */
 	std::vector<NyanObject *> create_objects(const NyanAST &ast);
@@ -57,7 +57,7 @@ protected:
 
 	/**
 	 * Determine the types of members, optionally consult parent objects
-	 * in the store to get the type.
+	 * in the database to get the type.
 	 */
 	std::unordered_map<std::string, NyanTypeContainer> member_type_creation(NyanObject *obj, const NyanASTObject &astobj) const;
 
@@ -84,9 +84,9 @@ protected:
 	void inheritance_mod(NyanObject *obj, const NyanASTObject &astobj) const ;
 
 	/**
-	 * The store where the parser will add resulting data to.
+	 * The database where the parser will add resulting data to.
 	 */
-	NyanStore *store;
+	NyanDatabase *database;
 };
 
 } // namespace nyan

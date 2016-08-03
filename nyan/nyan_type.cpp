@@ -3,8 +3,8 @@
 #include "nyan_type.h"
 
 #include "nyan_ast.h"
+#include "nyan_database.h"
 #include "nyan_error.h"
-#include "nyan_store.h"
 #include "nyan_token.h"
 
 namespace nyan {
@@ -108,7 +108,7 @@ NyanType::NyanType(nyan_type type)
 
 
 NyanType::NyanType(const NyanASTMemberType &ast_type,
-                   const NyanStore &store)
+                   const NyanDatabase &database)
 	:
 	element_type{nullptr},
 	target{nullptr} {
@@ -139,7 +139,7 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 
 		this->element_type = std::make_unique<NyanType>(
 			ast_type.payload,
-			store,
+			database,
 			true
 		);
 		return;
@@ -156,7 +156,7 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 	}
 
 	// look up the object and use it as type.
-	NyanObject *type_obj = store.get(ast_type.name.get());
+	NyanObject *type_obj = database.get(ast_type.name.get());
 	if (type_obj == nullptr) {
 		throw ASTError{"unknown NyanObject used as type", ast_type.name};
 	}
@@ -186,7 +186,7 @@ NyanType::NyanType(nyan_container_type container_type,
 
 /* create a nyan_type from some token, used e.g. for type payload parsing */
 NyanType::NyanType(const NyanToken &token,
-                   const NyanStore &store,
+                   const NyanDatabase &database,
                    bool is_type_decl)
 	:
 	container_type{nyan_container_type::SINGLE},
@@ -203,7 +203,7 @@ NyanType::NyanType(const NyanToken &token,
 
 	switch (this->type) {
 	case nyan_type::OBJECT:
-		this->target = store.get(token.get());
+		this->target = database.get(token.get());
 		if (this->target == nullptr) {
 			throw TypeError{
 				NyanLocation{token},

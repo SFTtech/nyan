@@ -5,17 +5,17 @@
 #include <unordered_set>
 #include <vector>
 
+#include "nyan_database.h"
 #include "nyan_error.h"
-#include "nyan_store.h"
 #include "nyan_util.h"
 
 
 namespace nyan {
 
-NyanObject::NyanObject(const NyanLocation &location, NyanStore *store)
+NyanObject::NyanObject(const NyanLocation &location, NyanDatabase *database)
 	:
 	location{location},
-	store{store} {}
+	database{database} {}
 
 
 const std::string &NyanObject::get_name() const {
@@ -24,7 +24,7 @@ const std::string &NyanObject::get_name() const {
 
 
 bool NyanObject::is_registered() const {
-	return (this->store != nullptr);
+	return (this->database != nullptr);
 }
 
 

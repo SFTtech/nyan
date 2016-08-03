@@ -15,6 +15,7 @@ libnyan_la_LIBADD = @LIBDL_LDFLAGS@
 libnyan_la_SOURCES = \
                      nyan_ast.cpp \
                      nyan_container.cpp \
+                     nyan_database.cpp \
                      nyan_error.cpp \
                      nyan_file.cpp \
                      nyan_flex_lexer.lpp \
@@ -27,7 +28,6 @@ libnyan_la_SOURCES = \
                      nyan_orderedset.cpp \
                      nyan_parser.cpp \
                      nyan_ptr_container.cpp \
-                     nyan_store.cpp \
                      nyan_token.cpp \
                      nyan_type.cpp \
                      nyan_type_container.cpp \
@@ -46,6 +46,7 @@ nyaninclude_HEADERS = \
                       nyan.h \
                       nyan_ast.h \
                       nyan_container.h \
+                      nyan_database.h \
                       nyan_error.h \
                       nyan_file.h \
                       nyan_flex_lexer.h \
@@ -58,7 +59,6 @@ nyaninclude_HEADERS = \
                       nyan_orderedset.h \
                       nyan_parser.h \
                       nyan_ptr_container.h \
-                      nyan_store.h \
                       nyan_token.h \
                       nyan_type.h \
                       nyan_type_container.h \

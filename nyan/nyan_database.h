@@ -1,6 +1,6 @@
 // Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
-#ifndef NYAN_NYAN_STORE_H_
-#define NYAN_NYAN_STORE_H_
+#ifndef NYAN_NYAN_DATABASE_H_
+#define NYAN_NYAN_DATABASE_H_
 
 #include <memory>
 #include <string>
@@ -11,15 +11,17 @@
 namespace nyan {
 
 /**
- * Nyan data storage space.
+ * Nyan database.
+ * This is the main entry handle for accessing and modifying data
+ * stored in nyan.
  */
-class NyanStore {
+class NyanDatabase {
 	friend class NyanObject;
 	friend class NyanNamespace;
 
 public:
-	NyanStore();
-	virtual ~NyanStore() = default;
+	NyanDatabase();
+	virtual ~NyanDatabase() = default;
 
 	/**
 	 * Add the given nyan object to the store.

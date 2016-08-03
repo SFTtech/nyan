@@ -3,11 +3,11 @@
 #include "nyan_parser.h"
 
 #include "nyan_ast.h"
+#include "nyan_database.h"
 #include "nyan_file.h"
 #include "nyan_flex_lexer.h"
 #include "nyan_lexer.h"
 #include "nyan_member.h"
-#include "nyan_store.h"
 #include "nyan_token.h"
 #include "nyan_type.h"
 #include "nyan_type_container.h"
@@ -22,9 +22,9 @@
 
 namespace nyan {
 
-NyanParser::NyanParser(NyanStore *store)
+NyanParser::NyanParser(NyanDatabase *database)
 	:
-	store{store} {}
+	database{database} {}
 
 
 std::vector<NyanObject *> NyanParser::parse(const NyanFile &file) {
@@ -80,14 +80,14 @@ std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
 		// create the object, then fill up its contents.
 		auto obj = std::make_unique<NyanObject>(
 			NyanLocation{astobj.name},
-			this->store
+			this->database
 		);
 
 		// the object name, valid in its namespace.
 		obj->name = astobj.name.get();
 
 		// check if the name is unique
-		if (this->store->get(obj->name) != nullptr) {
+		if (this->database->get(obj->name) != nullptr) {
 			// TODO: show other location!
 			throw NyanFileError{astobj.name, "object name already used"};
 		}
@@ -114,8 +114,8 @@ std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
 		// store inheritance parent modifications
 		this->inheritance_mod(obj.get(), astobj);
 
-		// save the object to the target store.
-		NyanObject *obj_ptr = this->store->add(std::move(obj));
+		// save the object to the target database.
+		NyanObject *obj_ptr = this->database->add(std::move(obj));
 		ret.push_back(obj_ptr);
 	}
 
@@ -127,7 +127,7 @@ void NyanParser::add_inheritance(NyanObject *obj,
                                  const NyanASTObject &astobj) const {
 
 	for (auto &parent_name : astobj.inheritance) {
-		NyanObject *parent = this->store->get(parent_name.get());
+		NyanObject *parent = this->database->get(parent_name.get());
 		if (parent == nullptr) {
 			throw TypeError{parent_name, "parent not found"};
 		}
@@ -143,7 +143,7 @@ void NyanParser::add_patch_targets(NyanObject *obj, const NyanASTObject &astobj)
 	if (astobj.target.exists()) {
 
 		// fetch the denoted patch target object
-		NyanObject *tobj = this->store->get(astobj.target.get());
+		NyanObject *tobj = this->database->get(astobj.target.get());
 
 		if (tobj == nullptr) {
 			throw NyanFileError{
@@ -258,7 +258,7 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 
 		// if there is an explicit type specification
 		if (astmember.type.exists) {
-			auto explicit_type = std::make_unique<NyanType>(astmember.type, *this->store);
+			auto explicit_type = std::make_unique<NyanType>(astmember.type, *this->database);
 
 			// check if the explicit type is compatible
 			// with the parent one.
@@ -429,7 +429,7 @@ NyanValueContainer NyanParser::value_from_value_token(const NyanToken &value_tok
 		break;
 	}
 	case nyan_type::OBJECT: {
-		NyanObject *obj = this->store->get(value_token.get());
+		NyanObject *obj = this->database->get(value_token.get());
 		if (obj == nullptr) {
 			throw TypeError{
 				value_token,

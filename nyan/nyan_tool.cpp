@@ -15,9 +15,9 @@
 namespace nyan {
 
 void test_parser(const NyanFile &file) {
-	NyanStore store;
+	NyanDatabase database;
 
-	NyanParser parser(&store);
+	NyanParser parser(&database);
 	std::vector<NyanObject *> objs = parser.parse(file);
 
 	size_t i = 0;

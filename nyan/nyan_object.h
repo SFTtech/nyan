@@ -14,7 +14,7 @@
 namespace nyan {
 
 class NyanParser;
-class NyanStore;
+class NyanDatabase;
 
 /**
  * Data definition with members and inheritance.
@@ -23,11 +23,11 @@ class NyanObject : public NyanValue {
 	friend class NyanParser;
 
 public:
-	NyanObject(const NyanLocation &location, NyanStore *store=nullptr);
+	NyanObject(const NyanLocation &location, NyanDatabase *database=nullptr);
 	virtual ~NyanObject() = default;
 
 	/**
-	 * Whether the object is registered in a store.
+	 * Whether the object is registered in a database.
 	 */
 	bool is_registered() const;
 
@@ -195,9 +195,10 @@ protected:
 	std::unordered_map<std::string, NyanMember> members;
 
 	/**
-	 * The storage this object is associated to.
+	 * The database storage this object is associated to.
+	 * nullptr means it is not registered in the database.
 	 */
-	NyanStore *store;
+	NyanDatabase *database;
 
 	/**
 	 * all linearized parents.

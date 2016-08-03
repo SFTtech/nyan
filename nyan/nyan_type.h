@@ -12,9 +12,9 @@ namespace nyan {
 
 
 class NyanASTMemberType;
+class NyanDatabase;
 class NyanLocation;
 class NyanObject;
-class NyanStore;
 class NyanToken;
 
 
@@ -122,10 +122,10 @@ public:
 
 	/**
 	 * Construct from the AST.
-	 * For type object target lookups, require the store.
+	 * For type object target lookups, require the database.
 	 */
 	NyanType(const NyanASTMemberType &ast_type,
-	         const NyanStore &store);
+	         const NyanDatabase &database);
 
 	/**
 	 * Use an NyanObject as a type.
@@ -148,12 +148,12 @@ public:
 	 * or from a type declaration.
 	 *
 	 * As this can look up nyanobjects,
-	 * the object store is required.
+	 * the object database is required.
 	 *
 	 * @param is_type_decl specifies whether the token denotes a type
 	 *                     declaration or a value.
 	 */
-	NyanType(const NyanToken &token, const NyanStore &store,
+	NyanType(const NyanToken &token, const NyanDatabase &database,
 	         bool is_type_decl);
 
 	// move to other type

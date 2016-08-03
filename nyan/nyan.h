@@ -10,6 +10,7 @@
 #include "config.h"
 
 #include "nyan_ast.h"
+#include "nyan_database.h"
 #include "nyan_error.h"
 #include "nyan_file.h"
 #include "nyan_lexer.h"
@@ -19,7 +20,6 @@
 #include "nyan_ops.h"
 #include "nyan_parser.h"
 #include "nyan_ptr_container.h"
-#include "nyan_store.h"
 #include "nyan_token.h"
 #include "nyan_type.h"
 #include "nyan_type_container.h"
