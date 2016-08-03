@@ -101,7 +101,7 @@ std::string NyanSet::repr() const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanSet::allowed_operations(nyan_type value_type) const {
+const std::unordered_set<nyan_op> &NyanSet::allowed_operations(nyan_primitive_type value_type) const {
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
@@ -113,11 +113,21 @@ const std::unordered_set<nyan_op> &NyanSet::allowed_operations(nyan_type value_t
 
 	// TODO: check for container type.
 
-	if (value_type != nyan_type::CONTAINER) {
+	if (value_type != nyan_primitive_type::CONTAINER) {
 		return no_nyan_ops;
 	}
 
 	return ops;
+}
+
+
+const nyan_basic_type &NyanSet::get_type() const {
+	constexpr static nyan_basic_type type{
+		nyan_primitive_type::CONTAINER,
+		nyan_container_type::SET,
+	};
+
+	return type;
 }
 
 } // namespace nyan

@@ -409,31 +409,32 @@ NyanValueContainer NyanParser::create_member_value(const NyanType *member_type, 
 NyanValueContainer NyanParser::value_from_value_token(const NyanToken &value_token) const {
 	NyanValueContainer member_value;
 
-	nyan_type value_type = type_from_value_token(value_token);
+	nyan_basic_type value_type = type_from_value_token(value_token);
 
-	switch (value_type) {
-	case nyan_type::TEXT:
+	switch (value_type.primitive_type) {
+	case nyan_primitive_type::TEXT:
 		member_value = NyanValueContainer{
 			std::make_unique<NyanText>(value_token)
 		};
 		break;
-	case nyan_type::INT:
+	case nyan_primitive_type::INT:
 		member_value = NyanValueContainer{
 			std::make_unique<NyanInt>(value_token)
 		};
 		break;
-	case nyan_type::FLOAT: {
+	case nyan_primitive_type::FLOAT: {
 		member_value = NyanValueContainer{
 			std::make_unique<NyanFloat>(value_token)
 		};
 		break;
 	}
-	case nyan_type::OBJECT: {
+	case nyan_primitive_type::OBJECT: {
 		NyanObject *obj = this->database->get(value_token.get());
 		if (obj == nullptr) {
-			throw TypeError{
+			throw NameError{
 				value_token,
-				"unknown object name"
+				"unknown object name",
+				value_token.get()
 			};
 		}
 		member_value = NyanValueContainer{

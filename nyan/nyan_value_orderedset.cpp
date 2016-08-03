@@ -101,7 +101,7 @@ std::string NyanOrderedSet::repr() const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_type value_type) const {
+const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_primitive_type value_type) const {
 
 	// TODO: use value_type to check the op-value-pair validity
 
@@ -117,5 +117,14 @@ const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_type 
 	return ops;
 }
 
+
+const nyan_basic_type &NyanOrderedSet::get_type() const {
+	constexpr static nyan_basic_type type{
+		nyan_primitive_type::CONTAINER,
+		nyan_container_type::ORDEREDSET,
+	};
+
+	return type;
+}
 
 } // namespace nyan

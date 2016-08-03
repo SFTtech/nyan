@@ -53,6 +53,14 @@ public:
 	virtual size_t hash() const = 0;
 
 	/**
+	 * Return the basic type of this value.
+	 * This means the primitive and the container type are provided,
+	 * but not container element types and object targets, because
+	 * types are not inferred for values.
+	 */
+	virtual const nyan_basic_type &get_type() const = 0;
+
+	/**
 	 * Comparison for NyanValues.
 	 * Performs the typeid comparison, then calls this->equals(other).
 	 */
@@ -80,7 +88,7 @@ protected:
 	/**
 	 * Allowed operations for this value type with a given operand.
 	 */
-	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_type value_type) const = 0;
+	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_primitive_type value_type) const = 0;
 };
 
 } // namespace nyan

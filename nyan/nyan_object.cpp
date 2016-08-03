@@ -129,7 +129,7 @@ NyanType *NyanObject::infer_type(const std::string &member) const {
 }
 
 
-const NyanType &NyanObject::get_type(const std::string &member) const {
+const NyanType &NyanObject::get_member_type(const std::string &member) const {
 	return *this->get_member(member)->get_type();
 }
 
@@ -240,19 +240,29 @@ bool NyanObject::equals(const NyanValue &other) const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanObject::allowed_operations(nyan_type value_type) const {
+const std::unordered_set<nyan_op> &NyanObject::allowed_operations(nyan_primitive_type value_type) const {
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::PATCH,
 	};
 
-	if (value_type == nyan_type::OBJECT) {
+	if (value_type == nyan_primitive_type::OBJECT) {
 		return ops;
 	}
 	else {
 		return no_nyan_ops;
 	}
+}
+
+
+const nyan_basic_type &NyanObject::get_type() const {
+	constexpr static nyan_basic_type type{
+		nyan_primitive_type::OBJECT,
+		nyan_container_type::SINGLE,
+	};
+
+	return type;
 }
 
 

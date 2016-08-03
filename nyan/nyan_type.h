@@ -35,7 +35,7 @@ public:
  * A CONTAINER packs multiple primitive values together.
  * The OBJECT type requires a payload as "target" name.
  */
-enum class nyan_type {
+enum class nyan_primitive_type {
 	TEXT,
 	FILENAME,
 	INT,
@@ -56,43 +56,72 @@ enum class nyan_container_type {
 
 
 /**
- * Return whether the given type is primitive.
- * Primitive types are int, float, text, etc.
+ * Basic nyan type information.
+ * Stores a combination of the primitive type
+ * and the container type.
  */
-bool type_is_primitive(nyan_type type);
+struct nyan_basic_type {
+	/**
+	 * Primitive type.
+	 * Decides if this NyanType is primitive, a container, or an object.
+	 */
+	nyan_primitive_type primitive_type;
+
+	/**
+	 * Stores if this type is a container and if yes, which one.
+	 */
+	nyan_container_type container_type;
+
+
+	/**
+	 * Return whether the given type is fundamental.
+	 * Primitive types are int, float, text, etc.
+	 * Non-primitive types are containers and objects.
+	 */
+	bool is_fundamental() const;
+
+
+	/**
+	 * Test if this basic type is a container,
+	 * that is, the container type is not SINGLE
+	 * or primitive type is CONTAINER.
+	 */
+	bool is_container() const;
+};
+
 
 /**
- * Test if the given value token indicates a valid nyan_type,
+ * Test if the given value token indicates a valid nyan_primitive_type,
  * then return it.
  * A value token is e.g. "1337", "'rofl'" or "SomeThing".
  * throws ASTError if it fails.
  */
-nyan_type type_from_value_token(const NyanToken &token);
+nyan_basic_type type_from_value_token(const NyanToken &token);
+
 
 /**
- * Test if the given type token declares a valid nyan_type,
+ * Test if the given type token declares a valid nyan_primitive_type,
  * returns it. Also returns the container type.
  * A type token is e.g. "int" or "float" or "SomeObject".
  * If it is e.g. "set", type will be CONTAINER and the container type SET.
  * throws ASTError if it fails.
  */
-std::pair<nyan_type, nyan_container_type>
-type_from_type_token(const NyanToken &token);
+nyan_basic_type type_from_type_token(const NyanToken &token);
 
 
 /**
  * Get a string representation of a basic nyan type.
  */
-constexpr const char *type_to_string(nyan_type type) {
+constexpr const char *type_to_string(nyan_primitive_type type) {
 	switch (type) {
-	case nyan_type::TEXT:          return "text";
-	case nyan_type::FILENAME:      return "file";
-	case nyan_type::INT:           return "int";
-	case nyan_type::FLOAT:         return "float";
-	case nyan_type::CONTAINER:     return "container";
-	case nyan_type::OBJECT:        return "object";
+	case nyan_primitive_type::TEXT:          return "text";
+	case nyan_primitive_type::FILENAME:      return "file";
+	case nyan_primitive_type::INT:           return "int";
+	case nyan_primitive_type::FLOAT:         return "float";
+	case nyan_primitive_type::CONTAINER:     return "container";
+	case nyan_primitive_type::OBJECT:        return "object";
 	}
-	return "unhandled nyan_type";
+	return "unhandled nyan_primitive_type";
 }
 
 
@@ -118,7 +147,7 @@ public:
 	/**
 	 * Construct from a basic type.
 	 */
-	NyanType(nyan_type type);
+	NyanType(nyan_primitive_type type);
 
 	/**
 	 * Construct from the AST.
@@ -169,7 +198,7 @@ public:
 	/**
 	 * Return if this type is primitive (simple non-pointer value).
 	 */
-	bool is_primitive() const;
+	bool is_fundamental() const;
 
 	/**
 	 * Return if this type is a container that stores multiple values.
@@ -188,6 +217,12 @@ public:
 	bool is_child_of(const NyanType &other) const;
 
 	/**
+	 * Check if this type is a child of the given
+	 * NyanObject. Also returns true when the targets are the same.
+	 */
+	bool is_child_of(const NyanObject *obj) const;
+
+	/**
 	 * Check if this type can be in the given other type.
 	 * This will of course only suceed if other is a container.
 	 */
@@ -201,7 +236,7 @@ public:
 	/**
 	 * Return the basic type of this NyanType.
 	 */
-	nyan_type get_type() const;
+	nyan_primitive_type get_primitive_type() const;
 
 	/**
 	 * Return a string representation of this type.
@@ -210,15 +245,10 @@ public:
 
 protected:
 	/**
-	 * Basic type.
-	 * Decides if this NyanType is primitive, a container, or an object.
+	 * The basic type of this NyanType.
+	 * Stores the primitive type and the container type.
 	 */
-	nyan_type type;
-
-	/**
-	 * Stores if this type is a container and if yes, which one.
-	 */
-	nyan_container_type container_type;
+	nyan_basic_type basic_type;
 
 	/**
 	 * If this type is a container, the element type is stored here.

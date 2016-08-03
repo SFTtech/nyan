@@ -50,7 +50,7 @@ public:
 	/**
 	 * Get the type of some member.
 	 */
-	virtual const NyanType &get_type(const std::string &member) const;
+	virtual const NyanType &get_member_type(const std::string &member) const;
 
 	/**
 	 * Test if this object has a member of given name.
@@ -170,7 +170,12 @@ protected:
 	/**
 	 * Allowed operations for a NyanObject.
 	 */
-	const std::unordered_set<nyan_op> &allowed_operations(nyan_type value_type) const override;
+	const std::unordered_set<nyan_op> &allowed_operations(nyan_primitive_type value_type) const override;
+
+	/**
+	 * Get the NyanType of this object.
+	 */
+	const nyan_basic_type &get_type() const override;
 
 	/**
 	 * Where this object was created.
