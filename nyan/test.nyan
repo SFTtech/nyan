@@ -28,7 +28,7 @@ PatchPatch<Patch>():
 
 SetTest():
     member : set(int) = {1, 1, 2, 3, 1}
-    orderedmember : orderedset(int) = <1, 2, 3, 1, 2, 3, 2, 1>
+    orderedmember : orderedset(int) += <1, 2, 3, 1, 2, 3, 2>
 
 
 # unit example

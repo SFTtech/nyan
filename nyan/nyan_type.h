@@ -245,14 +245,19 @@ public:
 	bool can_be_in(const NyanType &other) const;
 
 	/**
+	 * Return the basic type, namely the primitive and container type.
+	 */
+	const nyan_basic_type &get_basic_type() const;
+
+	/**
 	 * Return the container variant of this type.
 	 */
-	nyan_container_type get_container_type() const;
+	const nyan_container_type &get_container_type() const;
 
 	/**
 	 * Return the basic type of this NyanType.
 	 */
-	nyan_primitive_type get_primitive_type() const;
+	const nyan_primitive_type &get_primitive_type() const;
 
 	/**
 	 * Get the container element type, i. e. the inner type

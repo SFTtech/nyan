@@ -345,12 +345,17 @@ bool NyanType::can_be_in(const NyanType &other) const {
 }
 
 
-nyan_container_type NyanType::get_container_type() const {
+const nyan_basic_type &NyanType::get_basic_type() const {
+	return this->basic_type;
+}
+
+
+const nyan_container_type &NyanType::get_container_type() const {
 	return this->basic_type.container_type;
 }
 
 
-nyan_primitive_type NyanType::get_primitive_type() const {
+const nyan_primitive_type &NyanType::get_primitive_type() const {
 	return this->basic_type.primitive_type;
 }
 

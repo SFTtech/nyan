@@ -115,9 +115,13 @@ const std::unordered_set<nyan_op> &NyanSet::allowed_operations(nyan_basic_type v
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
-	// TODO: check for container type.
+	switch (value_type.container_type) {
+	case nyan_container_type::SET:
+		return ops;
 
-	return ops;
+	default:
+		return no_nyan_ops;
+	}
 }
 
 

@@ -61,6 +61,15 @@ public:
 	virtual const nyan_basic_type &get_type() const = 0;
 
 	/**
+	 * Return a set of allowed operations
+	 * that are allowed for "entry_type.$operation(this)".
+	 *
+	 * This means the allowed operations can be used to assign/manipulate the
+	 * member entry with this value.
+	 */
+	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type entry_type) const = 0;
+
+	/**
 	 * Comparison for NyanValues.
 	 * Performs the typeid comparison, then calls this->equals(other).
 	 */
@@ -85,12 +94,7 @@ protected:
 	 */
 	virtual void apply_value(const NyanValue *value, nyan_op operation) = 0;
 
-	/**
-	 * Allowed operations for this value type with a given operand.
-	 */
-	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const = 0;
 };
-
 } // namespace nyan
 
 

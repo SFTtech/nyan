@@ -342,8 +342,8 @@ the calculation is done like this:
   * `orderedset(type)`:
     * assignment: `= <value, value, ...>`
     * append: `+= <..>` -> add objects to the end if not existing
-    * subtract: `-= {..}` -> remove those objects
-    * intersection: `&= {..}` -> keep only objects element of both
+    * subtract: `-= <..>, -= {..}` -> remove those objects
+    * intersection: `&= <..>, &= {..}` -> keep only objects element of both
   * *NyanObject* member:
     * `=` set the reference to some other *NyanObject*
     * `@=` patch the *NyanObject* member with a compatible patch

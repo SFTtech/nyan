@@ -107,18 +107,28 @@ const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_basic
 		return no_nyan_ops;
 	}
 
-	const static std::unordered_set<nyan_op> ops{
-		nyan_op::ASSIGN,
-		nyan_op::ADD_ASSIGN,
-		nyan_op::UNION_ASSIGN,
+	const static std::unordered_set<nyan_op> set_ops{
 		nyan_op::SUBTRACT_ASSIGN,
-		nyan_op::MULTIPLY_ASSIGN,
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
-	// TODO: check for container type and op-value-pair validity
+	const static std::unordered_set<nyan_op> orderedset_ops{
+		nyan_op::ASSIGN,
+		nyan_op::ADD_ASSIGN,
+		nyan_op::SUBTRACT_ASSIGN,
+		nyan_op::INTERSECT_ASSIGN,
+	};
 
-	return ops;
+	switch (value_type.container_type) {
+	case nyan_container_type::SET:
+		return set_ops;
+
+	case nyan_container_type::ORDEREDSET:
+		return orderedset_ops;
+
+	default:
+		return no_nyan_ops;
+	}
 }
 
 

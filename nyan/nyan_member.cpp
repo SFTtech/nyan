@@ -35,19 +35,21 @@ NyanMember::NyanMember(const NyanLocation &location,
 	// TODO: check if type, operation and value can work together
 	//       the operator check is missing currently.
 
-	// shared code for the container check and single-value-check
-	auto value_check = [](const NyanLocation &location,
-	                      const NyanType *type,
-	                      const NyanValue *value) {
 
-		const nyan_basic_type &value_type = value->get_type();
+	// these operators are allowed to assign the value to the type
+	const std::unordered_set<nyan_op> ops = this->value->allowed_operations(this->type->get_basic_type());
 
-		// test if the basic type of the value is compatbile
-		if (not type->is_basic_compatible(value_type)) {
-			// TODO: better error message, location and information
-			//       about the conflicting types and operator
-			throw TypeError{location, "incompatible types for operand"};
-		}
+	// test if the given operation is compatbile with type and value
+	if (ops.find(this->operation) == std::end(ops)) {
+		// TODO: better error message, location and information
+		//       about the conflicting types and operator
+		throw TypeError{location, "incompatible types for operand"};
+	}
+
+
+	static auto type_check = [](const NyanLocation &location,
+	                            const NyanType *type,
+	                            const NyanValue *value) {
 
 		// special handling for some primitive types
 		switch (type->get_primitive_type()) {
@@ -57,6 +59,7 @@ NyanMember::NyanMember(const NyanLocation &location,
 			const NyanObject *obj = dynamic_cast<const NyanObject *>(value);
 
 			if (not type->is_parent_of(obj)) {
+				// TODO: better error message and location
 				throw TypeError{location, "incompatible object assigned"};
 			}
 
@@ -68,7 +71,12 @@ NyanMember::NyanMember(const NyanLocation &location,
 		}
 	};
 
+	type_check(this->location,
+	           this->type.get(),
+	           this->value.get());
 
+
+	// if it is a container, check all container content as well.
 	if (this->type->is_container()) {
 		// check if all the container values
 		// are compatible with the container type
@@ -81,18 +89,25 @@ NyanMember::NyanMember(const NyanLocation &location,
 			};
 		}
 
-		for (auto &entry : *container) {
-			// TODO: check if entry.get_type().can_be_in(this->type)
-			std::cout << "container check: "
-			          << entry.repr() << std::endl;
+		const NyanType *element_type = this->type->get_element_type();
 
-			value_check(this->location,
-			            this->type->get_element_type(),
-			            &entry);
+		for (auto &entry : *container) {
+
+			const nyan_basic_type &value_type = entry.get_type();
+
+			// test if the basic type of the value is compatbile
+			if (not element_type->is_basic_compatible(value_type)) {
+				// TODO: better error message
+				throw TypeError{
+					this->location,
+					"element with wrong type in container"
+				};
+			}
+
+			type_check(this->location,
+			           element_type,
+			           &entry);
 		}
-	}
-	else {
-		value_check(this->location, this->type.get(), this->value.get());
 	}
 }
 

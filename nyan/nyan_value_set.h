@@ -33,10 +33,11 @@ public:
 	bool contains(NyanValue *value) override;
 	bool remove(NyanValue *value) override;
 
-protected:
-	void apply_value(const NyanValue *value, nyan_op operation) override;
 	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
 	const nyan_basic_type &get_type() const override;
+
+protected:
+	void apply_value(const NyanValue *value, nyan_op operation) override;
 };
 
 } // namespace nyan

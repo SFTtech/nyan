@@ -168,14 +168,14 @@ protected:
 	bool equals(const NyanValue &other) const override;
 
 	/**
-	 * Allowed operations for a NyanObject.
-	 */
-	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
-
-	/**
 	 * Get the NyanType of this object.
 	 */
 	const nyan_basic_type &get_type() const override;
+
+	/**
+	 * Allowed operations for a NyanObject.
+	 */
+	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
 
 	/**
 	 * Where this object was created.
