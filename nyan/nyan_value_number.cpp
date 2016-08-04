@@ -107,7 +107,7 @@ bool NyanNumber<T>::equals(const NyanValue &other) const {
 
 template <typename T>
 const std::unordered_set<nyan_op> &
-NyanNumber<T>::allowed_operations(nyan_primitive_type value_type) const {
+NyanNumber<T>::allowed_operations(nyan_basic_type value_type) const {
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
@@ -117,9 +117,11 @@ NyanNumber<T>::allowed_operations(nyan_primitive_type value_type) const {
 		nyan_op::DIVIDE_ASSIGN,
 	};
 
+	const nyan_primitive_type &type = value_type.primitive_type;
+
 	// all allowed number types
-	if (value_type == nyan_primitive_type::FLOAT or
-	    value_type == nyan_primitive_type::INT) {
+	if (type == nyan_primitive_type::FLOAT or
+	    type == nyan_primitive_type::INT) {
 		return ops;
 	}
 	else {

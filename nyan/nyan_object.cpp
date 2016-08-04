@@ -240,14 +240,14 @@ bool NyanObject::equals(const NyanValue &other) const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanObject::allowed_operations(nyan_primitive_type value_type) const {
+const std::unordered_set<nyan_op> &NyanObject::allowed_operations(nyan_basic_type value_type) const {
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::PATCH,
 	};
 
-	if (value_type == nyan_primitive_type::OBJECT) {
+	if (value_type.primitive_type == nyan_primitive_type::OBJECT) {
 		return ops;
 	}
 	else {

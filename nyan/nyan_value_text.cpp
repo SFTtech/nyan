@@ -62,13 +62,13 @@ bool NyanText::equals(const NyanValue &other) const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanText::allowed_operations(nyan_primitive_type value_type) const {
+const std::unordered_set<nyan_op> &NyanText::allowed_operations(nyan_basic_type value_type) const {
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
 	};
 
-	if (value_type == nyan_primitive_type::TEXT) {
+	if (value_type.primitive_type == nyan_primitive_type::TEXT) {
 		return ops;
 	}
 	else {

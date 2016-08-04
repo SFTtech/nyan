@@ -101,9 +101,11 @@ std::string NyanOrderedSet::repr() const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_primitive_type value_type) const {
+const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_basic_type value_type) const {
 
-	// TODO: use value_type to check the op-value-pair validity
+	if (not value_type.is_container()) {
+		return no_nyan_ops;
+	}
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
@@ -113,6 +115,8 @@ const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_primi
 		nyan_op::MULTIPLY_ASSIGN,
 		nyan_op::INTERSECT_ASSIGN,
 	};
+
+	// TODO: check for container type and op-value-pair validity
 
 	return ops;
 }

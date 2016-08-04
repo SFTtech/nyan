@@ -170,7 +170,7 @@ protected:
 	/**
 	 * Allowed operations for a NyanObject.
 	 */
-	const std::unordered_set<nyan_op> &allowed_operations(nyan_primitive_type value_type) const override;
+	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
 
 	/**
 	 * Get the NyanType of this object.

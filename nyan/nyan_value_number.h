@@ -24,7 +24,7 @@ public:
 protected:
 	void apply_value(const NyanValue *value, nyan_op operation) override;
 	bool equals(const NyanValue &other) const override;
-	const std::unordered_set<nyan_op> &allowed_operations(nyan_primitive_type value_type) const override;
+	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
 	const nyan_basic_type &get_type() const override;
 
 	/**

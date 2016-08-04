@@ -88,7 +88,7 @@ protected:
 	/**
 	 * Allowed operations for this value type with a given operand.
 	 */
-	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_primitive_type value_type) const = 0;
+	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const = 0;
 };
 
 } // namespace nyan
