@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "nyan_container.h"
+#include "nyan_object.h"
 #include "nyan_util.h"
 
 
@@ -31,32 +32,67 @@ NyanMember::NyanMember(const NyanLocation &location,
 	value{std::move(value)},
 	location{location} {
 
-	// TODO check if type, operation and value can work together
+	// TODO: check if type, operation and value can work together
+	//       the operator check is missing currently.
+
+	// shared code for the container check and single-value-check
+	auto value_check = [](const NyanLocation &location,
+	                      const NyanType *type,
+	                      const NyanValue *value) {
+
+		const nyan_basic_type &value_type = value->get_type();
+
+		// test if the basic type of the value is compatbile
+		if (not type->is_basic_compatible(value_type)) {
+			// TODO: better error message, location and information
+			//       about the conflicting types and operator
+			throw TypeError{location, "incompatible types for operand"};
+		}
+
+		// special handling for some primitive types
+		switch (type->get_primitive_type()) {
+		case nyan_primitive_type::OBJECT: {
+			// we checked the basic type above,
+			// so we can now cast the value
+			const NyanObject *obj = dynamic_cast<const NyanObject *>(value);
+
+			if (not type->is_parent_of(obj)) {
+				throw TypeError{location, "incompatible object assigned"};
+			}
+
+			break;
+		}
+		default:
+		// no special handling for the others.
+		break;
+		}
+	};
 
 
-	// TODO: maybe move to the container class!
-	// check if all the container values
-	// are compatible with the container type
 	if (this->type->is_container()) {
-		NyanContainer *container = dynamic_cast<NyanContainer *>(this->value.get());
+		// check if all the container values
+		// are compatible with the container type
+
+		const NyanContainer *container = dynamic_cast<NyanContainer *>(this->value.get());
+
 		if (container == nullptr) {
 			throw NyanInternalError{
 				"type said it was a container but could not be casted!"
 			};
 		}
-		else {
 
-			for (auto &value : util::as_const(*container)) {
-				std::cout << "container check: "
-				          << value.repr() << std::endl;
-			}
+		for (auto &entry : *container) {
+			// TODO: check if entry.get_type().can_be_in(this->type)
+			std::cout << "container check: "
+			          << entry.repr() << std::endl;
+
+			value_check(this->location,
+			            this->type->get_element_type(),
+			            &entry);
 		}
 	}
 	else {
-		// TODO: check single value type
-		// if (not value_type.can_be_in(*member_type)) ...
-		std::cout << "single value check: "
-		          << this->value->repr() << std::endl;
+		value_check(this->location, this->type.get(), this->value.get());
 	}
 }
 

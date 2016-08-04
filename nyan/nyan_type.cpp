@@ -34,6 +34,11 @@ bool nyan_basic_type::is_container() const {
 }
 
 
+bool nyan_basic_type::operator ==(const nyan_basic_type &other) const {
+	return (this->primitive_type == other.primitive_type and
+	        this->container_type == other.container_type);
+}
+
 nyan_basic_type type_from_value_token(const NyanToken &tok) {
 	nyan_primitive_type value_type;
 
@@ -293,6 +298,43 @@ bool NyanType::is_child_of(const NyanType &other) const {
 }
 
 
+bool NyanType::is_child_of(const NyanObject *obj) const {
+	if (this->get_primitive_type() != nyan_primitive_type::OBJECT) {
+		return false;
+	}
+
+	if (obj == nullptr) {
+		// any object is allowed, so we are a child.
+		return true;
+	}
+
+	return this->target->is_child_of(obj);
+}
+
+
+bool NyanType::is_parent_of(const NyanObject *obj) const {
+	if (this->get_primitive_type() != nyan_primitive_type::OBJECT) {
+		return false;
+	}
+
+	if (this->target == nullptr) {
+		// we allow any object, so we are a parent of obj.
+		return true;
+	}
+	else if (obj == nullptr) {
+		// we don't allow any objet, so we can't be the parent.
+		return false;
+	}
+
+	return obj->is_child_of(this->target);
+}
+
+
+bool NyanType::is_basic_compatible(const nyan_basic_type &type) const {
+	return (this->basic_type == type);
+}
+
+
 bool NyanType::can_be_in(const NyanType &other) const {
 	// this check also guarantees that other.element_type exists:
 	if (not other.is_container()) {
@@ -310,6 +352,11 @@ nyan_container_type NyanType::get_container_type() const {
 
 nyan_primitive_type NyanType::get_primitive_type() const {
 	return this->basic_type.primitive_type;
+}
+
+
+const NyanType *NyanType::get_element_type() const {
+	return this->element_type.get();
 }
 
 

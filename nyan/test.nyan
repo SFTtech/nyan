@@ -13,7 +13,7 @@ Third(Second):
 
 Test(First):
     member += 1337
-    stuff : Second
+    stuff : Second = Third
     gschicht : int
 
 Patch<Test>():
@@ -27,8 +27,8 @@ PatchPatch<Patch>():
     ie = Third
 
 SetTest():
-    member : set(int) = {1, 1, Test, "rofl", "rofl"}
-    orderedmember : orderedset(int) = <2, 2, "lol", Patch, "lol">
+    member : set(int) = {1, 1, 2, 3, 1}
+    orderedmember : orderedset(int) = <1, 2, 3, 1, 2, 3, 2, 1>
 
 
 # unit example

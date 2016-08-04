@@ -87,6 +87,12 @@ struct nyan_basic_type {
 	 * or primitive type is CONTAINER.
 	 */
 	bool is_container() const;
+
+
+	/**
+	 * Equality comparison.
+	 */
+	bool operator ==(const nyan_basic_type &other) const;
 };
 
 
@@ -223,6 +229,16 @@ public:
 	bool is_child_of(const NyanObject *obj) const;
 
 	/**
+	 * Test if this type is a possble parent of the given NyanObject.
+	 */
+	bool is_parent_of(const NyanObject *obj) const;
+
+	/**
+	 * Test if the basic type is compatbile, i. e. the same.
+	 */
+	bool is_basic_compatible(const nyan_basic_type &type) const;
+
+	/**
 	 * Check if this type can be in the given other type.
 	 * This will of course only suceed if other is a container.
 	 */
@@ -237,6 +253,12 @@ public:
 	 * Return the basic type of this NyanType.
 	 */
 	nyan_primitive_type get_primitive_type() const;
+
+	/**
+	 * Get the container element type, i. e. the inner type
+	 * that specifies the type of each element.
+	 */
+	const NyanType *get_element_type() const;
 
 	/**
 	 * Return a string representation of this type.
