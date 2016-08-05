@@ -36,8 +36,8 @@ public:
 	           NyanTypeContainer &&type, nyan_op operation,
 	           NyanValueContainer &&value);
 
-	NyanMember(NyanMember &&other);
-	const NyanMember &operator =(NyanMember &&other);
+	NyanMember(NyanMember &&other) noexcept;
+	const NyanMember &operator =(NyanMember &&other) noexcept;
 
 	NyanMember(const NyanMember &other) = delete;
 	const NyanMember &operator =(const NyanMember &other) = delete;

@@ -34,13 +34,13 @@ NyanFile::NyanFile(const std::string &path)
 	NyanFile{path, util::read_file(path)} {}
 
 
-NyanFile::NyanFile(NyanFile &&other)
+NyanFile::NyanFile(NyanFile &&other) noexcept
 	:
 	name{std::move(other.name)},
 	data{std::move(other.data)} {}
 
 
-NyanFile &NyanFile::operator =(NyanFile &&other) {
+NyanFile &NyanFile::operator =(NyanFile &&other) noexcept {
 	this->name = std::move(other.name);
 	this->data = std::move(other.data);
 	return *this;

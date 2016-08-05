@@ -112,7 +112,7 @@ NyanMember::NyanMember(const NyanLocation &location,
 }
 
 
-NyanMember::NyanMember(NyanMember &&other)
+NyanMember::NyanMember(NyanMember &&other) noexcept
 	:
 	type{std::move(other.type)},
 	operation{other.operation},
@@ -121,7 +121,7 @@ NyanMember::NyanMember(NyanMember &&other)
 	location{std::move(other.location)} {}
 
 
-const NyanMember &NyanMember::operator =(NyanMember &&other) {
+const NyanMember &NyanMember::operator =(NyanMember &&other) noexcept {
 	this->type = std::move(other.type);
 	this->operation = other.operation;
 	this->cached_value = std::move(other.cached_value);

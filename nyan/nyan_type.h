@@ -192,8 +192,8 @@ public:
 	         bool is_type_decl);
 
 	// move to other type
-	NyanType(NyanType &&other);
-	NyanType &operator =(NyanType &&other);
+	NyanType(NyanType &&other) noexcept;
+	NyanType &operator =(NyanType &&other) noexcept;
 
 	// no copies, use the NyanTypeContainer for that.
 	NyanType(const NyanType &other) = delete;

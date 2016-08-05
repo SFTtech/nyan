@@ -228,14 +228,14 @@ NyanType::NyanType(const NyanToken &token,
 }
 
 
-NyanType::NyanType(NyanType &&other)
+NyanType::NyanType(NyanType &&other) noexcept
 	:
 	basic_type{std::move(other.basic_type)},
 	element_type{std::move(other.element_type)},
 	target{other.target} {}
 
 
-NyanType &NyanType::operator =(NyanType &&other) {
+NyanType &NyanType::operator =(NyanType &&other) noexcept {
 	this->basic_type = std::move(other.basic_type);
 	this->element_type = std::move(other.element_type);
 	this->target = other.target;

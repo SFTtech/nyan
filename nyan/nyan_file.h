@@ -27,8 +27,8 @@ public:
 	NyanFile(const std::string &virtual_name, std::string &&data);
 
 	// moving allowed
-	NyanFile(NyanFile &&other);
-	NyanFile& operator =(NyanFile &&other);
+	NyanFile(NyanFile &&other) noexcept;
+	NyanFile& operator =(NyanFile &&other) noexcept;
 
 	// no copies
 	NyanFile(const NyanFile &other) = delete;

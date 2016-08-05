@@ -71,7 +71,7 @@ public:
 
 
 	ContainerIterator() = default;
-	ContainerIterator(std::unique_ptr<real_iterator> &&real)
+	ContainerIterator(std::unique_ptr<real_iterator> &&real) noexcept
 		:
 		iter{std::move(real)} {}
 
@@ -79,7 +79,7 @@ public:
 		:
 		iter{std::make_unique(other)} {}
 
-	ContainerIterator(ContainerIterator &&other)
+	ContainerIterator(ContainerIterator &&other) noexcept
 		:
 		iter{std::move(other.iter)} {}
 
@@ -87,7 +87,7 @@ public:
 		this->iter = std::make_unique(other);
 	}
 
-	ContainerIterator &operator =(ContainerIterator &&other) {
+	ContainerIterator &operator =(ContainerIterator &&other) noexcept {
 		this->iter = std::move(other);
 	}
 

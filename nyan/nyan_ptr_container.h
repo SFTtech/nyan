@@ -42,7 +42,7 @@ public:
 	/**
 	 * Create an owning container from some unique ptr.
 	 */
-	NyanPtrContainer(std::unique_ptr<T> &&val)
+	NyanPtrContainer(std::unique_ptr<T> &&val) noexcept
 		:
 		is_ptr{false},
 		data_owned{std::move(val)},
@@ -51,7 +51,7 @@ public:
 	/**
 	 * Replace this container by another container.
 	 */
-	NyanPtrContainer(NyanPtrContainer &&other)
+	NyanPtrContainer(NyanPtrContainer &&other) noexcept
 		:
 		is_ptr{other.is_ptr},
 		data_owned{std::move(other.data_owned)},
@@ -60,7 +60,7 @@ public:
 	/**
 	 * Move assignment from another container.
 	 */
-	NyanPtrContainer &operator =(NyanPtrContainer &&other) {
+	NyanPtrContainer &operator =(NyanPtrContainer &&other) noexcept {
 		this->is_ptr = other.is_ptr;
 		this->data_owned = std::move(other.data_owned);
 		this->data_ptr = other.data_ptr;
