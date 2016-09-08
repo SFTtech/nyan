@@ -50,7 +50,7 @@ Dependencies, Building and Running
 
 All of those observations are intended, not bugs.
 
-To turn fix them, compile with `--dont-segfault --no-errors --new-girlfriend`.
+To turn them off, compile with `--dont-segfault --no-errors --new-girlfriend`.
 
 
 If this still does not help, try the [contact section](#contact)
