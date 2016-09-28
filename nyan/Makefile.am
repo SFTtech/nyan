@@ -3,7 +3,7 @@
 #all-am: print_build_config
 
 # all warnings n stuff
-AM_CXXFLAGS = -Wall -Wextra -pedantic -ftemplate-backtrace-limit=0
+AM_CXXFLAGS += -Wall -Wextra -pedantic -ftemplate-backtrace-limit=0
 
 # flex flags
 AM_LFLAGS = -Ca
