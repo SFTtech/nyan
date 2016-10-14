@@ -669,10 +669,10 @@ MonsterTeleport(Teleport):
     range = 5
 
 MonsterTPPatch<TentacleMonster>():
-    abilities += [MonsterTeleport]
+    abilities += {MonsterTeleport}
 
 TeleportMod(Mod):
-    patches = [MonsterTPPatch]
+    patches = {MonsterTPPatch}
 ```
 
 Why is there an `instant` member of `MoveAbility`? The game engine must
