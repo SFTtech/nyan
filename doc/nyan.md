@@ -510,6 +510,13 @@ Resource():
     name : text
     icon : file
 
+DropSite():
+    allowed_resources : set(Resource)
+
+
+# Above are engine features.
+# Lets create content in your official game data pack now:
+
 Gold(Resource):
     name = "Bling bling"
     icon = file("gold.svg")
@@ -517,13 +524,6 @@ Gold(Resource):
 Food(Resource):
     name = "Nom nom"
     icon = file("food.svg")
-
-DropSite():
-    allowed_resources : set(Resource)
-
-
-# Above are engine features.
-# Lets create content in your official game data pack now:
 
 TownCenter(Building, DropSite):
     name = "Town Center"
