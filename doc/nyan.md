@@ -1,10 +1,34 @@
 nyan
-====
+----
 
 ## WTF?
 
-**nyan** is a hierarchical strongly typed key-value store with patch
-functionality and inheritance
+**nyan** is a strongly typed hierarchical key-value database with patch
+functionality and inheritance.
+
+
+## Srsly?
+
+Let's create a new unit with a mod: a japanese tentacle monster.
+
+``` python
+TentacleMonster(Unit):
+    name = "Splortsch"
+    hp = 2000
+
+Creation<TownCenter>():
+    creates += {TentacleMonster}
+
+TentacleMod(Mod):
+    name = "Add the allmighty tentacle monster to your holy army"
+    patches = {Creation}
+```
+
+Things like `Unit` and `Mod` are provided by the game engine,
+`TownCenter` is provided by the base game data.
+
+When the engine activates the mod, your town center can create the new unit.
+
 
 
 ## Design idea
@@ -18,32 +42,33 @@ Current data representation formats make this nearly impossible to
 accomplish. Readability problems or huge lexical overhead led us to
 design a language crafted for our needs.
 
-Enter **nyan**, which is our approach to store data in a new way.
+Enter **nyan**, which is our approach to store data in a new way™.
 
 
 ## Design goals
 
 Requirements:
 
-* nyan remains a general-purpose language; nicely abstracted from *openage*
-* Data is stored in .nyan files
+* nyan remains a general-purpose data language
+* Data is stored in `.nyan` files
 * Human readable
 * Portable
 * More or less compact (readability > memory)
-* Easy patch-definitions to allow nyan objects to overlay other objects, the
-  same mechanism is used for initial loading of all mods as well as applying
-  techs
-* We need patches (mod) that patch other patches (e.g. a tech for more hp).
-* Does not contain any code. The game engine is responsible for calling API
+* Data is stored as members of *NyanObjects*
+* Data is changed by patches that change members of *NyanObjects*
+* Patches can be changed by patches, that way, any mod can be created
+* Data does not contain any executed code but can specify function names
+  and parameters. The game engine is responsible for calling those
   functions or redirecting to custom scripts
-* Namespaces to create a logical hierarchy
-* Some .nyan files are shipped with a game engine
+* Namespaces to create a logical hierarchy of *NyanObjects*
+* Some `.nyan` files are shipped with the game engine
   * They describe things the engine is capable of, basically the mod api
   * That way, the engine can be sure that things exist
   * The engine can access all nyan file contents with type safety
-* The nyan interpreter is written in C++
-  * Parses .nyan files and adds them to the store
-  * Manages all data as nyan objects
+  * The data files of the game then extend and change the API *NyanObjects*
+* The nyan database provides a C++ API used by the game engine
+  * Can parse `.nyan` files and add all information to the database
+  * Provides hooks so the engine can react on object creations
 
 
 ## Language features
@@ -65,9 +90,8 @@ Concept:
 
 * The only things nyan can do: Hierarchical data declaration and patches
   * **NyanObject**: In a .nyan file, you write down *NyanObject*s
-  * Abstract *NyanObject*: has undefined members
-  * Non-abstract: all members of the object have a defined value
-    and e.g. a unit on screen can be created from it
+  * A *NyanObject* has an aribitrary number of members
+  * A member has a data type like `int`
 * *NyanObject*s support a hierarchy by inheritance
   * You can fetch values from a *NyanObject* and the result is determined
     by walking up the whole inheritance tree
@@ -83,8 +107,9 @@ Concept:
   * *NyanObject*s remain abstract until all members have values
   * There exists no order of members
 * **NyanPatch**: is a *NyanObject* and denominates a patch
-  * It is created for exactly one *NyanObject*,
-    stored in a member named `__patch__`
+  * Patches are used to change a target NyanObject at runtime
+  * It is created for exactly one *NyanObject* with `PatchName<TargetObject>`
+  * Internally, the target object is referenced in a member named `__patch__`
   * Can modify **member values** of the assigned *NyanObject*
   * Can add **inheritance** parents of the target *NyanObject*
   * Can add new members, but not remove them
@@ -160,19 +185,17 @@ PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
 
 * It is a patch iff `<Target>` is written in the definition or the object
   has a member `__patch__ : NyanObject`
-  * The patch can only be applied for the specified object or
-    any child of it
-  * A patch can have member `__parents_add__ : orderedset(NyanObject)`,
-    the `[+AdditionalParent, ...]` syntax constructs it
-  * It is used to add new objects the target should inherit from when the
-    patch is applied
-  * This can be used to inject a "middle object" in between two inheriting
-    objects, because the multi inheritance linearization resolves the order
-    * Imagine something like `TentacleMonster -> Unit`
-    * What we now want is `TentacleMonster -> MonsterBase -> Unit`
-    * What we do first is create `MonsterBase -> Unit`
-    * What we next is patch `TentacleMonster -> Unit, MonsterBase` with `+`
-    * The linearization will result in `TentacleMonster -> MonsterBase -> Unit`
+  * The patch can only be applied for the specified object or any child of it
+  * A patch can add a new inheritance parent to the target
+    * Done with the `[+AdditionalParent, ...]` syntax, which just creates
+      a member `__parents_add__ : orderedset(NyanObject)`
+    * This can be used to inject a "middle object" in between two inheriting
+      objects, because the multi inheritance linearization resolves the order
+      * Imagine something like `TentacleMonster -> Unit`
+      * What we now want is `TentacleMonster -> MonsterBase -> Unit`
+      * What we do first is create `MonsterBase -> Unit`
+      * After applying a patch with `+MonsterBase` it is `TentacleMonster -> Unit, MonsterBase`
+      * The linearization will result in `TentacleMonster -> MonsterBase -> Unit`
 * The patch will fail to be loaded if:
   * The patch target is not known
   * Any of changed members is not present in the patch target
@@ -310,7 +333,7 @@ the calculation is done like this:
     - `int`:      `1337`           - (some number)
     - `float`:    `42.235`, `inf`  - (some floating point number)
     - `bool`:     `True`, `False`  - (some boolean value)
-    - `file`:     `"./name" `      - (some filename,
+    - `file`:     `"./name" `      - (some filename, absolute or
                                       relative to the directory
                                       the defining nyan file is located at)
   * ordered set of elements of a type: `orderedset(type)`
@@ -346,24 +369,37 @@ the calculation is done like this:
     * intersection: `&= <..>, &= {..}` -> keep only objects element of both
   * *NyanObject* member:
     * `=` set the reference to some other *NyanObject*
-    * `@=` patch the *NyanObject* member with a compatible patch
 
+
+### Cyclic dependencies
+
+There are no forward declarations. You have to design the data hierarchy
+in a way that cyclic dependencies are impossible.
+
+If you encounter a cyclic dependency, redesign the data by extracting the
+common part as a separate object and then reference it in both old ones.
 
 ### Namespaces and imports
 
 Namespaces and imports work pretty much the same way as Python defined it.
-They allow to organize data in an easy hierarchical way.
+They allow to organize data in an easy hierarchical way on your file system.
+
 
 #### Implicit namespace
 
 A nyan file name is implies its namespace.
 A file name must not contain a `.` (except the `.nyan`) to prevent clashes.
 
-`lol/mod/component/rofl.nyan`
+`modname/component/rofl.nyan`
 
 Data defined in the file is in namespace:
 
-`lol.mod.component.rofl`
+`modname.component.rofl`
+
+An object is then accessed like:
+
+`modname.component.rofl.DrugDealer`
+
 
 #### Importing
 
@@ -371,23 +407,33 @@ Before defining any *NyanObject*, you can import other namespaces. This leads
 to the parsing of this file first, if not already loaded, just like Python
 does it.
 
-* `import openage.civs.britain`
-* `import crazyguy.tentaclemod as monstermod`
+* whole nyan file: `import openage.civs.britain`
+* alias: `import crazyguy.tentaclemod as monstermod`
+* single object: `import murrica.life.MobilityScooter as MobilityScooter`
 * Maybe we can extend the way of importing if the need arises
 
 You can then access the contents of that namespace in a qualified way.
 
 `MultiheadMonster(monstermod.TentacleMonster)...`
 
+Or if you imported without an alias, it's used with the full name.
+
+`BadassSuperVillager(openage.civs.britain.Villager)...`
+
+And for easy access of objects, you can alias those as well:
+
+`FlyingScooter(MobilityScooter)...`
+
 
 ## nyan interpreter
 
 `.nyan` files are read by the nyan interpreter part of `libnyan`.
 
-* You feed the .nyan files into it
+* You feed `.nyan` files into it
 * It parses the contents and adds it to the active store
 * It does type checking to verify the integrity of the data hierarchy
 * You can query any member and object of the store
+* You can use pointers to them in the engine
 * You can apply patches to any object at any time
 
 
@@ -448,7 +494,17 @@ Query a `NyanObject` for member values.
 **nyanc** can compile a .nyan file to a .h and .cpp file, this just creates
 a new nyan type the same way the primitive types from above are defined.
 
-Members can then be acessed directly from c++.
+Members can then be acessed directly from C++.
+
+The only problem still unsolved with `nyanc` is:
+
+If a "non-optimized" *NyanObject* has multiple parents where some of them
+were "optimized" and made into native code by `nyanc`, we can't select
+which of the C++ objects to instanciate for it. And we can't create the
+combined "optimized" object as the *NyanObject* appeared at runtime.
+
+Nevertheless, `nyanc` is just an optimization, and has therefore no
+priority until we need it.
 
 
 ## openage specific "standard library"
@@ -493,11 +549,12 @@ A few examples
 ##### `Ability`: Available unit actions
 
 * Base object for something a unit can do
-* `MoveAbility`, `GatherAbility`, ...: Defined by engine as well
+* `Movement`, `Gather`, `ResourceGenerator`,
+  `ResourceSpot`, ... defined and implemented by engine as well
 * The engine implements all kinds of things for the abilities
   and also triggers actions when the ability is invoked
 
-##### `DropSite`: Building where resources can be brought to
+##### `DropSite`: Object where resources can be brought to
 
 * The engine movement and pathfinding system must know about dropsites
 * Configures the allowed resources
@@ -521,27 +578,25 @@ nyan file not part of the engine, but rather a data pack for it.
 
 Lets start with an example inheritance hierarchy:
 
-`malte23 <- Crossbowman <- Archer <- RangedUnit (engine) <- Unit (engine) <- Nyan (built in)`
+`malte23 (instance) <- Crossbowman <- Archer <- RangedUnit (engine) <- Unit (engine) <- Object (built in)`
 
 Why:
 
-* There's a base nyan objects, defined in the language
+* There's a base nyan object, defined in the language internally
 * The engine support units that move on screen
-* The engine supports attack ballistics
+* The engine supports attack projectile ballistics
 * All archers may receive armor/attack bonus updates
 * Crossbowmen is an archer and can be built at the archery
-* malte23 walks on your screen and dies laughing.
-  It is _not_ a *NyanObject* but rather an unit object of the game engine
-  which has a pointer to the `Crossbowman` *NyanObject* to fetch values from
+
+`malte23` walks on your screen and dies laughing.
+It is _not_ a *NyanObject* but rather an unit object of the game engine
+which references to the `Crossbowman` *NyanObject* to get properties from.
+`malte23` is handled in the unit movement system but the speed,
+healthpoints and so on are fetched for malte's unit type, which is
+`Crossbowman`, managed by nyan.
 
 
-The only non-abstract objects can be instanciated by the game engine.
-It's non-abstract when all members of an object are defined, which
-is the case for a `Crossbowman`. `malte23` is instanced and handled in the
-engines unit movement system.
-
-
-## Modding example
+## Modding examples
 
 ### New resource
 
@@ -563,7 +618,7 @@ Resource():
     icon : file
 
 DropSite():
-    allowed_resources : set(Resource)
+    accepted_resources : set(Resource)
 
 
 # Above are engine features.
@@ -571,15 +626,15 @@ DropSite():
 
 Gold(Resource):
     name = "Bling bling"
-    icon = file("gold.svg")
+    icon = "gold.svg"
 
 Food(Resource):
     name = "Nom nom"
-    icon = file("food.svg")
+    icon = "food.svg"
 
 TownCenter(Building, DropSite):
     name = "Town Center"
-    allowed_resources = {Gold, Food}
+    accepted_resources = {Gold, Food}
 
 
 # Now let's have a user mod that adds a new resource:
@@ -593,22 +648,20 @@ TCSilicon<TownCenter>():
 SiliconMod(Mod):
     name = "The modern age has started: Behold the microchips!"
     patches = {TCSilicon}
+
 ```
 
-When those nyan files are loaded, the data store is updated accordingly.
-Your game engine implements that all `patches` from a `Mod` are applied
-at game start time.
+In the mod pack config file, `SiliconMod` is listed to be loaded.
+That pack config format may be a simple .conf-style file.
+
+When those nyan files are loaded, the all the objects are added. Your game
+engine implements that the `SiliconMod` is displayed in some mod list and
+that all `patches` from activated `Mod`s are applied at game start time.
 
 The load order of the user supplied `Mod`s is to be determined by the
 game engine. Either via some mod manager, or automatic resolution.
 It's up to the engine to implement.
 
-
-## Patches
-
-A patch is a nyan object that modifies another nyan object.
-The patch inherits from the patched object, all unmodified
-members have value None then.
 
 ### Patching a patch example
 
@@ -620,6 +673,7 @@ A user mod that patches loom to increase villager hp by 10 instead of 15.
    villager instance of the current player
 
 ``` python
+
 # Game engine defines:
 Tech():
     name : text
@@ -660,76 +714,142 @@ TownCenter(Building):
     creates = {Villager}
 
 
-# User mod increases the HP amount:
+# User mod decreases the HP amount:
 BalanceHP<LoomVillagerHP>():
     hp -= 5
 
 LoomBalance(Mod):
     name = "Balance the Loom research to give"
     patches = {BalanceHP}
-```
 
-### Unit definition by mod
-
-Let's create a new unit: a japanese tentacle monster.
-
-```
-TentacleMonster(Unit):
-    name = "Splortsch"
-    hp = 2000
-
-Creation<TownCenter>():
-    creates += {TentacleMonster}
-
-TentacleMod(Mod):
-    name = "Add the allmighty tentacle monster"
-    patches = {Creation}
+# in the mod pack metadata file, LoomBalance is denoted in the index.nfo
+# to be loaded into the mod list of the engine.
 ```
 
 ### Creating a new ability
 
-Now let's create the ability to teleport for the tentacle monster
-and the villager.
+Now let's create the ability to teleport for the villager.
 
-* should be without python code!
-* ability is added as a tech to some units at runtime
+Abilities are used as [entity component system](https://en.wikipedia.org/wiki/Entity_component_system).
+The game engine uses sets of those to modify unit behavior.
+
+
+* Abilities can define properties like their animation
+* An ability can be added as a tech to some units at runtime
   ("villagers and the tentacle monster can now teleport")
-* cooldown
-* maximum teleport range
+* Behavior must be implemented in the engine
+  * If custom behavior is required, it must be set up through a scripting API of the engine
+  * `nyan` can change and updated called function names etc to
+    activate the scripting changes, but how is up to the engine
 
-```
-# The engine defined:
-...
-MoveAbility(Ability):
+
+``` python
+
+# The engine defines:
+Mod():
+    name : text
+    patches : set(NyanPatch)
+
+Ability():
+    mouse_animation : file
+
+Unit():
+    name : text
+    hp : int
+    abilities : set(Ability)
+
+Resource():
+    name : text
+    icon : file
+
+DropSite():
+    accepted_resources : set(Resource)
+
+Animation():
+    image : file
+    frames : int = 1
+    loop : bool = True
+    speed : float = 15.0
+
+Ability():
+    animation : Animation
+
+CooldownAbility(Ability):
+    recharge_time : float
+
+Movement(Ability):
     speed : float
     instant : bool = False
     range : float = inf
 
-CooldownAbility():
-    recharge_time : float
+CollectResource(Movement):
+    target : Resource
+    collect_animation : Animation
 
 
-# teleport mod:
-Teleport(CooldownAbility, MoveAbility):
-    name = "Teleport the unit"
+# Base game data defines:
+Wood(Resource):
+    name = "chop chop"
+    icon = "wood.svg"
+
+VillagerWalking(Animation):
+    image = "walking_villager.png"
+    frames = 18
+
+VillagerMovement(Movement):
+    animation = VillagerWalking
+    speed = 15.0
+
+WoodTransport(Animation):
+    image = "wood_transport.png"
+    frames = 20
+
+WoodChop(Animation):
+    image = "wood_transport.png"
+    frames = 20
+
+CollectWood(CollectResource):
+    target = Wood
+    animation = WoodTransport
+    collect_animation = WoodChop
+    speed = 12.0
+
+Villager(Unit):
+    name = "Villager"
+    hp = 25
+    abilities += {VillagerMovement, CollectWood}
+
+
+# Teleport mod:
+TeleportBlurb(Animation):
+    image = "teleport_whooosh.png"
+    frames = 10
+    speed = 2
+
+Teleport(Movement, CooldownAbility):
     speed = 0.0
     instant = True
-    mouse_animation = file("arcane_wobbly.gif")
-
-MonsterTeleport(Teleport):
     recharge_time = 30.0
     range = 5
+    animation = TeleportBlurb
 
-MonsterTPPatch<TentacleMonster>():
-    abilities += {MonsterTeleport}
+EnableTeleport<Villager>():
+    abilities += {Teleport}
 
 TeleportMod(Mod):
-    patches = {MonsterTPPatch}
+    name = "Awesome teleport feature to sneak into bastions easily"
+    patches = {EnableTeleport}
 ```
 
-Why is there an `instant` member of `MoveAbility`? The game engine must
-support movement without pathfinding, otherwise even movement with infinite
-speed would be done by pathfinding.
+* Why does `Teleport` inherit from both `Movement` and `CooldownAbility`?
+  * Teleport is another movement variant, but the cooldown timer must be mixed in.
+    After an ability was used, the engine checks if the `Ability` is a `CooldownAbility`,
+    and then deactivates the ability for some time for that unit.
+    When the engine checks `Teleport.is_child_of(CooldownAbility)`,
+    it is true and the timer routine will run.
+* Why is there an `instant` member of `Movement`?
+  * The game engine must support movement without pathfinding, otherwise even
+    movement with infinite speed would be done by pathfinding.
 
 This demonstrated that modding capabilities are strongly limited by the game
 engine, nyan just assists you in designing a mod api in an intuitive way.
