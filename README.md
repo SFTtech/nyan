@@ -6,6 +6,8 @@ nyan - yet another notation
 **nyan** is a *data description language*,
 It is a mixture of python, json, patch, java, wml, yaml and some new ideas.
 
+It stores hierarchical objects with key-value pairs in a database with the key idea that changes in a parent affect all children.
+
 We created nyan because there existed no suitable language to
 properly represent the enormous complexity of storing the data for [openage](https://github.com/SFTtech/openage).
 
@@ -32,9 +34,9 @@ Current State of the Project
 
 Components
 
-* [X] The [specification](doc/nyan.md) is more or less complete
-* [ ] Interpreter code is missing
-* [ ] The `nyanc` compiler is missing
+* [X] The [specification](doc/nyan.md) is complete but being fine-tuned
+* [X] The parser and typechecker is fully functional
+* [ ] Database queries and the C++ API
 
 
 Dependencies, Building and Running
