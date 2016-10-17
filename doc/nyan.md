@@ -134,21 +134,15 @@ Concept:
       and another parent defines it independently)
       * C3 is applied first (unifies members by a common parent)
       * Name conflicts must then resolved by manual qualification again
-* Deep copy down feature for a *NyanObject*: copy all children.
-  * This allows to copy a piece of the tree
-  * This feature is required to have 2 Players with the same civilization
-    that can do their research independently
-  * TODO: how are objects referenced by patches then?
-    * The copied object needs a new name?
-    * Patch within that subtree only applies to subtree?
-    * Patch from the outside applies to all subtree copies?
 * A mod API could be implemented as follows:
   Create a *NyanObject* named `Mod` that has a member with a set
   of patches to apply
   * To create a mod: Inherit from this `Mod` *NyanObject* and
     add patches to the set
-  * The game engine then applies the patches the appropriate way
-    when a child of "Mod" is created by nyan
+  * List the object name in an ordinary .conf-style file so the engine
+    knows the name and can query for it
+  * The game engine then applies the patches of that object at the
+    appropriate moment
 
 
 ### Syntax
