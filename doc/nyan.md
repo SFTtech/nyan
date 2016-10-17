@@ -391,6 +391,58 @@ You can then access the contents of that namespace in a qualified way.
 * You can apply patches to any object at any time
 
 
+### Database subtrees
+
+Problem: Different Players have different states of the same nyan tree.
+
+Solution: Create another hierarchy of state trees.
+
+A nyan database can have a parent database.
+
+The child database then stores the state for the player, the parent the
+global state.
+
+What does that mean?
+
+* One can create a sub-database of the main database
+* If a patch is applied in that subdatabase, the main one remains unchanged
+  and just queries to the subdatabase will yield an updated result
+* Internally, this works as follows:
+  * Query the subdatabase for a patch object
+    * If it is known in the subdatabase, return it
+    * Else return it from the parent database
+  * When that patch is applied to a subdatabase, the subdatabase tries to
+    * Find the target object in its store or otherwise get it from the
+      parent database. If it doesn't have it either, query the next parent
+      until the root was reached.
+    * If it was not found in in the subdatabase, create an object with the
+      target object name in the subdatabase which inherits from the object
+      in the parent database. This is repeated until the direct parent
+      database has a object of the correct name.
+    * Apply the patch to the object in the subdatabase.
+
+If objects are queried in subdatabases and not found, the query is
+redirected to their parent database and no child object is created in the
+subdatabase.
+
+If they were found, the value is determined via the inheritance tree
+normally.
+
+This approach reuses the value generation for same-named objects in
+different databases. If the team gets a database with the main db as
+parent and each player gets a database with the matching team db as
+parent, team boni and player specific updates can be handled in an "easy"
+way.
+
+
+
+### API
+
+Create a `NyanDatabase` and feed `.nyan` files into it.
+Query for `NyanObjects` and apply `NyanObjects` as patch.
+Query a `NyanObject` for member values.
+
+
 ## nyanc - the nyan compiler
 
 **nyanc** can compile a .nyan file to a .h and .cpp file, this just creates
