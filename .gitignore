@@ -23,33 +23,25 @@ __pycache__
 # build system
 /bin
 /.bin
+/build
 
 # debugging
 callgrind.out.*
 perf.data*
 .gdb_history
 
-# autocancer
-.deps
-.libs
-/aclocal.m4
-/ar-lib
-/autom4te.cache
-/compile
-/config.guess
-/config.h
-/config.h.in
-/config.log
-/config.status
-/config.sub
-/configure
-/depcomp
-/install-sh
-/libtool
-/ltmain.sh
-/m4
-/missing
-/stamp-h1
-/ylwrap
+# cmake in-source builds
+/DartConfiguration.tcl
+/Testing
+CTestTestfile.cmake
+CMakeFiles
+cmake_install.cmake
+CMakeCache.txt
 Makefile
-Makefile.in
+
+# code search
+/.agignore
+/.globalrc
+/GPATH
+/GRTAGS
+/GTAGS

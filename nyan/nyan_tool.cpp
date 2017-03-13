@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "nyan.h"
+#include "../libnyan/nyan.h"
 
 namespace nyan {
 
