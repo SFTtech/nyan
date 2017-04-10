@@ -68,7 +68,7 @@ Requirements:
   * The data files of the game then extend and change the API *NyanObjects*
 * The nyan database provides a C++ API used by the game engine
   * Can parse `.nyan` files and add all information to the database
-  * Provides hooks so the engine can react on object creations
+  * Provides hooks so the engine can react on internal changes
 
 
 ## Language features
@@ -155,19 +155,34 @@ Concept:
 # A NyanObject is created easily:
 ObjName():
     member : TypeName = value
+
+    member_name : Object
     ...
 
 Inherited(ObjName, OtherObj, ...):
     member += 10
+    ObjName.member_name = "stuff"
 
 PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
     member_to_modify = absolute_value
     member_to_update += relative_value
     new_member : TypeName = value
+
+ParentObject():
+    NestedObject(Inherited):
+        another_member : type = value
+        ...
+
+    some_member : Inherited = NestedObject
+    ...
 ```
 
+* An object declares a named storage space with then has key-value pairs
+* If an object does not have a parent, it implicitly inherits from the built-in `Object`
+* Nested object names are prefixed the parent name, on top level their name is `ParentObject.NestedObject`
 * A member is created by *declaring* it by `member_name : type`
 * A member is *defined* by `member_name = value`
+* An inherited member is referenced by either `member_name` or `ParentObject.member_name`
 * The declaration and definition can be combined:
   `member_name : type = value`
 * A member can never be defined if it was not declared
@@ -327,9 +342,10 @@ the calculation is done like this:
     - `int`:      `1337`           - (some number)
     - `float`:    `42.235`, `inf`  - (some floating point number)
     - `bool`:     `True`, `False`  - (some boolean value)
-    - `file`:     `"./name" `      - (some filename, absolute or
-                                      relative to the directory
-                                      the defining nyan file is located at)
+    - `file`:     `"./name" `      - (some filename, relative to the directory
+                                      the defining nyan file is located at.
+                                      If absolute, the path is relative to
+                                      an engine defined root directory)
   * ordered set of elements of a type: `orderedset(type)`
   * set of elements of a type: `set(type)`
   * currently, there is **no** `list(type)` specified,
@@ -353,27 +369,24 @@ the calculation is done like this:
   * `file`:`= "./delicious_cake.png"`
   * `set(type)`:
     * assignment: `= {value, value, ...}`
-    * union: ` += {..}, |= {..}` -> add objects to set
+    * union: ` += {..}`, `|= {..}` -> add objects to set
     * subtract: `-= {..}` -> remove those objects
     * intersection: `&= {..}` -> keep only objects element of both
   * `orderedset(type)`:
     * assignment: `= <value, value, ...>`
     * append: `+= <..>` -> add objects to the end if not existing
-    * subtract: `-= <..>, -= {..}` -> remove those objects
-    * intersection: `&= <..>, &= {..}` -> keep only objects element of both
-  * *NyanObject* member:
+    * subtract: `-= <..>`, `-= {..}` -> remove those objects
+    * intersection: `&= <..>`, `&= {..}` -> keep only objects element of both
+  * `dict(keytype, valuetype)`:
+    * assignment: `= {key: value, k: v, ...}`
+    * insertion of data: `+= {k: v, ...}`, `|= {..}`
+    * deletion of keys: `-= {k, k, ...}`, `-= {k: v, ..}`
+    * keep only those keys: `&= {k, k, ..}`, `&= {k: v, ..}`
+  * *NyanObject* reference:
     * `=` set the reference to some other *NyanObject*
 
 
-### Cyclic dependencies
-
-There are no forward declarations. You have to design the data hierarchy
-in a way that cyclic dependencies are impossible.
-
-If you encounter a cyclic dependency, redesign the data by extracting the
-common part as a separate object and then reference it in both old ones.
-
-### Namespaces and imports
+### Namespaces, imports and forward declarations
 
 Namespaces and imports work pretty much the same way as Python defined it.
 They allow to organize data in an easy hierarchical way on your file system.
@@ -381,42 +394,145 @@ They allow to organize data in an easy hierarchical way on your file system.
 
 #### Implicit namespace
 
-A nyan file name is implies its namespace.
-A file name must not contain a `.` (except the `.nyan`) to prevent clashes.
+A nyan file name is implies its namespace. That means the file name must
+not contain a `.` (except the `.nyan`) to prevent naming conflicts.
 
-`modname/component/rofl.nyan`
+`thuglife/units/backstreet.nyan`
 
-Data defined in the file is in namespace:
+Data defined in this file is in namespace:
 
-`modname.component.rofl`
+`thuglife.units.backstreet`
 
 An object is then accessed like:
 
-`modname.component.rofl.DrugDealer`
+`thuglife.units.backstreet.DrugDealer`
 
 
 #### Importing
 
-Before defining any *NyanObject*, you can import other namespaces. This leads
-to the parsing of this file first, if not already loaded, just like Python
-does it.
+A file is loaded when another file imports it.
+This is done by loading another namespace.
 
-* whole nyan file: `import openage.civs.britain`
-* alias: `import crazyguy.tentaclemod as monstermod`
-* single object: `import murrica.life.MobilityScooter as MobilityScooter`
-* Maybe we can extend the way of importing if the need arises
+``` python
+import thuglife
+```
 
-You can then access the contents of that namespace in a qualified way.
+You can define convenience aliases of fully qualified names
+with the `import ... (as ...)` statement.
 
-`MultiheadMonster(monstermod.TentacleMonster)...`
+This imports the namespace with an alias (right side)
+which expands to the left side when used.
 
-Or if you imported without an alias, it's used with the full name.
+``` python
 
-`BadassSuperVillager(openage.civs.britain.Villager)...`
+Frank(thuglife.units.backstreet.DrugDealer):
+    speciality = "Meth"
 
-And for easy access of objects, you can alias those as well:
 
-`FlyingScooter(MobilityScooter)...`
+# is the same as:
+
+import thuglife.units.backstreet.DrugDealer as DrugDealer
+
+Frank(DrugDealer):
+    speciality = "Meth"
+
+
+# which is also the same as
+
+import thuglife.units.backstreet as thugs
+
+Frank(thugs.DrugDealer):
+    speciality = "Meth"
+```
+
+
+#### Cyclic dependencies
+
+Inheritance can never be cyclic (duh). Member value usage can be cyclic.
+
+Usage as member value can be done even though the object is not yet
+declared. This works as objects in member values are always "pointers".
+
+The compatibility for the value type is tested just when the
+referenced object was actually loaded.
+This means there are implicit forward declarations.
+
+Example: deer death
+
+``` python
+# engine features:
+
+Ability():
+    ...
+
+Behaviour():
+    ...
+
+Resource():
+    name : text
+
+DieAbility(Ability):
+    die_animation : file
+    become : Unit
+
+Huntable(Ability):
+    hunting_reaction : Behaviour
+
+Unit():
+    abilities : set(Ability)
+    hp : int
+
+ResourceSpot():
+    resource_type : Resource
+    amount : float
+
+IntelligentFlee(Behaviour):
+    ...
+
+
+# content pack:
+
+Animal(Unit):
+    ...
+
+Deer(Animal):
+    DeerDie(DieAbility):
+        die_animation = "deer_die.png"
+        become = DeadDeer
+
+    DeerHuntable(Huntable):
+        hunting_reaction = IntelligentFlee
+
+    hp = 10
+    graphic = "deer.png"
+    abilities |= {DeerDie, DeerHuntable}
+
+DeadDeer(Deer, ResourceSpot):
+    DeerFood(ResourceAmount):
+        type = Food
+        amount = 250
+
+    graphic = "dead_deer.png"
+    resources = {DeerFood}
+```
+
+
+##### Forward declarations
+
+The engine has to invoke the check whether all objects that were used as
+forward declaration were actually defined.
+
+If there are dangling forward declaration objects when invoking that
+consistency check, a list of missing objects will be provided. These have
+to be provided in order for nyan to load. Otherwise the objects affected
+by incomplete members cannot be used.
+
+
+##### Cyclic avoidance
+
+If you encounter a cyclic dependency, try to redesign your data model by
+extracting the common part as a separate object and then use it in both
+old ones.
 
 
 ## nyan interpreter
@@ -496,6 +612,9 @@ If a "non-optimized" *NyanObject* has multiple parents where some of them
 were "optimized" and made into native code by `nyanc`, we can't select
 which of the C++ objects to instanciate for it. And we can't create the
 combined "optimized" object as the *NyanObject* appeared at runtime.
+
+This means we have to provide some kind of annotation, which of the parents
+should be the annotated ones.
 
 Nevertheless, `nyanc` is just an optimization, and has therefore no
 priority until we need it.
