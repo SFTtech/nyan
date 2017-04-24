@@ -62,7 +62,11 @@ set(CMAKE_MODULE_PATH "${BUILDSYSTEM_DIR}" "${BUILDSYSTEM_DIR}/modules/")
 
 # load helper modules
 include(CTest)
+include(doxygen)
 include(GNUInstallDirs)
+
+# documentation
+doxygen_configure(libnyan/ nyan/ doc/ README.md)
 
 # register sources
 add_subdirectory(nyan/)
