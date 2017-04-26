@@ -8,6 +8,7 @@
 #include "nyan_flex_lexer.h"
 #include "nyan_lexer.h"
 #include "nyan_member.h"
+#include "nyan_object.h"
 #include "nyan_token.h"
 #include "nyan_type.h"
 #include "nyan_type_container.h"

@@ -5,6 +5,7 @@
 #include "nyan_ast.h"
 #include "nyan_database.h"
 #include "nyan_error.h"
+#include "nyan_object.h"
 #include "nyan_token.h"
 
 namespace nyan {

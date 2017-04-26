@@ -13,8 +13,11 @@
 
 namespace nyan {
 
-class NyanParser;
+
 class NyanDatabase;
+class NyanObject;
+class NyanParser;
+
 
 /**
  * Data definition with members and inheritance.
@@ -23,7 +26,7 @@ class NyanObject : public NyanValue {
 	friend class NyanParser;
 
 public:
-	NyanObject(const NyanLocation &location, NyanDatabase *database=nullptr);
+	NyanObject(const NyanLocation &location, NyanDatabase *database);
 	virtual ~NyanObject() = default;
 
 	/**
@@ -79,18 +82,21 @@ public:
 	std::unique_ptr<NyanValue> copy() const override;
 
 	/**
-	 * Cast this object to another type name.
-	 * This creates a non-registered NyanObject to view this object
-	 * as the target type.
+	 * Creates a copy of this NyanObject that
+	 * has a precalculated member list and member values.
+	 *
+	 * The returned pointer is the baked version of this
+	 *
+	 * This can be used to create a snapshot copy of some object.
 	 */
-	NyanObject cast(const std::string &type_name) const;
+	NyanObject *baked_copy(const std::string &new_name) const;
 
 	/**
-	 * Creates a non-registered NyanObject that
-	 * has a precalculated member list and member values.
-	 * This can be used to create a snapshot of some object.
+	 * Save ("bake") all values of this NyanObject,
+	 * and create a exact copy in a new  TODO
+	 *
 	 */
-	NyanObject bake(const std::string &new_name) const;
+	void bake(const std::string &new_name);
 
 	/**
 	 * Provide the linearization of this object.
@@ -127,6 +133,7 @@ public:
 	 * An object is uniquely identified by its name.
 	 */
 	size_t hash() const override;
+
 
 protected:
 	/**
@@ -200,8 +207,8 @@ protected:
 	std::unordered_map<std::string, NyanMember> members;
 
 	/**
-	 * The database storage this object is associated to.
-	 * nullptr means it is not registered in the database.
+	 * The database that stores this object.
+	 * nullptr means it is not registered in the storage.
 	 */
 	NyanDatabase *database;
 

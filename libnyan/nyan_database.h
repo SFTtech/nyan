@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "nyan_namespace.h"
 
@@ -20,8 +21,8 @@ class NyanDatabase {
 	friend class NyanNamespace;
 
 public:
-	NyanDatabase();
-	virtual ~NyanDatabase() = default;
+	NyanDatabase(NyanDatabase *parent=nullptr);
+	virtual ~NyanDatabase();
 
 	/**
 	 * Add the given nyan object to the store.
@@ -30,20 +31,28 @@ public:
 	NyanObject *add(std::unique_ptr<NyanObject> &&obj);
 
 	/**
-	 * Return the NyanObject with given name.
+	 * Return the NyanObject with given full name.
 	 * returns nullptr if not found.
 	 */
 	NyanObject *get(const std::string &name) const;
 
 protected:
-	// TODO: caching for:
-	//       * namespaces
-	//       * nyan object namespace paths
+	/**
+	 * The parent database which this database overlays.
+	 */
+	NyanDatabase *parent;
 
 	/**
-	 * The root namespace
+	 * The root namespace.
 	 */
 	NyanNamespace root;
+
+	/**
+	 * Object unique name -> Object map.
+	 * The unique name is the namespace.objectname
+	 * e.g. "government.nsa.quantuminsert.timings"
+	 */
+	std::unordered_map<std::string, std::unique_ptr<NyanObject>> objects;
 };
 
 } // namespace nyan

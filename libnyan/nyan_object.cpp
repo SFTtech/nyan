@@ -70,6 +70,7 @@ const NyanValue &NyanObject::get(const std::string &member) {
 
 	// create a "working copy" of the value
 	// the changes will be applied to it now.
+	// TODO: move that to the data store
 	std::unique_ptr<NyanValue> result = base_value->copy();
 
 	// Walk back and apply the value changes.
@@ -200,9 +201,12 @@ void NyanObject::patch(const NyanObject *top) {
 			"(or has __patch__) member"
 		};
 	}
+
+	// TODO: store the applied value in a different storage
+
 	// TODO: verify if we're in the patch target set
 	// TODO: recalculate linearization of this object if the parents changed.
-	this->apply_value(top, nyan_op::INVALID);
+	this->apply_value(top, nyan_op::PATCH);
 }
 
 
