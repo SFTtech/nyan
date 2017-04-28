@@ -54,18 +54,18 @@ Requirements:
 * Human readable
 * Portable
 * More or less compact (readability > memory)
-* Data is stored as members of *NyanObjects*
-* Data is changed by patches that change members of *NyanObjects*
+* Data is stored as members of `nyan::Object`s
+* Data is changed by patches that change members of `nyan::Object`s
 * Patches can be changed by patches, that way, any mod can be created
 * Data does not contain any executed code but can specify function names
   and parameters. The game engine is responsible for calling those
   functions or redirecting to custom scripts
-* Namespaces to create a logical hierarchy of *NyanObjects*
+* Namespaces to create a logical hierarchy of `nyan::Object`s
 * Some `.nyan` files are shipped with the game engine
   * They describe things the engine is capable of, basically the mod api
   * That way, the engine can be sure that things exist
   * The engine can access all nyan file contents with type safety
-  * The data files of the game then extend and change the API *NyanObjects*
+  * The data files of the game then extend and change the API `nyan::Object`s
 * The nyan database provides a C++ API used by the game engine
   * Can parse `.nyan` files and add all information to the database
   * Provides hooks so the engine can react on internal changes
@@ -89,38 +89,38 @@ Requirements:
 Concept:
 
 * The only things nyan can do: Hierarchical data declaration and patches
-  * **NyanObject**: In a .nyan file, you write down *NyanObject*s
-  * A *NyanObject* has an aribitrary number of members
+  * *`nyan::Object`*: In a .nyan file, you write down `nyan::Object`s
+  * A `nyan::Object` has an aribitrary number of members
   * A member has a data type like `int`
-* *NyanObject*s support a hierarchy by inheritance
-  * You can fetch values from a *NyanObject* and the result is determined
+* `nyan::Object`s support a hierarchy by inheritance
+  * You can fetch values from a `nyan::Object` and the result is determined
     by walking up the whole inheritance tree
   * This allows changing a value in a parent class and all childs are
     affected then
-* *NyanObject*s are placed in namespaces to organize the directory structure
+* `nyan::Object`s are placed in namespaces to organize the directory structure
 
 
 ### Data handling
 
-* **NyanObject**: versatile atomic base type
+* *`nyan::Object`*: versatile atomic base type
   * Has named members which have a type and maybe a value
-  * *NyanObject*s remain abstract until all members have values
+  * `nyan::Object`s remain abstract until all members have values
   * There exists no order of members
-* **NyanPatch**: is a *NyanObject* and denominates a patch
-  * Patches are used to change a target NyanObject at runtime
-  * It is created for exactly one *NyanObject* with `PatchName<TargetObject>`
+* **nyan::Patch**: is a `nyan::Object` and denominates a patch
+  * Patches are used to change a target `nyan::Object` at runtime
+  * It is created for exactly one `nyan::Object` with `PatchName<TargetObject>`
   * Internally, the target object is referenced in a member named `__patch__`
-  * Can modify **member values** of the assigned *NyanObject*
-  * Can add **inheritance** parents of the target *NyanObject*
+  * Can modify **member values** of the assigned `nyan::Object`
+  * Can add **inheritance** parents of the target `nyan::Object`
   * Can add new members, but not remove them
-* A *NyanObject* can inherit from an ordered set of *NyanObject*s
-  (-> from a *NyanPatch* as well)
+* A `nyan::Object` can inherit from an ordered set of `nyan::Object`s
+  (-> from a *nyan::Patch* as well)
   * Members of parent objects are inherited
   * When inheriting, existing values can be modified by operators
     defined for the member type
   * Member values are calculated accross the inheritance upwards
     * That way, patching a parent object impacts all children
-    * When a value from a *NyanObject* is retrieved,
+    * When a value from a `nyan::Object` is retrieved,
       walk up every time and sum up the value
   * If there is a member name clash, there can be two reasons for it
     * The member originates from a common base object (aka the [diamond problem](https://en.wikipedia.org/wiki/Multiple_inheritance#The_diamond_problem))
@@ -135,9 +135,9 @@ Concept:
       * C3 is applied first (unifies members by a common parent)
       * Name conflicts must then resolved by manual qualification again
 * A mod API could be implemented as follows:
-  Create a *NyanObject* named `Mod` that has a member with a set
+  Create a `nyan::Object` named `Mod` that has a member with a set
   of patches to apply
-  * To create a mod: Inherit from this `Mod` *NyanObject* and
+  * To create a mod: Inherit from this `Mod` `nyan::Object` and
     add patches to the set
   * List the object name in an ordinary .conf-style file so the engine
     knows the name and can query for it
@@ -152,7 +152,7 @@ Concept:
 # The syntax is very much Python.
 # But was enhanced to support easy hierarchical data handling.
 
-# A NyanObject is created easily:
+# A nyan::Object is created easily:
 ObjName():
     member : TypeName = value
 
@@ -186,18 +186,18 @@ ParentObject():
 * The declaration and definition can be combined:
   `member_name : type = value`
 * A member can never be defined if it was not declared
-* A *NyanObject* is "abstract" iff it contains at least one undefined member
-* A *NyanObject* member **type** can never be changed once declared
-* The parents of a *NyanObject* are stored in a member
-  `__parents__ : orderedset(NyanObject)`
+* A `nyan::Object` is "abstract" iff it contains at least one undefined member
+* A `nyan::Object` member **type** can never be changed once declared
+* The parents of a `nyan::Object` are stored in a member
+  `__parents__ : orderedset(Object)`
   * Getting this member will provide the inheritance linearization
 
 * It is a patch iff `<Target>` is written in the definition or the object
-  has a member `__patch__ : NyanObject`
+  has a member `__patch__ : Object`
   * The patch can only be applied for the specified object or any child of it
   * A patch can add a new inheritance parent to the target
     * Done with the `[+AdditionalParent, ...]` syntax, which just creates
-      a member `__parents_add__ : orderedset(NyanObject)`
+      a member `__parents_add__ : orderedset(Object)`
     * This can be used to inject a "middle object" in between two inheriting
       objects, because the multi inheritance linearization resolves the order
       * Imagine something like `TentacleMonster -> Unit`
@@ -217,7 +217,7 @@ ParentObject():
 
 #### Multi inheritance
 
-The parents of a *NyanObject* are kind of a mixin for members:
+The parents of a `nyan::Object` are kind of a mixin for members:
 
 * The child object obtains all the members from its parents
 * When a member value is requested, the value is calculated by
@@ -303,7 +303,7 @@ The detection of the qualification requirement works as follows:
     * The access to `entry` must hence be qualified, too
 * nyan concludes that all accesses must be qualified,
   except to `specialentry`, as only one declaration was found
-* The qualification is done by prefixing the precedes a *NyanObject* name
+* The qualification is done by prefixing the precedes a `nyan::Object` name
   which is somewhere up the hierarchy and would grant conflict-free access
   to that member
 * That does **not** mean the value somewhere up the tree is changed!
@@ -311,7 +311,7 @@ The detection of the qualification requirement works as follows:
   ensures the correct target member is selected!
 
 
-If one now has the `OHNoes` *NyanObject* and desires to get values,
+If one now has the `OHNoes` `nyan::Object` and desires to get values,
 the calculation is done like this:
 
 * Just like defining a change, the value must be queried using
@@ -336,7 +336,7 @@ the calculation is done like this:
 
 #### Types
 
-* Members of *NyanObject* must have a type, which can be a
+* Members of `nyan::Object` must have a type, which can be a
   * primitive type
     - `text`:     `"lol"`          - (duh.)
     - `int`:      `1337`           - (some number)
@@ -350,11 +350,11 @@ the calculation is done like this:
   * set of elements of a type: `set(type)`
   * currently, there is **no** `list(type)` specified,
     but may be added later if needed
-  * *NyanObject*, to allow arbitrary hierarchies
+  * `nyan::Object`, to allow arbitrary hierarchies
 
 * Type hierarchy
-  * A *NyanObject*'s type name equals its name: `A()` has type `A`
-  * A *NyanObject* `isinstance` of all the types of its parent *NyanObject*s
+  * A `nyan::Object`'s type name equals its name: `A()` has type `A`
+  * A `nyan::Object` `isinstance` of all the types of its parent `nyan::Object`s
     * Sounds complicated, but is totally easy:
     * If an object `B` inherits from an object `A`, it also has the type `A`
     * Just like the multi inheritance of other programming languages
@@ -382,8 +382,8 @@ the calculation is done like this:
     * insertion of data: `+= {k: v, ...}`, `|= {..}`
     * deletion of keys: `-= {k, k, ...}`, `-= {k: v, ..}`
     * keep only those keys: `&= {k, k, ..}`, `&= {k: v, ..}`
-  * *NyanObject* reference:
-    * `=` set the reference to some other *NyanObject*
+  * `nyan::Object` reference:
+    * `=` set the reference to some other `nyan::Object`
 
 
 ### Namespaces, imports and forward declarations
@@ -539,8 +539,8 @@ old ones.
 
 `.nyan` files are read by the nyan interpreter part of `libnyan`.
 
-* You feed `.nyan` files into it
-* It parses the contents and adds it to the active store
+* You feed in a directory containing many `.nyan` files
+* It parses the contents and adds it to the `nyan::Database`
 * It does type checking to verify the integrity of the data hierarchy
 * You can query any member and object of the store
 * You can use pointers to them in the engine
@@ -608,10 +608,10 @@ Members can then be acessed directly from C++.
 
 The only problem still unsolved with `nyanc` is:
 
-If a "non-optimized" *NyanObject* has multiple parents where some of them
+If a "non-optimized" `nyan::Object` has multiple parents where some of them
 were "optimized" and made into native code by `nyanc`, we can't select
 which of the C++ objects to instanciate for it. And we can't create the
-combined "optimized" object as the *NyanObject* appeared at runtime.
+combined "optimized" object as the `nyan::Object` appeared at runtime.
 
 This means we have to provide some kind of annotation, which of the parents
 should be the annotated ones.
@@ -625,10 +625,10 @@ priority until we need it.
 nyan in openage has specific requirements how to handle patches:
 mods, technologies, technology-technologies.
 
-### Defined *NyanObject*s
+### Defined `nyan::Object`s
 
 The openage engine defines a few objects to inherit from.
-The engine reacts differently when children of those *NyanObject*s are
+The engine reacts differently when children of those `nyan::Object`s are
 created.
 
 #### Data updates
@@ -702,8 +702,8 @@ Why:
 * Crossbowmen is an archer and can be built at the archery
 
 `malte23` walks on your screen and dies laughing.
-It is _not_ a *NyanObject* but rather an unit object of the game engine
-which references to the `Crossbowman` *NyanObject* to get properties from.
+It is _not_ a `nyan::Object` but rather an unit object of the game engine
+which references to the `Crossbowman` `nyan::Object` to get properties from.
 `malte23` is handled in the unit movement system but the speed,
 healthpoints and so on are fetched for malte's unit type, which is
 `Crossbowman`, managed by nyan.
@@ -721,7 +721,7 @@ Let's create a new resource.
 
 Mod():
     name : text
-    patches : set(NyanPatch)
+    patches : set(Patch)
 
 Building():
     name : text
@@ -790,11 +790,11 @@ A user mod that patches loom to increase villager hp by 10 instead of 15.
 # Game engine defines:
 Tech():
     name : text
-    updates : set(NyanPatch)
+    updates : set(Patch)
 
 Mod():
     name : text
-    patches : set(NyanPatch)
+    patches : set(Patch)
 
 Ability():
     mouse_animation : file
@@ -861,7 +861,7 @@ The game engine uses sets of those to modify unit behavior.
 # The engine defines:
 Mod():
     name : text
-    patches : set(NyanPatch)
+    patches : set(Patch)
 
 Ability():
     mouse_animation : file
