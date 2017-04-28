@@ -1,15 +1,15 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_CONTAINER_H_
 #define NYAN_NYAN_CONTAINER_H_
 
 #include <iterator>
 
-#include "value.h"
+#include "value/value.h"
 
 
 namespace nyan {
 
-class NyanValueContainer;
+class ValueContainer;
 
 
 /**
@@ -134,15 +134,15 @@ protected:
 
 
 /**
- * NyanValue that can store other NyanValues.
+ * Value that can store other Values.
  */
-class NyanContainer : public NyanValue {
+class Container : public Value {
 public:
-	using iterator = ContainerIterator<NyanValue>;
-	using const_iterator = ContainerIterator<const NyanValue>;
+	using iterator = ContainerIterator<Value>;
+	using const_iterator = ContainerIterator<const Value>;
 
-	NyanContainer();
-	virtual ~NyanContainer() = default;
+	Container();
+	virtual ~Container() = default;
 
 	/**
 	 * Return the number of elements in this container.
@@ -154,18 +154,18 @@ public:
 	 * @returns if the value was added successfully,
 	 * false if it was already in there.
 	 */
-	virtual bool add(NyanValueContainer &&value) = 0;
+	virtual bool add(ValueContainer &&value) = 0;
 
 	/**
 	 * Test if this value is in the container.
 	 */
-	virtual bool contains(NyanValue *value) = 0;
+	virtual bool contains(Value *value) = 0;
 
 	/**
 	 * Remove the given value from the container if it is in there.
 	 * @returns if if was removed successfully.
 	 */
-	virtual bool remove(NyanValue *value) = 0;
+	virtual bool remove(Value *value) = 0;
 
 	/**
 	 * Get an iterator to the first element in that container.

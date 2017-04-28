@@ -1,60 +1,60 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
-#include "value_number.h"
+#include "number.h"
 
 #include <string>
 #include <typeinfo>
 
-#include "error.h"
-#include "ops.h"
-#include "token.h"
+#include "../error.h"
+#include "../ops.h"
+#include "../token.h"
 
 
 namespace nyan {
 
 template<>
-NyanInt::NyanNumber(const NyanToken &token) {
+NyanInt::Number(const Token &token) {
 	try {
 		this->value = std::stoll(token.get(), nullptr, 0);
 	}
 	catch (std::invalid_argument &) {
-		throw NyanInternalError{"int token was not an int"};
+		throw InternalError{"int token was not an int"};
 	}
 	catch (std::out_of_range &) {
-		throw NyanFileError{token, "number out of range"};
+		throw FileError{token, "number out of range"};
 	}
 }
 
 
 template<>
-NyanFloat::NyanNumber(const NyanToken &token) {
+NyanFloat::Number(const Token &token) {
 	try {
 		this->value = std::stod(token.get());
 	}
 	catch (std::invalid_argument &) {
-		throw NyanInternalError{"float token was not a float"};
+		throw InternalError{"float token was not a float"};
 	}
 	catch (std::out_of_range &) {
-		throw NyanFileError{token, "number out of range"};
+		throw FileError{token, "number out of range"};
 	}
 }
 
 
 template <typename T>
-NyanNumber<T>::NyanNumber(T value)
+Number<T>::Number(T value)
 	:
 	value{value} {}
 
 
 template <typename T>
-std::unique_ptr<NyanValue> NyanNumber<T>::copy() const {
-	return std::make_unique<NyanNumber>(dynamic_cast<const NyanNumber &>(*this));
+std::unique_ptr<Value> Number<T>::copy() const {
+	return std::make_unique<Number>(dynamic_cast<const Number &>(*this));
 }
 
 
 template <typename T>
-void NyanNumber<T>::apply_value(const NyanValue *value, nyan_op operation) {
-	const NyanNumber *change = dynamic_cast<const NyanNumber *>(value);
+void Number<T>::apply_value(const Value *value, nyan_op operation) {
+	const Number *change = dynamic_cast<const Number *>(value);
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
@@ -73,13 +73,13 @@ void NyanNumber<T>::apply_value(const NyanValue *value, nyan_op operation) {
 		this->value /= change->value; break;
 
 	default:
-		throw NyanError{"unknown operation requested"};
+		throw Error{"unknown operation requested"};
 	}
 }
 
 
 template <typename T>
-std::string NyanNumber<T>::str() const {
+std::string Number<T>::str() const {
 	std::ostringstream builder;
 	builder << this->value;
 	return builder.str();
@@ -87,27 +87,27 @@ std::string NyanNumber<T>::str() const {
 
 
 template <typename T>
-std::string NyanNumber<T>::repr() const {
+std::string Number<T>::repr() const {
 	return this->str();
 }
 
 
 template <typename T>
-size_t NyanNumber<T>::hash() const {
+size_t Number<T>::hash() const {
 	return this->value;
 }
 
 
 template <typename T>
-bool NyanNumber<T>::equals(const NyanValue &other) const {
-	auto &other_val = dynamic_cast<const NyanNumber &>(other);
+bool Number<T>::equals(const Value &other) const {
+	auto &other_val = dynamic_cast<const Number &>(other);
 	return this->value == other_val.value;
 }
 
 
 template <typename T>
 const std::unordered_set<nyan_op> &
-NyanNumber<T>::allowed_operations(nyan_basic_type value_type) const {
+Number<T>::allowed_operations(nyan_basic_type value_type) const {
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,

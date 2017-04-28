@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_UTIL_H_
 #define NYAN_UTIL_H_
 
@@ -108,7 +108,7 @@ public:
 		}
 
 		if (not this->full()) {
-			throw NyanError{"requested item from empty list"};
+			throw Error{"requested item from empty list"};
 		}
 
 		auto ret = &(*this->iter);

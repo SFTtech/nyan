@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_VALUE_NUMBER_H_
 #define NYAN_NYAN_VALUE_NUMBER_H_
 
@@ -11,12 +11,12 @@ namespace nyan {
  * Nyan value to store a number.
  */
 template <typename T>
-class NyanNumber : public NyanValue {
+class Number : public Value {
 public:
-	NyanNumber(const NyanToken &token);
-	NyanNumber(T value);
+	Number(const Token &token);
+	Number(T value);
 
-	std::unique_ptr<NyanValue> copy() const override;
+	std::unique_ptr<Value> copy() const override;
 	std::string str() const override;
 	std::string repr() const override;
 	size_t hash() const override;
@@ -25,8 +25,8 @@ public:
 	const nyan_basic_type &get_type() const override;
 
 protected:
-	void apply_value(const NyanValue *value, nyan_op operation) override;
-	bool equals(const NyanValue &other) const override;
+	void apply_value(const Value *value, nyan_op operation) override;
+	bool equals(const Value &other) const override;
 
 	/**
 	 * Actual numerical value.
@@ -38,13 +38,13 @@ protected:
 /**
  * Integer storage.
  */
-using NyanInt = NyanNumber<int64_t>;
+using NyanInt = Number<int64_t>;
 
 
 /**
  * Floating point data type.
  */
-using NyanFloat = NyanNumber<double>;
+using NyanFloat = Number<double>;
 
 } // namespace std
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "error.h"
 
@@ -72,7 +72,7 @@ void Backtrace::trim_to_current_stack_frame() {
 constexpr const char *runtime_error_message = "polymorphic nyan error, catch by reference!";
 
 
-NyanError::NyanError(const std::string &msg,
+Error::Error(const std::string &msg,
                      bool generate_backtrace,
                      bool store_cause)
 	:
@@ -91,24 +91,24 @@ NyanError::NyanError(const std::string &msg,
 }
 
 
-std::string NyanError::str() const {
+std::string Error::str() const {
 	return this->msg;
 }
 
 
-const char *NyanError::what() const noexcept {
+const char *Error::what() const noexcept {
 	return this->msg.c_str();
 }
 
 
-void NyanError::store_cause() {
+void Error::store_cause() {
 	if (not std::current_exception()) {
 		return;
 	}
 
 	try {
 		throw;
-	} catch (NyanError &cause) {
+	} catch (Error &cause) {
 		cause.trim_backtrace();
 		this->cause = std::current_exception();
 	} catch (...) {
@@ -117,48 +117,48 @@ void NyanError::store_cause() {
 }
 
 
-void NyanError::trim_backtrace() {
+void Error::trim_backtrace() {
 	if (this->backtrace) {
 		this->backtrace->trim_to_current_stack_frame();
 	}
 }
 
 
-void NyanError::rethrow_cause() const {
+void Error::rethrow_cause() const {
 	if (this->cause) {
 		std::rethrow_exception(this->cause);
 	}
 }
 
 
-std::string NyanError::type_name() const {
+std::string Error::type_name() const {
 	return util::demangle(typeid(*this).name());
 }
 
 
-Backtrace *NyanError::get_backtrace() const {
+Backtrace *Error::get_backtrace() const {
 	return this->backtrace.get();
 }
 
 
-const std::string &NyanError::get_msg() const {
+const std::string &Error::get_msg() const {
 	return this->msg;
 }
 
 
-NyanInternalError::NyanInternalError(const std::string &msg)
+InternalError::InternalError(const std::string &msg)
 	:
-	NyanError{msg} {}
+	Error{msg} {}
 
 
-NyanFileError::NyanFileError(const NyanLocation &location,
+FileError::FileError(const Location &location,
                              const std::string &msg)
 	:
-	NyanError{msg},
+	Error{msg},
 	location{location} {}
 
 
-std::string NyanFileError::str() const {
+std::string FileError::str() const {
 	std::ostringstream builder;
 
 	builder << "\x1b[1m";
@@ -172,7 +172,7 @@ std::string NyanFileError::str() const {
 }
 
 
-std::string NyanFileError::show_problem_origin() const {
+std::string FileError::show_problem_origin() const {
 	std::ostringstream builder;
 
 	size_t offset = this->location.get_line_offset();
@@ -184,11 +184,11 @@ std::string NyanFileError::show_problem_origin() const {
 }
 
 
-NameError::NameError(const NyanLocation &location,
+NameError::NameError(const Location &location,
                      const std::string &msg,
                      const std::string &name)
 	:
-	NyanFileError{location, msg},
+	FileError{location, msg},
 	name{name} {}
 
 
@@ -204,13 +204,13 @@ std::string NameError::str() const {
 }
 
 
-std::ostream &operator <<(std::ostream &os, const NyanError &e) {
+std::ostream &operator <<(std::ostream &os, const Error &e) {
 	// output the exception cause
 	bool had_a_cause = true;
 	try {
 		e.rethrow_cause();
 		had_a_cause = false;
-	} catch (NyanError &cause) {
+	} catch (Error &cause) {
 		os << cause << std::endl;
 	} catch (std::exception &cause) {
 		os << util::demangle(typeid(cause).name()) << ": " << cause.what() << std::endl;

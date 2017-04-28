@@ -1,20 +1,21 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
-#include "error.h"
-#include "member.h"
-#include "token.h"
 #include "value.h"
+
+#include "../error.h"
+#include "../member.h"
+#include "../token.h"
 
 
 namespace nyan {
 
-NyanValue::NyanValue() {}
+Value::Value() {}
 
-void NyanValue::apply(const NyanMember *change) {
+void Value::apply(const Member *change) {
 	// extract the member's value,
 	// this is just the data of the member,
 	// no parent data is included.
-	const NyanValue *value = change->get_value_ptr();
+	const Value *value = change->get_value_ptr();
 
 	// TODO: cache usage: if the value has a cached value,
 	//       stop the patch loop and just use this value.
@@ -31,14 +32,14 @@ void NyanValue::apply(const NyanMember *change) {
 	this->apply_value(value, change->get_operation());
 }
 
-bool NyanValue::operator ==(const NyanValue &other) const {
+bool Value::operator ==(const Value &other) const {
 	if (typeid(*this) != typeid(other)) {
 		return false;
 	}
 	return this->equals(other);
 }
 
-bool NyanValue::operator !=(const NyanValue &other) const {
+bool Value::operator !=(const Value &other) const {
 	return not (*this == other);
 }
 

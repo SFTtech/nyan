@@ -27,7 +27,7 @@ using namespace std::string_literals;
 // Customizing the type signature works in C, but you forgot
 // to update the C++ class member...
 // %option yyclass="NyanFlexLexer" will fuck it up even more.
-#define YY_DECL void nyan::NyanLexer::generate_token()
+#define YY_DECL void nyan::Lexer::generate_token()
 
 #ifndef NyanHEADER_H
 int NyanFlexLexer::yylex() { return 0; }

@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_MEMBER_H_
 #define NYAN_NYAN_MEMBER_H_
 
@@ -11,38 +11,38 @@
 #include "ops.h"
 #include "type.h"
 #include "type_container.h"
-#include "value.h"
-#include "value_container.h"
+#include "value/value.h"
+#include "value/container.h"
 
 namespace nyan {
 
-class NyanObject;
+class Object;
 
 /**
- * Stores a member of a NyanObject.
+ * Stores a member of a Object.
  * Also responsible for validating applied operators.
  */
-class NyanMember {
+class Member {
 public:
 	/**
 	 * Member without value.
 	 */
-	NyanMember(const NyanLocation &location, NyanTypeContainer &&type);
+	Member(const Location &location, TypeContainer &&type);
 
 	/**
 	 * Member with value.
 	 */
-	NyanMember(const NyanLocation &location,
-	           NyanTypeContainer &&type, nyan_op operation,
-	           NyanValueContainer &&value);
+	Member(const Location &location,
+	           TypeContainer &&type, nyan_op operation,
+	           ValueContainer &&value);
 
-	NyanMember(NyanMember &&other) noexcept;
-	const NyanMember &operator =(NyanMember &&other) noexcept;
+	Member(Member &&other) noexcept;
+	const Member &operator =(Member &&other) noexcept;
 
-	NyanMember(const NyanMember &other) = delete;
-	const NyanMember &operator =(const NyanMember &other) = delete;
+	Member(const Member &other) = delete;
+	const Member &operator =(const Member &other) = delete;
 
-	virtual ~NyanMember() = default;
+	virtual ~Member() = default;
 
 	/**
 	 * String representation of this member.
@@ -53,7 +53,7 @@ public:
 	 * Return the value of this member.
 	 * @returns nullptr if there is no value yet.
 	 */
-	NyanValue *get_value_ptr() const;
+	Value *get_value_ptr() const;
 
 	/**
 	 * Get a member value and cast the result to the
@@ -61,7 +61,7 @@ public:
 	 */
 	template <typename T>
 	T *get_value() const {
-		static_assert(std::is_base_of<NyanValue, T>::value,
+		static_assert(std::is_base_of<Value, T>::value,
 		              "only nyan value types are supported");
 
 		return dynamic_cast<T *>(this->get_value_ptr());
@@ -70,7 +70,7 @@ public:
 	/**
 	 * Return the type of this member.
 	 */
-	NyanType *get_type() const;
+	Type *get_type() const;
 
 	/**
 	 * Provide the operation stored in the member.
@@ -81,13 +81,13 @@ public:
 	 * Save a previous result of `get_value` to bypass calculation
 	 * next time.
 	 */
-	void cache_save(std::unique_ptr<NyanValue> &&value);
+	void cache_save(std::unique_ptr<Value> &&value);
 
 	/**
 	 * Return the content of the value calculation cache.
 	 * nullptr if the cache is empty.
 	 */
-	NyanValue *cache_get() const;
+	Value *cache_get() const;
 
 	/**
 	 * Clear the value calculation cache.
@@ -97,7 +97,7 @@ public:
 	/**
 	 * Get the location where this member was defined.
 	 */
-	const NyanLocation &get_location() const;
+	const Location &get_location() const;
 
 protected:
 	/**
@@ -105,7 +105,7 @@ protected:
 	 * Either, this member defines the type, or it points
 	 * to the definition at another member.
 	 */
-	NyanTypeContainer type;
+	TypeContainer type;
 
 	/**
 	 * operation specified for this member.
@@ -117,17 +117,17 @@ protected:
 	 * It stores the result of the application of all operations on
 	 * the inheritance tree.
 	 */
-	std::unique_ptr<NyanValue> cached_value;
+	std::unique_ptr<Value> cached_value;
 
 	/**
 	 * Value of just this member.
 	 */
-	NyanValueContainer value;
+	ValueContainer value;
 
 	/**
 	 * Location where this member was defined.
 	 */
-	NyanLocation location;
+	Location location;
 };
 
 

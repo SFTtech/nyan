@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_LEXER_H_
 #define NYAN_LEXER_H_
 
@@ -24,26 +24,26 @@
 
 namespace nyan {
 
-class NyanFile;
+class File;
 
-class NyanLexer : public NyanFlexLexer {
+class Lexer : public NyanFlexLexer {
 public:
 	/**
 	 * Create a lexer for the given file.
 	 */
-	NyanLexer(const NyanFile &file);
-	virtual ~NyanLexer() = default;
+	Lexer(const File &file);
+	virtual ~Lexer() = default;
 
 	// no moves and copies
-	NyanLexer(NyanLexer &&other) = delete;
-	NyanLexer(const NyanLexer &other) = delete;
-	NyanLexer &operator =(NyanLexer &&other) = delete;
-	NyanLexer &operator =(const NyanLexer &other) = delete;
+	Lexer(Lexer &&other) = delete;
+	Lexer(const Lexer &other) = delete;
+	Lexer &operator =(Lexer &&other) = delete;
+	Lexer &operator =(const Lexer &other) = delete;
 
 	/**
 	 * Return the next available token.
 	 */
-	NyanToken get_next_token();
+	Token get_next_token();
 
 protected:
 	/**
@@ -94,7 +94,7 @@ protected:
 	/**
 	 * Filename used for tokenization.
 	 */
-	const NyanFile &file;
+	const File &file;
 
 	/**
 	 * String stream which is fed into the lexer.
@@ -109,7 +109,7 @@ protected:
 	/**
 	 * Available tokens.
 	 */
-	std::queue<NyanToken> tokens;
+	std::queue<Token> tokens;
 
 	/**
 	 * Indicates whether the tokenization has reached the end.
@@ -121,9 +121,9 @@ protected:
 /**
  * Exception for lexer problems.
  */
-class LexerError : public NyanFileError {
+class LexerError : public FileError {
 public:
-	LexerError(const NyanLocation &location, const std::string &msg);
+	LexerError(const Location &location, const std::string &msg);
 };
 
 

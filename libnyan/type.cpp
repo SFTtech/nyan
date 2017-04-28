@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "type.h"
 
@@ -11,9 +11,9 @@
 namespace nyan {
 
 
-TypeError::TypeError(const NyanLocation &location, const std::string &msg)
+TypeError::TypeError(const Location &location, const std::string &msg)
 	:
-	NyanFileError{location, msg} {}
+	FileError{location, msg} {}
 
 
 bool nyan_basic_type::is_fundamental() const {
@@ -40,7 +40,7 @@ bool nyan_basic_type::operator ==(const nyan_basic_type &other) const {
 	        this->container_type == other.container_type);
 }
 
-nyan_basic_type type_from_value_token(const NyanToken &tok) {
+nyan_basic_type type_from_value_token(const Token &tok) {
 	nyan_primitive_type value_type;
 
 	switch (tok.type) {
@@ -63,7 +63,7 @@ nyan_basic_type type_from_value_token(const NyanToken &tok) {
 }
 
 
-nyan_basic_type type_from_type_token(const NyanToken &tok) {
+nyan_basic_type type_from_type_token(const Token &tok) {
 	// primitive type name map
 	static const std::unordered_map<std::string, nyan_primitive_type> primitive_types = {
 		{"text", nyan_primitive_type::TEXT},
@@ -104,20 +104,20 @@ nyan_basic_type type_from_type_token(const NyanToken &tok) {
 }
 
 
-NyanType::NyanType(nyan_primitive_type type)
+Type::Type(nyan_primitive_type type)
 	:
 	basic_type{type, nyan_container_type::SINGLE} {
 
 	if (not this->is_fundamental()) {
-		throw NyanInternalError{
-			"initialized NyanType primitive constructor with non-fundamental type"
+		throw InternalError{
+			"initialized Type primitive constructor with non-fundamental type"
 		};
 	}
 }
 
 
-NyanType::NyanType(const NyanASTMemberType &ast_type,
-                   const NyanDatabase &database)
+Type::Type(const ASTMemberType &ast_type,
+                   const Database &database)
 	:
 	element_type{nullptr},
 	target{nullptr} {
@@ -144,7 +144,7 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 			};
 		}
 
-		this->element_type = std::make_unique<NyanType>(
+		this->element_type = std::make_unique<Type>(
 			ast_type.payload,
 			database,
 			true
@@ -163,9 +163,9 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 	}
 
 	// look up the object and use it as type.
-	NyanObject *type_obj = database.get(ast_type.name.get());
+	Object *type_obj = database.get(ast_type.name.get());
 	if (type_obj == nullptr) {
-		throw ASTError{"unknown NyanObject used as type", ast_type.name};
+		throw ASTError{"unknown Object used as type", ast_type.name};
 	}
 
 	this->basic_type = {
@@ -177,15 +177,15 @@ NyanType::NyanType(const NyanASTMemberType &ast_type,
 }
 
 
-NyanType::NyanType(NyanObject *target)
+Type::Type(Object *target)
 	:
 	basic_type{nyan_primitive_type::OBJECT, nyan_container_type::SINGLE},
 	element_type{nullptr},
 	target{target} {}
 
 
-NyanType::NyanType(nyan_container_type container_type,
-                   std::unique_ptr<NyanType> &&element_type)
+Type::Type(nyan_container_type container_type,
+                   std::unique_ptr<Type> &&element_type)
 	:
 	basic_type{nyan_primitive_type::CONTAINER, container_type},
 	element_type{std::move(element_type)},
@@ -193,8 +193,8 @@ NyanType::NyanType(nyan_container_type container_type,
 
 
 /* create a nyan_primitive_type from some token, used e.g. for type payload parsing */
-NyanType::NyanType(const NyanToken &token,
-                   const NyanDatabase &database,
+Type::Type(const Token &token,
+                   const Database &database,
                    bool is_type_decl)
 	:
 	element_type{nullptr} {
@@ -211,7 +211,7 @@ NyanType::NyanType(const NyanToken &token,
 		this->target = database.get(token.get());
 		if (this->target == nullptr) {
 			throw TypeError{
-				NyanLocation{token},
+				Location{token},
 				"unknown object name"
 			};
 		}
@@ -224,19 +224,19 @@ NyanType::NyanType(const NyanToken &token,
 		break;
 
 	default:
-		throw NyanInternalError{"unhandled type from token"};
+		throw InternalError{"unhandled type from token"};
 	}
 }
 
 
-NyanType::NyanType(NyanType &&other) noexcept
+Type::Type(Type &&other) noexcept
 	:
 	basic_type{std::move(other.basic_type)},
 	element_type{std::move(other.element_type)},
 	target{other.target} {}
 
 
-NyanType &NyanType::operator =(NyanType &&other) noexcept {
+Type &Type::operator =(Type &&other) noexcept {
 	this->basic_type = std::move(other.basic_type);
 	this->element_type = std::move(other.element_type);
 	this->target = other.target;
@@ -244,22 +244,22 @@ NyanType &NyanType::operator =(NyanType &&other) noexcept {
 }
 
 
-bool NyanType::is_fundamental() const {
+bool Type::is_fundamental() const {
 	return this->basic_type.is_fundamental();
 }
 
 
-bool NyanType::is_container() const {
+bool Type::is_container() const {
 	return this->basic_type.is_container();
 }
 
 
-bool NyanType::is_container(nyan_container_type type) const {
+bool Type::is_container(nyan_container_type type) const {
 	return this->get_container_type() == type;
 }
 
 
-bool NyanType::is_child_of(const NyanType &other) const {
+bool Type::is_child_of(const Type &other) const {
 	// two non-fundamental types need special handling
 	if (not this->is_fundamental() and
 	    not other.is_fundamental()) {
@@ -280,13 +280,13 @@ bool NyanType::is_child_of(const NyanType &other) const {
 		case nyan_primitive_type::CONTAINER:
 			if (this->element_type.get() == nullptr or
 			    other.element_type.get() == nullptr) {
-				throw NyanInternalError{"container type without value type"};
+				throw InternalError{"container type without value type"};
 			}
 
 			return other.element_type->is_child_of(*this->element_type);
 
 		default:
-			throw NyanInternalError{"invalid non-primitive type encountered"};
+			throw InternalError{"invalid non-primitive type encountered"};
 		}
 	}
 	// if at least one of them is fundamental:
@@ -299,7 +299,7 @@ bool NyanType::is_child_of(const NyanType &other) const {
 }
 
 
-bool NyanType::is_child_of(const NyanObject *obj) const {
+bool Type::is_child_of(const Object *obj) const {
 	if (this->get_primitive_type() != nyan_primitive_type::OBJECT) {
 		return false;
 	}
@@ -313,7 +313,7 @@ bool NyanType::is_child_of(const NyanObject *obj) const {
 }
 
 
-bool NyanType::is_parent_of(const NyanObject *obj) const {
+bool Type::is_parent_of(const Object *obj) const {
 	if (this->get_primitive_type() != nyan_primitive_type::OBJECT) {
 		return false;
 	}
@@ -331,12 +331,12 @@ bool NyanType::is_parent_of(const NyanObject *obj) const {
 }
 
 
-bool NyanType::is_basic_compatible(const nyan_basic_type &type) const {
+bool Type::is_basic_compatible(const nyan_basic_type &type) const {
 	return (this->basic_type == type);
 }
 
 
-bool NyanType::can_be_in(const NyanType &other) const {
+bool Type::can_be_in(const Type &other) const {
 	// this check also guarantees that other.element_type exists:
 	if (not other.is_container()) {
 		return false;
@@ -346,27 +346,27 @@ bool NyanType::can_be_in(const NyanType &other) const {
 }
 
 
-const nyan_basic_type &NyanType::get_basic_type() const {
+const nyan_basic_type &Type::get_basic_type() const {
 	return this->basic_type;
 }
 
 
-const nyan_container_type &NyanType::get_container_type() const {
+const nyan_container_type &Type::get_container_type() const {
 	return this->basic_type.container_type;
 }
 
 
-const nyan_primitive_type &NyanType::get_primitive_type() const {
+const nyan_primitive_type &Type::get_primitive_type() const {
 	return this->basic_type.primitive_type;
 }
 
 
-const NyanType *NyanType::get_element_type() const {
+const Type *Type::get_element_type() const {
 	return this->element_type.get();
 }
 
 
-std::string NyanType::str() const {
+std::string Type::str() const {
 	if (this->is_fundamental()) {
 		return type_to_string(this->get_primitive_type());
 	}
@@ -381,7 +381,7 @@ std::string NyanType::str() const {
 		}
 
 		if (this->get_container_type() == nyan_container_type::SINGLE) {
-			throw NyanInternalError{
+			throw InternalError{
 				"single value encountered when expecting container"
 			};
 		}

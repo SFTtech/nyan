@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_H_
 #define NYAN_NYAN_H_
 
@@ -24,12 +24,12 @@
 #include "type.h"
 #include "type_container.h"
 #include "util.h"
-#include "value.h"
-#include "value_container.h"
-#include "value_number.h"
-#include "value_orderedset.h"
-#include "value_set.h"
-#include "value_text.h"
+#include "value/value.h"
+#include "value/container.h"
+#include "value/number.h"
+#include "value/orderedset.h"
+#include "value/set.h"
+#include "value/text.h"
 
 
 /**

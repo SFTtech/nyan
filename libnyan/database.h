@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_DATABASE_H_
 #define NYAN_NYAN_DATABASE_H_
 
@@ -16,43 +16,43 @@ namespace nyan {
  * This is the main entry handle for accessing and modifying data
  * stored in nyan.
  */
-class NyanDatabase {
-	friend class NyanObject;
-	friend class NyanNamespace;
+class Database {
+	friend class Object;
+	friend class Namespace;
 
 public:
-	NyanDatabase(NyanDatabase *parent=nullptr);
-	virtual ~NyanDatabase();
+	Database(Database *parent=nullptr);
+	virtual ~Database();
 
 	/**
 	 * Add the given nyan object to the store.
 	 * returns a pointer to the storage position.
 	 */
-	NyanObject *add(std::unique_ptr<NyanObject> &&obj);
+	Object *add(std::unique_ptr<Object> &&obj);
 
 	/**
-	 * Return the NyanObject with given full name.
+	 * Return the Object with given full name.
 	 * returns nullptr if not found.
 	 */
-	NyanObject *get(const std::string &name) const;
+	Object *get(const std::string &name) const;
 
 protected:
 	/**
 	 * The parent database which this database overlays.
 	 */
-	NyanDatabase *parent;
+	Database *parent;
 
 	/**
 	 * The root namespace.
 	 */
-	NyanNamespace root;
+	Namespace root;
 
 	/**
 	 * Object unique name -> Object map.
 	 * The unique name is the namespace.objectname
 	 * e.g. "government.nsa.quantuminsert.timings"
 	 */
-	std::unordered_map<std::string, std::unique_ptr<NyanObject>> objects;
+	std::unordered_map<std::string, std::unique_ptr<Object>> objects;
 };
 
 } // namespace nyan

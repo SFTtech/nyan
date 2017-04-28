@@ -25,6 +25,7 @@ add_library(nyan SHARED
 	ast.cpp
 	container.cpp
 	database.cpp
+	datastructure/orderedset.cpp
 	error.cpp
 	file.cpp
 	lexer.cpp
@@ -33,20 +34,19 @@ add_library(nyan SHARED
 	namespace.cpp
 	object.cpp
 	ops.cpp
-	orderedset.cpp
 	parser.cpp
 	ptr_container.cpp
 	token.cpp
 	type.cpp
 	type_container.cpp
 	util.cpp
-	value.cpp
-	value_container.cpp
-	value_number.cpp
-	value_orderedset.cpp
-	value_set.cpp
-	value_set_base.cpp
-	value_text.cpp
+	value/value.cpp
+	value/container.cpp
+	value/number.cpp
+	value/orderedset.cpp
+	value/set.cpp
+	value/set_base.cpp
+	value/text.cpp
 )
 
 target_link_libraries(nyan

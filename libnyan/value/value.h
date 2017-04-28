@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_VALUE_H_
 #define NYAN_NYAN_VALUE_H_
 
@@ -9,33 +9,33 @@
 #include <unordered_set>
 #include <vector>
 
-#include "ops.h"
-#include "type.h"
+#include "../ops.h"
+#include "../type.h"
 
 namespace nyan {
 
-class NyanObject;
-class NyanMember;
+class Object;
+class Member;
 
 
 /**
  * Base class for all possible member values.
  */
-class NyanValue {
+class Value {
 public:
-	NyanValue();
-	virtual ~NyanValue() = default;
+	Value();
+	virtual ~Value() = default;
 
 	/**
-	 * Return a copy of this NyanValue.
+	 * Return a copy of this Value.
 	 */
-	virtual std::unique_ptr<NyanValue> copy() const = 0;
+	virtual std::unique_ptr<Value> copy() const = 0;
 
 	/**
 	 * Apply the given change to this value.
 	 * The operation and value are applied.
 	 */
-	void apply(const NyanMember *change);
+	void apply(const Member *change);
 
 	/**
 	 * String representation of the value.
@@ -70,29 +70,29 @@ public:
 	virtual const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type entry_type) const = 0;
 
 	/**
-	 * Comparison for NyanValues.
+	 * Comparison for Values.
 	 * Performs the typeid comparison, then calls this->equals(other).
 	 */
-	bool operator ==(const NyanValue &other) const;
+	bool operator ==(const Value &other) const;
 
 	/**
 	 * Inequality operator, it's just "not ==".
 	 */
-	bool operator !=(const NyanValue &other) const;
+	bool operator !=(const Value &other) const;
 
 protected:
 	/**
 	 * Value-specific comparison function.
 	 * It casts the value dynamically, but no type check is performed!
 	 */
-	virtual bool equals(const NyanValue &other) const = 0;
+	virtual bool equals(const Value &other) const = 0;
 
 	/**
 	 * Apply the given change to the value.
 	 * Internally casts the value dynamically,
 	 * the type check must be done before calling this function.
 	 */
-	virtual void apply_value(const NyanValue *value, nyan_op operation) = 0;
+	virtual void apply_value(const Value *value, nyan_op operation) = 0;
 
 };
 } // namespace nyan
@@ -101,11 +101,11 @@ protected:
 namespace std {
 
 /**
- * Hash for NyanValues.
+ * Hash for Values.
  */
 template<>
-struct hash<nyan::NyanValue *> {
-	size_t operator ()(const nyan::NyanValue *val) const {
+struct hash<nyan::Value *> {
+	size_t operator ()(const nyan::Value *val) const {
 		return val->hash();
 	}
 };

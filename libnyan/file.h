@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_FILE_H_
 #define NYAN_NYAN_FILE_H_
 
@@ -12,7 +12,7 @@ namespace nyan {
 /**
  * Represents a nyan data file.
  */
-class NyanFile {
+class File {
 	/**
 	 * Line information struct.
 	 * Stores the offset in the file and the line length.
@@ -23,18 +23,18 @@ class NyanFile {
 	};
 
 public:
-	NyanFile(const std::string &path);
-	NyanFile(const std::string &virtual_name, std::string &&data);
+	File(const std::string &path);
+	File(const std::string &virtual_name, std::string &&data);
 
 	// moving allowed
-	NyanFile(NyanFile &&other) noexcept;
-	NyanFile& operator =(NyanFile &&other) noexcept;
+	File(File &&other) noexcept;
+	File& operator =(File &&other) noexcept;
 
 	// no copies
-	NyanFile(const NyanFile &other) = delete;
-	NyanFile &operator =(const NyanFile &other) = delete;
+	File(const File &other) = delete;
+	File &operator =(const File &other) = delete;
 
-	virtual ~NyanFile() = default;
+	virtual ~File() = default;
 
 	/**
 	 * Return the file name.

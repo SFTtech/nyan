@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "file.h"
 
@@ -9,7 +9,7 @@
 namespace nyan {
 
 
-NyanFile::NyanFile(const std::string &virtual_name, std::string &&data)
+File::File(const std::string &virtual_name, std::string &&data)
 	:
 	name{virtual_name},
 	data{data} {
@@ -29,46 +29,46 @@ NyanFile::NyanFile(const std::string &virtual_name, std::string &&data)
 }
 
 
-NyanFile::NyanFile(const std::string &path)
+File::File(const std::string &path)
 	:
-	NyanFile{path, util::read_file(path)} {}
+	File{path, util::read_file(path)} {}
 
 
-NyanFile::NyanFile(NyanFile &&other) noexcept
+File::File(File &&other) noexcept
 	:
 	name{std::move(other.name)},
 	data{std::move(other.data)} {}
 
 
-NyanFile &NyanFile::operator =(NyanFile &&other) noexcept {
+File &File::operator =(File &&other) noexcept {
 	this->name = std::move(other.name);
 	this->data = std::move(other.data);
 	return *this;
 }
 
 
-const std::string &NyanFile::get_name() const {
+const std::string &File::get_name() const {
 	return this->name;
 }
 
 
-const std::string &NyanFile::get() const {
+const std::string &File::get() const {
 	return this->data;
 }
 
 
-std::string NyanFile::get_line(size_t n) const {
+std::string File::get_line(size_t n) const {
 	line_info lineinfo = this->lines[n - 1];
 	return this->data.substr(lineinfo.offset, lineinfo.len);
 }
 
 
-const char *NyanFile::c_str() const {
+const char *File::c_str() const {
 	return this->data.c_str();
 }
 
 
-size_t NyanFile::size() const {
+size_t File::size() const {
 	return this->data.size();
 }
 

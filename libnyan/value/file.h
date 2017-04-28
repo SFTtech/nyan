@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_VALUE_FILE_H_
 #define NYAN_NYAN_VALUE_FILE_H_
 
@@ -12,12 +12,12 @@ namespace nyan {
 /**
  * Nyan value to store file names as nyan values.
  */
-class NyanFilename : public NyanValue {
+class Filename : public Value {
 public:
-	NyanFilename(const std::string &path);
-	NyanFilename(const NyanToken &token);
+	Filename(const std::string &path);
+	Filename(const Token &token);
 
-	std::unique_ptr<NyanValue> copy() const override;
+	std::unique_ptr<Value> copy() const override;
 	std::string str() const override;
 	std::string repr() const override;
 	size_t hash() const override;
@@ -26,8 +26,8 @@ public:
 	const nyan_basic_type &get_type() const override;
 
 protected:
-	void apply_value(const NyanValue *value, nyan_op operation) override;
-	bool equals(const NyanValue &other) const override;
+	void apply_value(const Value *value, nyan_op operation) override;
+	bool equals(const Value &other) const override;
 
 	std::string path;
 };

@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "parser.h"
 
@@ -13,45 +13,45 @@
 #include "type.h"
 #include "type_container.h"
 #include "util.h"
-#include "value.h"
-#include "value_container.h"
-#include "value_number.h"
-#include "value_orderedset.h"
-#include "value_set.h"
-#include "value_text.h"
+#include "value/value.h"
+#include "value/container.h"
+#include "value/number.h"
+#include "value/orderedset.h"
+#include "value/set.h"
+#include "value/text.h"
 
 
 namespace nyan {
 
-NyanParser::NyanParser(NyanDatabase *database)
+Parser::Parser(Database *database)
 	:
 	database{database} {}
 
 
-std::vector<NyanObject *> NyanParser::parse(const NyanFile &file) {
+std::vector<Object *> Parser::parse(const File &file) {
 	// If you are some parser junkie and I trigger your rage mode now,
 	// feel free to rewrite the parser or use a tool like bison.
 
 	// tokenize input
-	std::vector<NyanToken> tokens = this->tokenize(file);
+	std::vector<Token> tokens = this->tokenize(file);
 
 	// create ast from tokens
-	NyanAST root = this->create_ast(tokens);
+	AST root = this->create_ast(tokens);
 
 	// create objects from tokens
-	std::vector<NyanObject *> ret = this->create_objects(root);
+	std::vector<Object *> ret = this->create_objects(root);
 
 	return ret;
 }
 
 
-std::vector<NyanToken> NyanParser::tokenize(const NyanFile &file) const {
-	NyanLexer lexer{file};
+std::vector<Token> Parser::tokenize(const File &file) const {
+	Lexer lexer{file};
 
-	std::vector<NyanToken> ret;
+	std::vector<Token> ret;
 
 	while (true) {
-		NyanToken token = lexer.get_next_token();
+		Token token = lexer.get_next_token();
 		bool end = (token.type == token_type::ENDFILE);
 
 		ret.push_back(std::move(token));
@@ -65,22 +65,22 @@ std::vector<NyanToken> NyanParser::tokenize(const NyanFile &file) const {
 }
 
 
-NyanAST NyanParser::create_ast(const std::vector<NyanToken> &tokens) const {
-	util::Iterator<NyanToken> token_iter{tokens};
-	NyanAST root{token_iter};
+AST Parser::create_ast(const std::vector<Token> &tokens) const {
+	util::Iterator<Token> token_iter{tokens};
+	AST root{token_iter};
 	return root;
 }
 
 
-std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
-	std::vector<NyanObject *> ret;
+std::vector<Object *> Parser::create_objects(const AST &ast) {
+	std::vector<Object *> ret;
 
 	// walk over all objects present in the abstract syntax tree
 	for (auto &astobj : ast.get_objects()) {
 
 		// create the object, then fill up its contents.
-		auto obj = std::make_unique<NyanObject>(
-			NyanLocation{astobj.name},
+		auto obj = std::make_unique<Object>(
+			Location{astobj.name},
 			this->database
 		);
 
@@ -90,7 +90,7 @@ std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
 		// check if the name is unique
 		if (this->database->get(obj->name) != nullptr) {
 			// TODO: show other location!
-			throw NyanFileError{astobj.name, "object name already used"};
+			throw FileError{astobj.name, "object name already used"};
 		}
 
 		// first: inheritance parents
@@ -116,7 +116,7 @@ std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
 		this->inheritance_mod(obj.get(), astobj);
 
 		// save the object to the target database.
-		NyanObject *obj_ptr = this->database->add(std::move(obj));
+		Object *obj_ptr = this->database->add(std::move(obj));
 		ret.push_back(obj_ptr);
 	}
 
@@ -124,11 +124,11 @@ std::vector<NyanObject *> NyanParser::create_objects(const NyanAST &ast) {
 }
 
 
-void NyanParser::add_inheritance(NyanObject *obj,
-                                 const NyanASTObject &astobj) const {
+void Parser::add_inheritance(Object *obj,
+                                 const ASTObject &astobj) const {
 
 	for (auto &parent_name : astobj.inheritance) {
-		NyanObject *parent = this->database->get(parent_name.get());
+		Object *parent = this->database->get(parent_name.get());
 		if (parent == nullptr) {
 			throw TypeError{parent_name, "parent not found"};
 		}
@@ -138,30 +138,30 @@ void NyanParser::add_inheritance(NyanObject *obj,
 }
 
 
-void NyanParser::add_patch_targets(NyanObject *obj, const NyanASTObject &astobj) const {
+void Parser::add_patch_targets(Object *obj, const ASTObject &astobj) const {
 
 	// if patch targets were specified, store them in the __patch__ member
 	if (astobj.target.exists()) {
 
 		// fetch the denoted patch target object
-		NyanObject *tobj = this->database->get(astobj.target.get());
+		Object *tobj = this->database->get(astobj.target.get());
 
 		if (tobj == nullptr) {
-			throw NyanFileError{
+			throw FileError{
 				astobj.target,
 				"unknown patch target object"
 			};
 		}
 
 		// create the __patch__ member to contain the target
-		NyanMember patch_member{
-			NyanLocation{astobj.target},
-			NyanTypeContainer{std::make_unique<NyanType>(
+		Member patch_member{
+			Location{astobj.target},
+			TypeContainer{std::make_unique<Type>(
 				nullptr
-				// ^ = nullptr object, so any NyanObject is allowed
+				// ^ = nullptr object, so any Object is allowed
 			)},
 			nyan_op::ASSIGN,
-			NyanValueContainer{tobj}
+			ValueContainer{tobj}
 		};
 
 		// create the member entry
@@ -170,10 +170,10 @@ void NyanParser::add_patch_targets(NyanObject *obj, const NyanASTObject &astobj)
 }
 
 
-std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creation(NyanObject *obj, const NyanASTObject &astobj) const {
+std::unordered_map<std::string, TypeContainer> Parser::member_type_creation(Object *obj, const ASTObject &astobj) const {
 
 	// maps member_name -> type
-	std::unordered_map<std::string, NyanTypeContainer> member_types;
+	std::unordered_map<std::string, TypeContainer> member_types;
 
 	// first, gather all members and detect
 	// if they have a type declaration
@@ -192,7 +192,7 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 		// type that is inferred from parent objects
 		// the new member must be compatible to this type.
 		// if nullptr, this member defines the member as a new one.
-		NyanType *inferred_type = obj->infer_type(astmember.name.get());
+		Type *inferred_type = obj->infer_type(astmember.name.get());
 
 		// TODO: detect if two base classes declare the same member
 		//       independently. One member must be defined by exactly
@@ -200,25 +200,25 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 		//       resolved used qualified names.
 
 		// infer type from patch targets and check if they are compatible
-		const NyanMember *patch_target_member = obj->get_member_ptr("__patch__");
+		const Member *patch_target_member = obj->get_member_ptr("__patch__");
 
-		NyanType *patch_inferred_type = nullptr;
+		Type *patch_inferred_type = nullptr;
 
 		// walk up the whole patch tree to find a potential source
 		while (patch_target_member != nullptr) {
 			// if we have a patch, try using the target object
 			// for inferrng member types
 
-			const NyanType *type = patch_target_member->get_type();
-			if (not type->is_child_of(NyanType{nullptr})) {
+			const Type *type = patch_target_member->get_type();
+			if (not type->is_child_of(Type{nullptr})) {
 				throw TypeError{
 					patch_target_member->get_location(),
-					"patch targets must store a NyanObject"
+					"patch targets must store a Object"
 				};
 			}
 
 			// get the patch target object
-			NyanObject *patch_target = patch_target_member->get_value<NyanObject>();
+			Object *patch_target = patch_target_member->get_value<Object>();
 
 			patch_inferred_type = patch_target->infer_type(astmember.name.get());
 
@@ -259,7 +259,7 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 
 		// if there is an explicit type specification
 		if (astmember.type.exists) {
-			auto explicit_type = std::make_unique<NyanType>(astmember.type, *this->database);
+			auto explicit_type = std::make_unique<Type>(astmember.type, *this->database);
 
 			// check if the explicit type is compatible
 			// with the parent one.
@@ -276,7 +276,7 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 			// this member has an explicit type specifier, use it.
 			member_types.emplace(
 				astmember.name.get(),
-				NyanTypeContainer{std::move(explicit_type)}
+				TypeContainer{std::move(explicit_type)}
 			);
 		}
 		else {
@@ -294,7 +294,7 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 			// but we can take some parent one.
 			member_types.emplace(
 				astmember.name.get(),
-				NyanTypeContainer{inferred_type}
+				TypeContainer{inferred_type}
 			);
 		}
 	}
@@ -303,14 +303,14 @@ std::unordered_map<std::string, NyanTypeContainer> NyanParser::member_type_creat
 }
 
 
-std::vector<std::unique_ptr<NyanMember>> NyanParser::create_members(NyanObject *obj, const NyanASTObject &astobj, std::unordered_map<std::string, NyanTypeContainer> &member_types) const {
+std::vector<std::unique_ptr<Member>> Parser::create_members(Object *obj, const ASTObject &astobj, std::unordered_map<std::string, TypeContainer> &member_types) const {
 
-	std::vector<std::unique_ptr<NyanMember>> members;
+	std::vector<std::unique_ptr<Member>> members;
 
 	for (auto &astmember : astobj.members) {
-		// now: construct a NyanMember
+		// now: construct a Member
 
-		NyanValueContainer member_value;
+		ValueContainer member_value;
 
 		const std::string &member_name = astmember.name.get();
 
@@ -318,10 +318,10 @@ std::vector<std::unique_ptr<NyanMember>> NyanParser::create_members(NyanObject *
 		// or by explicit user notation
 		auto it = member_types.find(member_name);
 		if (it == std::end(member_types)) {
-			throw NyanInternalError{"unknown member requested"};
+			throw InternalError{"unknown member requested"};
 		}
 
-		NyanTypeContainer &member_type = it->second;
+		TypeContainer &member_type = it->second;
 
 		// only add a value if the member entry has one
 		if (astmember.value.exists) {
@@ -332,8 +332,8 @@ std::vector<std::unique_ptr<NyanMember>> NyanParser::create_members(NyanObject *
 
 			obj->members.emplace(
 				member_name,
-				NyanMember{
-					NyanLocation{astmember.name},
+				Member{
+					Location{astmember.name},
 					std::move(member_type),
 					astmember.operation,
 					std::move(member_value)
@@ -344,8 +344,8 @@ std::vector<std::unique_ptr<NyanMember>> NyanParser::create_members(NyanObject *
 			// no value given
 			obj->members.emplace(
 				member_name,
-				NyanMember{
-					NyanLocation{astmember.name},
+				Member{
+					Location{astmember.name},
 					std::move(member_type)
 				}
 			);
@@ -356,11 +356,11 @@ std::vector<std::unique_ptr<NyanMember>> NyanParser::create_members(NyanObject *
 }
 
 
-NyanValueContainer NyanParser::create_member_value(const NyanType *member_type, const NyanASTMemberValue &astmembervalue) const {
+ValueContainer Parser::create_member_value(const Type *member_type, const ASTMemberValue &astmembervalue) const {
 
-	NyanValueContainer member_value;
+	ValueContainer member_value;
 
-	std::vector<NyanValueContainer> values;
+	std::vector<ValueContainer> values;
 
 	// don't allow more than one value for a single-value type
 	if (astmembervalue.container_type == nyan_container_type::SINGLE and
@@ -374,7 +374,7 @@ NyanValueContainer NyanParser::create_member_value(const NyanType *member_type, 
 
 	// convert all tokens to values
 	for (auto &value_token : astmembervalue.values) {
-		NyanValueContainer value = this->value_from_value_token(value_token);
+		ValueContainer value = this->value_from_value_token(value_token);
 		values.push_back(std::move(value));
 	}
 
@@ -387,50 +387,50 @@ NyanValueContainer NyanParser::create_member_value(const NyanType *member_type, 
 	}
 	case nyan_container_type::SET: {
 		// create a set from the value list
-		member_value = NyanValueContainer{
-			std::make_unique<NyanSet>(values)
+		member_value = ValueContainer{
+			std::make_unique<Set>(values)
 		};
 		break;
 	}
 	case nyan_container_type::ORDEREDSET: {
-		member_value = NyanValueContainer{
-			std::make_unique<NyanOrderedSet>(values)
+		member_value = ValueContainer{
+			std::make_unique<OrderedSet>(values)
 		};
 		break;
 	}
 
 	default:
-		throw NyanInternalError{"unhandled container type"};
+		throw InternalError{"unhandled container type"};
 	}
 
 	return member_value;
 }
 
 
-NyanValueContainer NyanParser::value_from_value_token(const NyanToken &value_token) const {
-	NyanValueContainer member_value;
+ValueContainer Parser::value_from_value_token(const Token &value_token) const {
+	ValueContainer member_value;
 
 	nyan_basic_type value_type = type_from_value_token(value_token);
 
 	switch (value_type.primitive_type) {
 	case nyan_primitive_type::TEXT:
-		member_value = NyanValueContainer{
-			std::make_unique<NyanText>(value_token)
+		member_value = ValueContainer{
+			std::make_unique<Text>(value_token)
 		};
 		break;
 	case nyan_primitive_type::INT:
-		member_value = NyanValueContainer{
+		member_value = ValueContainer{
 			std::make_unique<NyanInt>(value_token)
 		};
 		break;
 	case nyan_primitive_type::FLOAT: {
-		member_value = NyanValueContainer{
+		member_value = ValueContainer{
 			std::make_unique<NyanFloat>(value_token)
 		};
 		break;
 	}
 	case nyan_primitive_type::OBJECT: {
-		NyanObject *obj = this->database->get(value_token.get());
+		Object *obj = this->database->get(value_token.get());
 		if (obj == nullptr) {
 			throw NameError{
 				value_token,
@@ -438,23 +438,23 @@ NyanValueContainer NyanParser::value_from_value_token(const NyanToken &value_tok
 				value_token.get()
 			};
 		}
-		member_value = NyanValueContainer{
+		member_value = ValueContainer{
 			obj
 		};
 		break;
 	}
 	default:
-		throw NyanInternalError{"non-implemented value type"};
+		throw InternalError{"non-implemented value type"};
 	}
 
 	return member_value;
 }
 
 
-void NyanParser::inheritance_mod(NyanObject *obj, const NyanASTObject &astobj) const {
+void Parser::inheritance_mod(Object *obj, const ASTObject &astobj) const {
 	for (auto &parent_name : astobj.inheritance_add) {
 		// TODO: inheritance modifications as __parents_add__
-		throw NyanInternalError{"TODO inheritance mod"};
+		throw InternalError{"TODO inheritance mod"};
 	}
 }
 

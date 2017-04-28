@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "database.h"
 
@@ -11,21 +11,21 @@ using namespace std::string_literals;
 
 namespace nyan {
 
-NyanDatabase::NyanDatabase(NyanDatabase *parent)
+Database::Database(Database *parent)
 	:
 	parent{parent} {}
 
-NyanDatabase::~NyanDatabase() {}
+Database::~Database() {}
 
 
-NyanObject *NyanDatabase::add(std::unique_ptr<NyanObject> &&obj) {
+Object *Database::add(std::unique_ptr<Object> &&obj) {
 	const std::string &name = obj->get_name();
 
 	auto it = this->objects.find(name);
 	if (it == std::end(this->objects)) {
 		auto ins = this->objects.insert(std::make_pair(name, std::move(obj)));
 		if (std::get<1>(ins) != true) {
-			throw NyanInternalError{"couldn't add object to namespace"};
+			throw InternalError{"couldn't add object to namespace"};
 		}
 
 		// we get the iterator back, now return the pointer where it
@@ -33,13 +33,13 @@ NyanObject *NyanDatabase::add(std::unique_ptr<NyanObject> &&obj) {
 		return ((*std::get<0>(ins)).second).get();
 	}
 	else {
-		throw NyanError{"NyanObject already in store: '"s + name + "'"};
+		throw Error{"Object already in store: '"s + name + "'"};
 	}
 }
 
 
 
-NyanObject *NyanDatabase::get(const std::string &name) const {
+Object *Database::get(const std::string &name) const {
 	return nullptr;
 }
 

@@ -1,5 +1,5 @@
 Any file in this project that doesn't state otherwise, and isn't listed as an
-exception below, is Copyright 2016-2016 The nyan authors, and licensed
+exception below, is Copyright 2016-2017 the nyan authors, and licensed
 under the terms of the GNU Lesser General Public License Version 3, or
 (at your option) any later version ("LGPL3+").
 A copy of the license can be found in [legal/LGPLv3](/legal/LGPLv3).

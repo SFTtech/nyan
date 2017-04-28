@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_AST_H_
 #define NYAN_NYAN_AST_H_
 
@@ -20,10 +20,10 @@ namespace nyan {
 /**
  * Base class for nyan AST classes.
  */
-class NyanASTBase {
-	friend class NyanParser;
+class ASTBase {
+	friend class Parser;
 public:
-	virtual ~NyanASTBase() = default;
+	virtual ~ASTBase() = default;
 
 	/**
 	 * Return a string representation of this AST element
@@ -35,7 +35,7 @@ public:
 	 * Add token values to the returned vector until the end token is
 	 * encountered.
 	 */
-	std::vector<NyanToken> comma_list(util::Iterator<NyanToken> &tokens,
+	std::vector<Token> comma_list(util::Iterator<Token> &tokens,
 	                                  token_type end) const;
 
 protected:
@@ -46,36 +46,36 @@ protected:
 /**
  * AST representation of a member type declaration.
  */
-class NyanASTMemberType : NyanASTBase {
-	friend class NyanASTMember;
-	friend class NyanParser;
-	friend class NyanType;
+class ASTMemberType : ASTBase {
+	friend class ASTMember;
+	friend class Parser;
+	friend class Type;
 public:
-	NyanASTMemberType();
-	NyanASTMemberType(const NyanToken &name, util::Iterator<NyanToken> &tokens);
+	ASTMemberType();
+	ASTMemberType(const Token &name, util::Iterator<Token> &tokens);
 
 	void strb(std::ostringstream &builder) const override;
 
 protected:
 	bool exists;
-	NyanToken name;
+	Token name;
 	bool has_payload;
-	NyanToken payload;
+	Token payload;
 };
 
 
 /**
  * AST representation of a member value.
  */
-class NyanASTMemberValue : public NyanASTBase {
-	friend class NyanParser;
-	friend class NyanASTMember;
+class ASTMemberValue : public ASTBase {
+	friend class Parser;
+	friend class ASTMember;
 
 public:
-	NyanASTMemberValue();
-	NyanASTMemberValue(nyan_container_type type,
-	                   util::Iterator<NyanToken> &tokens);
-	NyanASTMemberValue(const NyanToken &token);
+	ASTMemberValue();
+	ASTMemberValue(nyan_container_type type,
+	                   util::Iterator<Token> &tokens);
+	ASTMemberValue(const Token &token);
 
 	void strb(std::ostringstream &builder) const override;
 
@@ -83,91 +83,91 @@ protected:
 	bool exists;
 	nyan_container_type container_type;
 
-	std::vector<NyanToken> values;
+	std::vector<Token> values;
 };
 
 
 /**
  * The abstract syntax tree representation of a member entry.
  */
-class NyanASTMember : public NyanASTBase {
-	friend class NyanParser;
+class ASTMember : public ASTBase {
+	friend class Parser;
 public:
-	NyanASTMember(const NyanToken &name, util::Iterator<NyanToken> &tokens);
+	ASTMember(const Token &name, util::Iterator<Token> &tokens);
 
 	void strb(std::ostringstream &builder) const override;
 
 protected:
-	NyanToken name;
+	Token name;
 	nyan_op operation;
-	NyanASTMemberType type;
-	NyanASTMemberValue value;
+	ASTMemberType type;
+	ASTMemberValue value;
 };
 
 
 /**
  * An import in a nyan file is represented by this AST entry.
  */
-class NyanASTImport : public NyanASTBase {
-	friend class NyanParser;
+class ASTImport : public ASTBase {
+	friend class Parser;
 public:
-	NyanASTImport(const NyanToken &name, util::Iterator<NyanToken> &tokens);
+	ASTImport(const Token &name, util::Iterator<Token> &tokens);
 
 	void strb(std::ostringstream &builder) const override;
 
 protected:
-	NyanToken namespace_name;
-	NyanToken alias;
+	Token namespace_name;
+	Token alias;
 };
 
 
 /**
  * The abstract syntax tree representation of a nyan object.
  */
-class NyanASTObject : public NyanASTBase {
-	friend class NyanParser;
+class ASTObject : public ASTBase {
+	friend class Parser;
 public:
-	NyanASTObject(const NyanToken &name, util::Iterator<NyanToken> &tokens);
+	ASTObject(const Token &name, util::Iterator<Token> &tokens);
 
-	void ast_targets(util::Iterator<NyanToken> &tokens);
-	void ast_inheritance_mod(util::Iterator<NyanToken> &tokens);
-	void ast_inheritance(util::Iterator<NyanToken> &tokens);
-	void ast_members(util::Iterator<NyanToken> &tokens);
+	void ast_targets(util::Iterator<Token> &tokens);
+	void ast_inheritance_mod(util::Iterator<Token> &tokens);
+	void ast_inheritance(util::Iterator<Token> &tokens);
+	void ast_members(util::Iterator<Token> &tokens);
 
 	void strb(std::ostringstream &builder) const override;
 
 protected:
-	NyanToken name;
-	NyanToken target;
-	std::vector<NyanToken> inheritance_add;
-	std::vector<NyanToken> inheritance;
-	std::vector<NyanASTMember> members;
+	Token name;
+	Token target;
+	std::vector<Token> inheritance_add;
+	std::vector<Token> inheritance;
+	std::vector<ASTMember> members;
 };
 
 
 /**
  * Abstract syntax tree root.
  */
-class NyanAST : public NyanASTBase {
-	friend class NyanParser;
+class AST : public ASTBase {
+	friend class Parser;
 public:
-	NyanAST(util::Iterator<NyanToken> &tokens);
+	AST(util::Iterator<Token> &tokens);
 
 	void strb(std::ostringstream &builder) const override;
-	const std::vector<NyanASTObject> &get_objects() const;
+	const std::vector<ASTObject> &get_objects() const;
 
 protected:
-	std::vector<NyanASTImport> imports;
-	std::vector<NyanASTObject> objects;
+	std::vector<ASTImport> imports;
+	std::vector<ASTObject> objects;
 };
 
 
 /**
  * AST creation failure
  */
-class ASTError : public NyanFileError {
+class ASTError : public FileError {
 public:
-	ASTError(const std::string &msg, const NyanToken &token,
+	ASTError(const std::string &msg, const Token &token,
 	         bool add_token=true);
 };
 

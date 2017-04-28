@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "location.h"
 
@@ -8,12 +8,12 @@
 namespace nyan {
 
 
-NyanLocation::NyanLocation(const NyanToken &token)
+Location::Location(const Token &token)
 	:
-	NyanLocation{token.location} {}
+	Location{token.location} {}
 
 
-NyanLocation::NyanLocation(const NyanFile &file,
+Location::Location(const File &file,
                            int line, int line_offset)
 	:
 	file{&file},
@@ -21,22 +21,22 @@ NyanLocation::NyanLocation(const NyanFile &file,
 	line_offset{line_offset} {}
 
 
-int NyanLocation::get_line() const {
+int Location::get_line() const {
 	return this->line;
 }
 
 
-int NyanLocation::get_line_offset() const {
+int Location::get_line_offset() const {
 	return this->line_offset;
 }
 
 
-std::string NyanLocation::get_line_content() const {
+std::string Location::get_line_content() const {
 	return this->file->get_line(this->get_line());
 }
 
 
-void NyanLocation::str(std::ostringstream &builder) const {
+void Location::str(std::ostringstream &builder) const {
 	builder << this->file->get_name() << ":"
 	        << this->line << ":"
 	        << this->line_offset << ": ";

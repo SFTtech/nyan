@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "token.h"
 
@@ -10,7 +10,7 @@
 namespace nyan {
 
 
-NyanToken::NyanToken(const NyanFile &file,
+Token::Token(const File &file,
                      int line, int line_offset,
                      token_type type)
 	:
@@ -18,7 +18,7 @@ NyanToken::NyanToken(const NyanFile &file,
 	type{type} {}
 
 
-NyanToken::NyanToken(const NyanFile &file,
+Token::Token(const File &file,
                      int line, int line_offset,
                      token_type type, const std::string &value)
 	:
@@ -27,17 +27,17 @@ NyanToken::NyanToken(const NyanFile &file,
 	value{value} {}
 
 
-NyanToken::NyanToken()
+Token::Token()
 	:
 	type{token_type::INVALID} {}
 
 
-const std::string &NyanToken::get() const {
+const std::string &Token::get() const {
 	return this->value;
 }
 
 
-std::string NyanToken::str() const {
+std::string Token::str() const {
 	std::ostringstream builder;
 	builder << "(" << this->location.get_line() << ":"
 	        << this->location.get_line_offset() << ": "
@@ -50,14 +50,14 @@ std::string NyanToken::str() const {
 }
 
 
-bool NyanToken::exists() const {
+bool Token::exists() const {
 	return this->get().size() > 0;
 }
 
 
-TokenizeError::TokenizeError(const NyanLocation &location,
+TokenizeError::TokenizeError(const Location &location,
                              const std::string &msg)
 	:
-	NyanFileError{location, msg} {}
+	FileError{location, msg} {}
 
 } // namespace nyan

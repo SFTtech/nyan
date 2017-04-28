@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_OPS_H_
 #define NYAN_OPS_H_
 
@@ -9,7 +9,7 @@
 
 namespace nyan {
 
-class NyanToken;
+class Token;
 
 /**
  * Operation identifiers for all builtin member types
@@ -73,16 +73,16 @@ constexpr const char *op_to_string(nyan_op op) {
 /**
  * Create the nyan_op from a token.
  */
-nyan_op op_from_token(const NyanToken &token);
+nyan_op op_from_token(const Token &token);
 
 
 /**
  * A nyan operator, to be created from either a token
  */
-class NyanOperator {
+class Operator {
 public:
-	NyanOperator(const NyanToken &token);
-	virtual ~NyanOperator() = default;
+	Operator(const Token &token);
+	virtual ~Operator() = default;
 
 	const nyan_op &get();
 

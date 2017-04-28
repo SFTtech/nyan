@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "ast.h"
 
@@ -12,23 +12,23 @@ using namespace std::string_literals;
 namespace nyan {
 
 
-std::string NyanASTBase::str() const {
+std::string ASTBase::str() const {
 	std::ostringstream builder;
 	this->strb(builder);
 	return builder.str();
 }
 
 
-const std::vector<NyanASTObject> &NyanAST::get_objects() const {
+const std::vector<ASTObject> &AST::get_objects() const {
 	return this->objects;
 }
 
 
-NyanAST::NyanAST(util::Iterator<NyanToken> &tokens) {
+AST::AST(util::Iterator<Token> &tokens) {
 	while (tokens.full()) {
 		auto token = tokens.next();
 		if (token->type == token_type::ID) {
-			this->objects.push_back(NyanASTObject{*token, tokens});
+			this->objects.push_back(ASTObject{*token, tokens});
 		}
 		else if (token->type == token_type::ENDFILE) {
 			// we're done!
@@ -36,7 +36,7 @@ NyanAST::NyanAST(util::Iterator<NyanToken> &tokens) {
 				return;
 			}
 			else {
-				throw NyanError{"some token came after EOF."};
+				throw Error{"some token came after EOF."};
 			}
 		}
 		else {
@@ -45,8 +45,8 @@ NyanAST::NyanAST(util::Iterator<NyanToken> &tokens) {
 	}
 }
 
-NyanASTObject::NyanASTObject(const NyanToken &name,
-                             util::Iterator<NyanToken> &tokens)
+ASTObject::ASTObject(const Token &name,
+                             util::Iterator<Token> &tokens)
 	:
 	name{name} {
 
@@ -86,7 +86,7 @@ NyanASTObject::NyanASTObject(const NyanToken &name,
 	this->ast_members(tokens);
 }
 
-void NyanASTObject::ast_targets(util::Iterator<NyanToken> &tokens) {
+void ASTObject::ast_targets(util::Iterator<Token> &tokens) {
 	auto token = tokens.next();
 	if (token->type == token_type::ID) {
 		this->target = *token;
@@ -102,7 +102,7 @@ void NyanASTObject::ast_targets(util::Iterator<NyanToken> &tokens) {
 	}
 }
 
-void NyanASTObject::ast_inheritance_mod(util::Iterator<NyanToken> &tokens) {
+void ASTObject::ast_inheritance_mod(util::Iterator<Token> &tokens) {
 	bool expect_comma = false;
 	auto token = tokens.next();
 
@@ -139,18 +139,18 @@ void NyanASTObject::ast_inheritance_mod(util::Iterator<NyanToken> &tokens) {
 	}
 }
 
-void NyanASTObject::ast_inheritance(util::Iterator<NyanToken> &tokens) {
+void ASTObject::ast_inheritance(util::Iterator<Token> &tokens) {
 	this->inheritance = this->comma_list(tokens, token_type::RPAREN);
 }
 
-void NyanASTObject::ast_members(util::Iterator<NyanToken> &tokens) {
+void ASTObject::ast_members(util::Iterator<Token> &tokens) {
 	auto token = tokens.next();
 
 	while (token->type != token_type::DEDENT and
 	       token->type != token_type::ENDFILE) {
 
 		if (token->type == token_type::ID) {
-			this->members.push_back(NyanASTMember(*token, tokens));
+			this->members.push_back(ASTMember(*token, tokens));
 		}
 		else if (token->type == token_type::PASS) {
 			// "empty" member entry.
@@ -170,8 +170,8 @@ void NyanASTObject::ast_members(util::Iterator<NyanToken> &tokens) {
 }
 
 
-NyanASTMember::NyanASTMember(const NyanToken &name,
-                             util::Iterator<NyanToken> &tokens)
+ASTMember::ASTMember(const Token &name,
+                             util::Iterator<Token> &tokens)
 	:
 	name{name} {
 
@@ -183,7 +183,7 @@ NyanASTMember::NyanASTMember(const NyanToken &name,
 		token = tokens.next();
 
 		if (token->type == token_type::ID) {
-			this->type = NyanASTMemberType{*token, tokens};
+			this->type = ASTMemberType{*token, tokens};
 			had_def_or_decl = true;
 		} else {
 			throw ASTError{"expected type name, instead got", *token};
@@ -212,14 +212,14 @@ NyanASTMember::NyanASTMember(const NyanToken &name,
 			} else if (token->type == token_type::LBRACE) {
 				ctype = nyan_container_type::SET;
 			} else {
-				throw NyanError{"unhandled multi value container type"};
+				throw Error{"unhandled multi value container type"};
 			}
 
-			this->value = NyanASTMemberValue{ctype, tokens};
+			this->value = ASTMemberValue{ctype, tokens};
 		}
 		else {
 			// single-value
-			this->value = NyanASTMemberValue{*token};
+			this->value = ASTMemberValue{*token};
 		}
 
 		had_def_or_decl = true;
@@ -240,14 +240,14 @@ NyanASTMember::NyanASTMember(const NyanToken &name,
 }
 
 
-NyanASTMemberType::NyanASTMemberType()
+ASTMemberType::ASTMemberType()
 	:
 	exists{false},
 	has_payload{false} {}
 
 
-NyanASTMemberType::NyanASTMemberType(const NyanToken &name,
-                                     util::Iterator<NyanToken> &tokens)
+ASTMemberType::ASTMemberType(const Token &name,
+                                     util::Iterator<Token> &tokens)
 	:
 	exists{true},
 	name{name},
@@ -275,12 +275,12 @@ NyanASTMemberType::NyanASTMemberType(const NyanToken &name,
 }
 
 
-NyanASTMemberValue::NyanASTMemberValue()
+ASTMemberValue::ASTMemberValue()
 	:
 	exists{false} {}
 
 
-NyanASTMemberValue::NyanASTMemberValue(const NyanToken &token)
+ASTMemberValue::ASTMemberValue(const Token &token)
 	:
 	exists{true},
 	container_type{nyan_container_type::SINGLE} {
@@ -289,8 +289,8 @@ NyanASTMemberValue::NyanASTMemberValue(const NyanToken &token)
 }
 
 
-NyanASTMemberValue::NyanASTMemberValue(nyan_container_type type,
-                                       util::Iterator<NyanToken> &tokens)
+ASTMemberValue::ASTMemberValue(nyan_container_type type,
+                                       util::Iterator<Token> &tokens)
 	:
 	exists{true},
 	container_type{type} {
@@ -328,10 +328,10 @@ NyanASTMemberValue::NyanASTMemberValue(nyan_container_type type,
 }
 
 
-std::vector<NyanToken> NyanASTBase::comma_list(
-	util::Iterator<NyanToken> &tokens, token_type end) const {
+std::vector<Token> ASTBase::comma_list(
+	util::Iterator<Token> &tokens, token_type end) const {
 
-	std::vector<NyanToken> ret;
+	std::vector<Token> ret;
 
 	auto token = tokens.next();
 	bool expect_comma = false;
@@ -358,7 +358,7 @@ std::vector<NyanToken> NyanASTBase::comma_list(
 }
 
 
-void NyanAST::strb(std::ostringstream &builder) const {
+void AST::strb(std::ostringstream &builder) const {
 	builder << "### nyan tree ###" << std::endl;
 
 	size_t count = 0;
@@ -370,7 +370,7 @@ void NyanAST::strb(std::ostringstream &builder) const {
 }
 
 
-void NyanASTObject::strb(std::ostringstream &builder) const {
+void ASTObject::strb(std::ostringstream &builder) const {
 	builder << this->name.get();
 
 	auto token_str = [](const auto &in) {
@@ -387,13 +387,13 @@ void NyanASTObject::strb(std::ostringstream &builder) const {
 
 	if (this->inheritance_add.size() > 0) {
 		builder << "[+"
-		        << util::strjoin<NyanToken>(", +", this->inheritance_add,
+		        << util::strjoin<Token>(", +", this->inheritance_add,
 		                                    token_str)
 		        << "]";
 	}
 
 	builder << "("
-	        << util::strjoin<NyanToken>(", ", this->inheritance, token_str)
+	        << util::strjoin<Token>(", ", this->inheritance, token_str)
 	        << "):"
 	        << std::endl;
 
@@ -410,7 +410,7 @@ void NyanASTObject::strb(std::ostringstream &builder) const {
 }
 
 
-void NyanASTMember::strb(std::ostringstream &builder) const {
+void ASTMember::strb(std::ostringstream &builder) const {
 	builder << this->name.get();
 
 	if (this->type.exists) {
@@ -430,7 +430,7 @@ void NyanASTMember::strb(std::ostringstream &builder) const {
 }
 
 
-void NyanASTMemberType::strb(std::ostringstream &builder) const {
+void ASTMemberType::strb(std::ostringstream &builder) const {
 	builder << this->name.get();
 
 	if (this->has_payload) {
@@ -439,7 +439,7 @@ void NyanASTMemberType::strb(std::ostringstream &builder) const {
 }
 
 
-void NyanASTMemberValue::strb(std::ostringstream &builder) const {
+void ASTMemberValue::strb(std::ostringstream &builder) const {
 	switch (this->container_type) {
 	case nyan_container_type::SINGLE:
 		builder << this->values[0].get();
@@ -452,7 +452,7 @@ void NyanASTMemberValue::strb(std::ostringstream &builder) const {
 		builder << "<"; break;
 
 	default:
-		throw NyanError{"unhandled container type"};
+		throw Error{"unhandled container type"};
 	}
 
 	bool first = true;
@@ -472,15 +472,15 @@ void NyanASTMemberValue::strb(std::ostringstream &builder) const {
 		builder << ">"; break;
 
 	default:
-		throw NyanError{"unhandled container type"};
+		throw Error{"unhandled container type"};
 	}
 }
 
 
-ASTError::ASTError(const std::string &msg, const NyanToken &token,
+ASTError::ASTError(const std::string &msg, const Token &token,
                    bool add_token)
 	:
-	NyanFileError{NyanLocation{token}, ""} {
+	FileError{Location{token}, ""} {
 
 	if (add_token) {
 		std::ostringstream builder;

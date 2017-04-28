@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "nyan_tool.h"
 
@@ -14,11 +14,11 @@
 
 namespace nyan {
 
-void test_parser(const NyanFile &file) {
-	NyanDatabase database;
+void test_parser(const File &file) {
+	Database database;
 
-	NyanParser parser(&database);
-	std::vector<NyanObject *> objs = parser.parse(file);
+	Parser parser(&database);
+	std::vector<Object *> objs = parser.parse(file);
 
 	size_t i = 0;
 	for (auto &obj : objs) {
@@ -33,12 +33,12 @@ int run(flags_t flags, params_t params) {
 	try {
 		if (flags[option_flag::TEST_PARSER]) {
 			const std::string &filename = params[option_param::FILE];
-			NyanFile input{filename};
+			File input{filename};
 
 			try {
 				nyan::test_parser(input);
 			}
-			catch (NyanFileError &err) {
+			catch (FileError &err) {
 				std::cout << "\x1b[33;1mfile error:\x1b[m\n"
 				          << err << std::endl
 				          << err.show_problem_origin()
@@ -51,7 +51,7 @@ int run(flags_t flags, params_t params) {
 			help();
 		}
 	}
-	catch (NyanError &err) {
+	catch (Error &err) {
 		std::cout << "\x1b[31;1merror:\x1b[m\n"
 		          << err << std::endl;
 		return 1;

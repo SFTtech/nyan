@@ -1,46 +1,46 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
-#include "value_set.h"
+#include "set.h"
 
 #include "error.h"
 
 
 namespace nyan {
 
-NyanSet::NyanSet() {}
+Set::Set() {}
 
 
-NyanSet::NyanSet(std::vector<NyanValueContainer> &values) {
+Set::Set(std::vector<ValueContainer> &values) {
 	for (auto &value : values) {
 		this->values.insert(std::move(value));
 	}
 }
 
 
-std::unique_ptr<NyanValue> NyanSet::copy() const {
-	throw NyanInternalError{"TODO set copy"};
+std::unique_ptr<Value> Set::copy() const {
+	throw InternalError{"TODO set copy"};
 }
 
 
-bool NyanSet::add(NyanValueContainer &&value) {
+bool Set::add(ValueContainer &&value) {
 	return std::get<1>(this->values.insert(std::move(value)));
 }
 
 
-bool NyanSet::contains(NyanValue *value) {
+bool Set::contains(Value *value) {
 	return (this->values.find(value) != std::end(this->values));
 }
 
 
-bool NyanSet::remove(NyanValue *value) {
+bool Set::remove(Value *value) {
 	return (1 == this->values.erase(value));
 }
 
 
-void NyanSet::apply_value(const NyanValue *value, nyan_op operation) {
-	const NyanSet *change = dynamic_cast<const NyanSet *>(value);
+void Set::apply_value(const Value *value, nyan_op operation) {
+	const Set *change = dynamic_cast<const Set *>(value);
 
-	throw NyanInternalError{"TODO"};
+	throw InternalError{"TODO"};
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
@@ -60,12 +60,12 @@ void NyanSet::apply_value(const NyanValue *value, nyan_op operation) {
 		break;
 
 	default:
-		throw NyanError{"unknown operation requested"};
+		throw Error{"unknown operation requested"};
 	}
 }
 
 
-std::string NyanSet::str() const {
+std::string Set::str() const {
 	std::ostringstream builder;
 	builder << "{";
 
@@ -83,7 +83,7 @@ std::string NyanSet::str() const {
 }
 
 
-std::string NyanSet::repr() const {
+std::string Set::repr() const {
 	std::ostringstream builder;
 	builder << "{";
 
@@ -101,7 +101,7 @@ std::string NyanSet::repr() const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanSet::allowed_operations(nyan_basic_type value_type) const {
+const std::unordered_set<nyan_op> &Set::allowed_operations(nyan_basic_type value_type) const {
 
 	if (not value_type.is_container()) {
 		return no_nyan_ops;
@@ -125,7 +125,7 @@ const std::unordered_set<nyan_op> &NyanSet::allowed_operations(nyan_basic_type v
 }
 
 
-const nyan_basic_type &NyanSet::get_type() const {
+const nyan_basic_type &Set::get_type() const {
 	constexpr static nyan_basic_type type{
 		nyan_primitive_type::CONTAINER,
 		nyan_container_type::SET,

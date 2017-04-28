@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_NAMESPACE_H_
 #define NYAN_NYAN_NAMESPACE_H_
 
@@ -7,31 +7,31 @@
 
 namespace nyan {
 
-class NyanDatabase;
-class NyanObject;
+class Database;
+class Object;
 
 
 /**
  * One namespace in the nyan tree.
  * Contains many nyanobjects.
  */
-class NyanNamespace {
+class Namespace {
 
 public:
-	NyanNamespace();
-	virtual ~NyanNamespace() = default;
+	Namespace();
+	virtual ~Namespace() = default;
 
-	NyanNamespace *add_namespace(const std::string &name);
+	Namespace *add_namespace(const std::string &name);
 
-	NyanObject *get_obj(const std::string &name) const;
-	NyanNamespace *get_namespace(const std::string &name) const;
+	Object *get_obj(const std::string &name) const;
+	Namespace *get_namespace(const std::string &name) const;
 
 protected:
 
 	/**
 	 * Database this namespace is in.
 	 */
-	NyanDatabase *database;
+	Database *database;
 };
 
 } // namespace nyan

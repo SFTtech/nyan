@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_TYPE_CONTAINER_H_
 #define NYAN_NYAN_TYPE_CONTAINER_H_
 
@@ -10,11 +10,11 @@ namespace nyan {
 
 
 /**
- * Container class to contain a NyanType, either by
+ * Container class to contain a Type, either by
  * owning one or by referencing an existing one.
  */
-class NyanTypeContainer : public NyanPtrContainer<NyanType> {
-	using NyanPtrContainer<NyanType>::NyanPtrContainer;
+class TypeContainer : public PtrContainer<Type> {
+	using PtrContainer<Type>::PtrContainer;
 };
 
 

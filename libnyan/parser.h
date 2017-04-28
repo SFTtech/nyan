@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_PARSER_H_
 #define NYAN_PARSER_H_
 
@@ -10,83 +10,83 @@
 
 namespace nyan {
 
-class NyanDatabase;
-class NyanFile;
-class NyanMember;
-class NyanObject;
-class NyanTypeContainer;
-class NyanValueContainer;
+class Database;
+class File;
+class Member;
+class Object;
+class TypeContainer;
+class ValueContainer;
 
 /**
  * The parser for nyan.
  */
-class NyanParser {
+class Parser {
 public:
-	NyanParser(NyanDatabase *database);
-	virtual ~NyanParser() = default;
+	Parser(Database *database);
+	virtual ~Parser() = default;
 
-	std::vector<NyanObject *> parse(const NyanFile &file);
+	std::vector<Object *> parse(const File &file);
 
 protected:
 	/**
 	 * Create the token stream from a file.
 	 */
-	std::vector<NyanToken> tokenize(const NyanFile &file) const;
+	std::vector<Token> tokenize(const File &file) const;
 
 	/**
 	 * Create the abstact syntax tree from a token stream.
 	 */
-	NyanAST create_ast(const std::vector<NyanToken> &tokens) const;
+	AST create_ast(const std::vector<Token> &tokens) const;
 
 	/**
 	 * Create nyan objects and place them in the database
 	 * (which was specified in the constructor)
 	 */
-	std::vector<NyanObject *> create_objects(const NyanAST &ast);
+	std::vector<Object *> create_objects(const AST &ast);
 
 	/**
 	 * Add the object inheritance to an object to be constructed
 	 * from that AST part.
 	 */
-	void add_inheritance(NyanObject *obj, const NyanASTObject &astobj) const;
+	void add_inheritance(Object *obj, const ASTObject &astobj) const;
 
 	/**
 	 * Add the patch target objects from the AST to the object.
 	 */
-	void add_patch_targets(NyanObject *obj, const NyanASTObject &astobj) const ;
+	void add_patch_targets(Object *obj, const ASTObject &astobj) const ;
 
 	/**
 	 * Determine the types of members, optionally consult parent objects
 	 * in the database to get the type.
 	 */
-	std::unordered_map<std::string, NyanTypeContainer> member_type_creation(NyanObject *obj, const NyanASTObject &astobj) const;
+	std::unordered_map<std::string, TypeContainer> member_type_creation(Object *obj, const ASTObject &astobj) const;
 
 	/**
 	 * Create member entries which can then be stored in an object.
 	 */
-	std::vector<std::unique_ptr<NyanMember>> create_members(NyanObject *obj, const NyanASTObject &astobj, std::unordered_map<std::string, NyanTypeContainer> &member_types) const;
+	std::vector<std::unique_ptr<Member>> create_members(Object *obj, const ASTObject &astobj, std::unordered_map<std::string, TypeContainer> &member_types) const;
 
 	/**
-	 * Create a NyanValue from an AST member value.
+	 * Create a Value from an AST member value.
 	 * Check if the ast value can be assigned (with the given operation)
 	 * to the member type determined already.
 	 */
-	NyanValueContainer create_member_value(const NyanType *member_type, const NyanASTMemberValue &astmembervalue) const;
+	ValueContainer create_member_value(const Type *member_type, const ASTMemberValue &astmembervalue) const;
 
 	/**
-	 * Create a NyanValue from a single value token.
+	 * Create a Value from a single value token.
 	 */
-	NyanValueContainer value_from_value_token(const NyanToken &value_token) const;
+	ValueContainer value_from_value_token(const Token &value_token) const;
 
 	/**
 	 * Store the inheritance modifications of a patch.
 	 */
-	void inheritance_mod(NyanObject *obj, const NyanASTObject &astobj) const ;
+	void inheritance_mod(Object *obj, const ASTObject &astobj) const ;
 
 	/**
 	 * The database where the parser will add resulting data to.
 	 */
-	NyanDatabase *database;
+	Database *database;
 };
 
 } // namespace nyan

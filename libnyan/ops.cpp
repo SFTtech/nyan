@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "ops.h"
 
@@ -37,7 +37,7 @@ nyan_op op_from_string(const std::string &str) {
 }
 
 
-nyan_op op_from_token(const NyanToken &token) {
+nyan_op op_from_token(const Token &token) {
 	if (token.type == token_type::OPERATOR) {
 		return op_from_string(token.get());
 	}
@@ -47,12 +47,12 @@ nyan_op op_from_token(const NyanToken &token) {
 }
 
 
-NyanOperator::NyanOperator(const NyanToken &token)
+Operator::Operator(const Token &token)
 	:
 	op{op_from_token(token)} {}
 
 
-const nyan_op &NyanOperator::get() {
+const nyan_op &Operator::get() {
 	return this->op;
 }
 

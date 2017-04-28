@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_LOCATION_H_
 #define NYAN_NYAN_LOCATION_H_
 
@@ -7,19 +7,19 @@
 
 namespace nyan {
 
-class NyanFile;
-class NyanToken;
+class File;
+class Token;
 
 /**
  * Location of some data in nyan.
  * Used to display error messages for positions in the file.
  */
-class NyanLocation {
+class Location {
 public:
-	NyanLocation() = default;
-	NyanLocation(const NyanToken &token);
-	NyanLocation(const NyanFile &file, int line, int line_offset);
-	virtual ~NyanLocation() = default;
+	Location() = default;
+	Location(const Token &token);
+	Location(const File &file, int line, int line_offset);
+	virtual ~Location() = default;
 
 	int get_line() const;
 	int get_line_offset() const;
@@ -29,7 +29,7 @@ public:
 	void str(std::ostringstream &builder) const;
 
 protected:
-	const NyanFile *file;
+	const File *file;
 	int line;
 	int line_offset;
 };

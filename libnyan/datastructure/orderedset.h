@@ -1,19 +1,18 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_ORDEREDSET_H_
 #define NYAN_ORDEREDSET_H_
 
 #include <list>
 #include <unordered_map>
 
-#include "error.h"
-#include "ptr_container.h"
-
 
 namespace nyan {
+namespace datastructure {
+
 
 /**
  * Linked list to support removing elements by pointer.
- * T must be something that is normally wrapped in NyanPtrContainer.
+ * T must be something that is normally wrapped in PtrContainer.
  */
 template <typename T>
 class OrderedSet {
@@ -193,6 +192,6 @@ public:
 	}
 };
 
-} // namespace nyan
+}} // namespace nyan::datastructure
 
 #endif

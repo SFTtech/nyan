@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "member.h"
 
@@ -12,8 +12,8 @@
 namespace nyan {
 
 
-NyanMember::NyanMember(const NyanLocation &location,
-                       NyanTypeContainer &&type)
+Member::Member(const Location &location,
+                       TypeContainer &&type)
 	:
 	type{std::move(type)},
 	operation{nyan_op::INVALID},
@@ -22,9 +22,9 @@ NyanMember::NyanMember(const NyanLocation &location,
 	location{location} {}
 
 
-NyanMember::NyanMember(const NyanLocation &location,
-                       NyanTypeContainer &&type, nyan_op operation,
-                       NyanValueContainer &&value)
+Member::Member(const Location &location,
+                       TypeContainer &&type, nyan_op operation,
+                       ValueContainer &&value)
 	:
 	type{std::move(type)},
 	operation{operation},
@@ -47,16 +47,16 @@ NyanMember::NyanMember(const NyanLocation &location,
 	}
 
 
-	static auto type_check = [](const NyanLocation &location,
-	                            const NyanType *type,
-	                            const NyanValue *value) {
+	static auto type_check = [](const Location &location,
+	                            const Type *type,
+	                            const Value *value) {
 
 		// special handling for some primitive types
 		switch (type->get_primitive_type()) {
 		case nyan_primitive_type::OBJECT: {
 			// we checked the basic type above,
 			// so we can now cast the value
-			const NyanObject *obj = dynamic_cast<const NyanObject *>(value);
+			const Object *obj = dynamic_cast<const Object *>(value);
 
 			if (not type->is_parent_of(obj)) {
 				// TODO: better error message and location
@@ -81,15 +81,15 @@ NyanMember::NyanMember(const NyanLocation &location,
 		// check if all the container values
 		// are compatible with the container type
 
-		const NyanContainer *container = dynamic_cast<NyanContainer *>(this->value.get());
+		const Container *container = dynamic_cast<Container *>(this->value.get());
 
 		if (container == nullptr) {
-			throw NyanInternalError{
+			throw InternalError{
 				"type said it was a container but could not be casted!"
 			};
 		}
 
-		const NyanType *element_type = this->type->get_element_type();
+		const Type *element_type = this->type->get_element_type();
 
 		for (auto &entry : *container) {
 
@@ -112,7 +112,7 @@ NyanMember::NyanMember(const NyanLocation &location,
 }
 
 
-NyanMember::NyanMember(NyanMember &&other) noexcept
+Member::Member(Member &&other) noexcept
 	:
 	type{std::move(other.type)},
 	operation{other.operation},
@@ -121,7 +121,7 @@ NyanMember::NyanMember(NyanMember &&other) noexcept
 	location{std::move(other.location)} {}
 
 
-const NyanMember &NyanMember::operator =(NyanMember &&other) noexcept {
+const Member &Member::operator =(Member &&other) noexcept {
 	this->type = std::move(other.type);
 	this->operation = other.operation;
 	this->cached_value = std::move(other.cached_value);
@@ -131,7 +131,7 @@ const NyanMember &NyanMember::operator =(NyanMember &&other) noexcept {
 }
 
 
-std::string NyanMember::str() const {
+std::string Member::str() const {
 	std::ostringstream builder;
 
 	if (this->type.is_owning()) {
@@ -150,37 +150,37 @@ std::string NyanMember::str() const {
 }
 
 
-NyanType *NyanMember::get_type() const {
+Type *Member::get_type() const {
 	return this->type.get();
 }
 
 
-NyanValue *NyanMember::get_value_ptr() const {
+Value *Member::get_value_ptr() const {
 	return this->value.get();
 }
 
 
-nyan_op NyanMember::get_operation() const {
+nyan_op Member::get_operation() const {
 	return this->operation;
 }
 
 
-void NyanMember::cache_save(std::unique_ptr<NyanValue> &&value) {
+void Member::cache_save(std::unique_ptr<Value> &&value) {
 	this->cached_value = std::move(value);
 }
 
 
-NyanValue *NyanMember::cache_get() const {
+Value *Member::cache_get() const {
 	return this->cached_value.get();
 }
 
 
-void NyanMember::cache_reset() {
+void Member::cache_reset() {
 	this->cached_value.reset(nullptr);
 }
 
 
-const NyanLocation &NyanMember::get_location() const {
+const Location &Member::get_location() const {
 	return this->location;
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "util.h"
 
@@ -28,7 +28,7 @@ size_t file_size(const std::string &filename) {
 		builder << "failed getting size of file '"
 		        << filename << "': "
 		        << strerror(errno);
-		throw NyanError{builder.str()};
+		throw Error{builder.str()};
 	}
 }
 
@@ -57,7 +57,7 @@ std::string read_file(const std::string &filename, bool binary) {
 		builder << "failed reading file '"
 		        << filename << "': "
 		        << strerror(errno);
-		throw NyanError{builder.str()};
+		throw Error{builder.str()};
 	}
 }
 

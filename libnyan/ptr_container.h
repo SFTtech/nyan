@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_PTR_CONTAINER_H_
 #define NYAN_NYAN_PTR_CONTAINER_H_
 
@@ -12,9 +12,9 @@ namespace nyan {
  * owning one or by pointing to an existing one.
  */
 template<typename T>
-class NyanPtrContainer {
+class PtrContainer {
 public:
-	NyanPtrContainer()
+	PtrContainer()
 		:
 		is_ptr{true},
 		data_owned{nullptr},
@@ -23,7 +23,7 @@ public:
 	/**
 	 * Type of this container.
 	 */
-	using this_type = NyanPtrContainer<T>;
+	using this_type = PtrContainer<T>;
 
 	/**
 	 * Entry data type.
@@ -33,7 +33,7 @@ public:
 	/**
 	 * Create a non-owning container from a raw pointer.
 	 */
-	NyanPtrContainer(T *val)
+	PtrContainer(T *val)
 		:
 		is_ptr{true},
 		data_owned{nullptr},
@@ -42,7 +42,7 @@ public:
 	/**
 	 * Create an owning container from some unique ptr.
 	 */
-	NyanPtrContainer(std::unique_ptr<T> &&val) noexcept
+	PtrContainer(std::unique_ptr<T> &&val) noexcept
 		:
 		is_ptr{false},
 		data_owned{std::move(val)},
@@ -51,7 +51,7 @@ public:
 	/**
 	 * Replace this container by another container.
 	 */
-	NyanPtrContainer(NyanPtrContainer &&other) noexcept
+	PtrContainer(PtrContainer &&other) noexcept
 		:
 		is_ptr{other.is_ptr},
 		data_owned{std::move(other.data_owned)},
@@ -60,7 +60,7 @@ public:
 	/**
 	 * Move assignment from another container.
 	 */
-	NyanPtrContainer &operator =(NyanPtrContainer &&other) noexcept {
+	PtrContainer &operator =(PtrContainer &&other) noexcept {
 		this->is_ptr = other.is_ptr;
 		this->data_owned = std::move(other.data_owned);
 		this->data_ptr = other.data_ptr;
@@ -68,10 +68,10 @@ public:
 	}
 
 	// no copies
-	NyanPtrContainer(const NyanPtrContainer &other) = delete;
-	NyanPtrContainer &operator =(const NyanPtrContainer &other) = delete;
+	PtrContainer(const PtrContainer &other) = delete;
+	PtrContainer &operator =(const PtrContainer &other) = delete;
 
-	virtual ~NyanPtrContainer() = default;
+	virtual ~PtrContainer() = default;
 
 
 	/**
@@ -158,7 +158,7 @@ public:
 	/**
 	 * Compare a container with a value.
 	 */
-	bool operator ==(const NyanPtrContainer<T> &other) const {
+	bool operator ==(const PtrContainer<T> &other) const {
 		return *this->get() == *other.get();
 	}
 

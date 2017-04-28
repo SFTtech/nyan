@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "namespace.h"
 
@@ -6,20 +6,20 @@
 
 namespace nyan {
 
-NyanNamespace::NyanNamespace() {}
+Namespace::Namespace() {}
 
 
-NyanNamespace *NyanNamespace::add_namespace(const std::string &name) {
-	throw NyanInternalError{"TODO add_namespace"};
+Namespace *Namespace::add_namespace(const std::string &name) {
+	throw InternalError{"TODO add_namespace"};
 }
 
 
-NyanObject *NyanNamespace::get_obj(const std::string &name) const {
+Object *Namespace::get_obj(const std::string &name) const {
 	return nullptr;
 }
 
 
-NyanNamespace *NyanNamespace::get_namespace(const std::string &name) const {
+Namespace *Namespace::get_namespace(const std::string &name) const {
 	return nullptr;
 }
 

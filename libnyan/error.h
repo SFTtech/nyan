@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_ERROR_H_
 #define NYAN_NYAN_ERROR_H_
 
@@ -73,12 +73,12 @@ protected:
 /**
  * Base exception for every error that occurs in nyan.
  */
-class NyanError : public std::runtime_error {
+class Error : public std::runtime_error {
 public:
-	NyanError(const std::string &msg,
+	Error(const std::string &msg,
 	          bool generate_backtrace=true,
 	          bool store_cause=true);
-	virtual ~NyanError() = default;
+	virtual ~Error() = default;
 
 	/**
 	 * String representation of this exception, as
@@ -151,7 +151,7 @@ protected:
 /**
  * Output stream concat for nyanerrors.
  */
-std::ostream &operator <<(std::ostream &os, const NyanError &e);
+std::ostream &operator <<(std::ostream &os, const Error &e);
 
 
 /**
@@ -167,11 +167,11 @@ std::ostream &operator <<(std::ostream &os, const Backtrace &bt);
 
 
 /**
- * Internal NyanError, thrown when some interal sanity check failed.
+ * Internal Error, thrown when some interal sanity check failed.
  */
-class NyanInternalError : public NyanError {
+class InternalError : public Error {
 public:
-	NyanInternalError(const std::string &msg);
+	InternalError(const std::string &msg);
 };
 
 
@@ -179,16 +179,16 @@ public:
  * Exception class to capture problems with files,
  * for that, it stores line number and line offset.
  */
-class NyanFileError : public NyanError {
+class FileError : public Error {
 public:
-	NyanFileError(const NyanLocation &location, const std::string &msg);
+	FileError(const Location &location, const std::string &msg);
 
 	std::string str() const override;
 
 	virtual std::string show_problem_origin() const;
 
 protected:
-	NyanLocation location;
+	Location location;
 };
 
 
@@ -196,9 +196,9 @@ protected:
 /**
  * Exception for name access problems.
  */
-class NameError : public NyanFileError {
+class NameError : public FileError {
 public:
-	NameError(const NyanLocation &location,
+	NameError(const Location &location,
 	          const std::string &msg, const std::string &name="");
 
 	std::string str() const override;

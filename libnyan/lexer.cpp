@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "lexer.h"
 
@@ -8,7 +8,7 @@
 
 namespace nyan {
 
-NyanLexer::NyanLexer(const NyanFile &file)
+Lexer::Lexer(const File &file)
 	:
 	NyanFlexLexer{},
 	file{file},
@@ -27,7 +27,7 @@ NyanLexer::NyanLexer(const NyanFile &file)
  * Generate tokens until the queue has on available to return.
  * Return tokens from the queue until it's empty.
  */
-NyanToken NyanLexer::get_next_token() {
+Token Lexer::get_next_token() {
 	if (this->finished) {
 		throw this->error("requested token but at EOF");
 	}
@@ -47,9 +47,9 @@ NyanToken NyanLexer::get_next_token() {
 /*
  * Fetch the current lexer state variables and create a token.
  */
-void NyanLexer::token(token_type type) {
+void Lexer::token(token_type type) {
 	if (token_needs_payload(type)) {
-		this->tokens.push(NyanToken{
+		this->tokens.push(Token{
 			this->file,
 			this->yylineno,
 			this->linepos - this->yyleng,
@@ -58,7 +58,7 @@ void NyanLexer::token(token_type type) {
 		});
 	}
 	else {
-		this->tokens.push(NyanToken{
+		this->tokens.push(Token{
 			this->file,
 			this->yylineno,
 			this->linepos - this->yyleng,
@@ -70,9 +70,9 @@ void NyanLexer::token(token_type type) {
 /*
  * Fetch the current lexer state and throw an error.
  */
-TokenizeError NyanLexer::error(const std::string &msg) {
+TokenizeError Lexer::error(const std::string &msg) {
 	return TokenizeError{
-		NyanLocation{
+		Location{
 			this->file,
 			this->yylineno,
 			this->linepos - this->yyleng
@@ -82,19 +82,19 @@ TokenizeError NyanLexer::error(const std::string &msg) {
 }
 
 
-void NyanLexer::advance_linepos() {
+void Lexer::advance_linepos() {
 	this->linepos += this->yyleng;
 }
 
 
-void NyanLexer::reset_linepos() {
+void Lexer::reset_linepos() {
 	this->linepos = this->linepos_start;
 }
 
 /**
  * measure the indentation of a line
  */
-int NyanLexer::handle_indent(const char *line) {
+int Lexer::handle_indent(const char *line) {
 
 	// measure indent
 	int depth = 0;
@@ -148,9 +148,9 @@ int NyanLexer::handle_indent(const char *line) {
 }
 
 
-LexerError::LexerError(const NyanLocation &location,
+LexerError::LexerError(const Location &location,
                        const std::string &msg)
 	:
-	NyanFileError{location, msg} {}
+	FileError{location, msg} {}
 
 } // namespace nyan

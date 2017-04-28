@@ -1,4 +1,4 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #ifndef NYAN_NYAN_TOKEN_H_
 #define NYAN_NYAN_TOKEN_H_
 
@@ -9,7 +9,7 @@
 
 namespace nyan {
 
-class NyanFile;
+class File;
 
 /**
  * Available tokens
@@ -103,26 +103,26 @@ constexpr bool token_needs_payload(token_type type) {
 /**
  * These are spit out by the nyan lexer.
  */
-class NyanToken {
+class Token {
 public:
-	NyanToken();
-	NyanToken(const NyanFile &file,
+	Token();
+	Token(const File &file,
 	          int line,
 	          int line_offset,
 	          token_type type);
-	NyanToken(const NyanFile &file,
+	Token(const File &file,
 	          int line,
 	          int line_offset,
 	          token_type type,
 	          const std::string &value);
-	virtual ~NyanToken() = default;
+	virtual ~Token() = default;
 
 	std::string str() const;
 	bool exists() const;
 
 	const std::string &get() const;
 
-	NyanLocation location;
+	Location location;
 	token_type type;
 
 protected:
@@ -133,9 +133,9 @@ protected:
 /**
  * Tokenize failure
  */
-class TokenizeError : public NyanFileError {
+class TokenizeError : public FileError {
 public:
-	TokenizeError(const NyanLocation &location,
+	TokenizeError(const Location &location,
 	              const std::string &msg);
 	virtual ~TokenizeError() = default;
 };

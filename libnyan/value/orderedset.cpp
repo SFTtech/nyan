@@ -1,46 +1,46 @@
-// Copyright 2016-2016 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 
-#include "value_orderedset.h"
+#include "orderedset.h"
 
 #include "error.h"
 
 
 namespace nyan {
 
-NyanOrderedSet::NyanOrderedSet() {}
+OrderedSet::OrderedSet() {}
 
 
-NyanOrderedSet::NyanOrderedSet(std::vector<NyanValueContainer> &values) {
+OrderedSet::OrderedSet(std::vector<ValueContainer> &values) {
 	for (auto &value : values) {
 		this->values.add(std::move(value));
 	}
 }
 
 
-std::unique_ptr<NyanValue> NyanOrderedSet::copy() const {
-	throw NyanInternalError{"TODO ordered set copy"};
+std::unique_ptr<Value> OrderedSet::copy() const {
+	throw InternalError{"TODO ordered set copy"};
 }
 
 
-bool NyanOrderedSet::add(NyanValueContainer &&value) {
+bool OrderedSet::add(ValueContainer &&value) {
 	return this->values.add(std::move(value));
 }
 
 
-bool NyanOrderedSet::contains(NyanValue *value) {
+bool OrderedSet::contains(Value *value) {
 	return this->values.contains(value);
 }
 
 
-bool NyanOrderedSet::remove(NyanValue *value) {
-	throw NyanInternalError{"TODO ordered set remove"};
+bool OrderedSet::remove(Value *value) {
+	throw InternalError{"TODO ordered set remove"};
 }
 
 
-void NyanOrderedSet::apply_value(const NyanValue *value, nyan_op operation) {
-	const NyanOrderedSet *change = dynamic_cast<const NyanOrderedSet *>(value);
+void OrderedSet::apply_value(const Value *value, nyan_op operation) {
+	const OrderedSet *change = dynamic_cast<const OrderedSet *>(value);
 
-	throw NyanInternalError{"TODO"};
+	throw InternalError{"TODO"};
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
@@ -60,12 +60,12 @@ void NyanOrderedSet::apply_value(const NyanValue *value, nyan_op operation) {
 		break;
 
 	default:
-		throw NyanError{"unknown operation requested"};
+		throw Error{"unknown operation requested"};
 	}
 }
 
 
-std::string NyanOrderedSet::str() const {
+std::string OrderedSet::str() const {
 	std::ostringstream builder;
 	builder << "<";
 
@@ -83,7 +83,7 @@ std::string NyanOrderedSet::str() const {
 }
 
 
-std::string NyanOrderedSet::repr() const {
+std::string OrderedSet::repr() const {
 	std::ostringstream builder;
 	builder << "<";
 
@@ -101,7 +101,7 @@ std::string NyanOrderedSet::repr() const {
 }
 
 
-const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_basic_type value_type) const {
+const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(nyan_basic_type value_type) const {
 
 	if (not value_type.is_container()) {
 		return no_nyan_ops;
@@ -132,7 +132,7 @@ const std::unordered_set<nyan_op> &NyanOrderedSet::allowed_operations(nyan_basic
 }
 
 
-const nyan_basic_type &NyanOrderedSet::get_type() const {
+const nyan_basic_type &OrderedSet::get_type() const {
 	constexpr static nyan_basic_type type{
 		nyan_primitive_type::CONTAINER,
 		nyan_container_type::ORDEREDSET,
