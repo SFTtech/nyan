@@ -1,3 +1,3 @@
 # generated files
-nyan_flex_lexer.cpp
-nyan_flex_lexer.h
+flex_lexer.cpp
+flex_lexer.h
