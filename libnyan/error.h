@@ -1,6 +1,6 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
-#ifndef NYAN_NYAN_ERROR_H_
-#define NYAN_NYAN_ERROR_H_
+#pragma once
+
 
 #include <exception>
 #include <functional>
@@ -208,5 +208,3 @@ protected:
 };
 
 } // namespace nyan
-
-#endif

@@ -1,6 +1,6 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
-#ifndef NYAN_UTIL_H_
-#define NYAN_UTIL_H_
+#pragma once
+
 
 #include <functional>
 #include <iostream>
@@ -14,8 +14,8 @@
  * Branch prediction tuning.
  * The expression is expected to be true (=likely) or false (=unlikely).
  */
-#define likely(x)    __builtin_expect(!!(x), 1)
-#define unlikely(x)  __builtin_expect(!!(x), 0)
+
+
 
 namespace nyan {
 namespace util {
@@ -131,5 +131,3 @@ public:
 
 } // namespace util
 } // namespace nyan
-
-#endif

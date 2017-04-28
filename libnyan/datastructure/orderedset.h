@@ -1,6 +1,6 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
-#ifndef NYAN_ORDEREDSET_H_
-#define NYAN_ORDEREDSET_H_
+#pragma once
+
 
 #include <list>
 #include <unordered_map>
@@ -193,5 +193,3 @@ public:
 };
 
 }} // namespace nyan::datastructure
-
-#endif

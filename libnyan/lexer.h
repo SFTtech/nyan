@@ -1,6 +1,6 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
-#ifndef NYAN_LEXER_H_
-#define NYAN_LEXER_H_
+#pragma once
+
 
 #include <iostream>
 #include <sstream>
@@ -10,17 +10,17 @@
 
 // don't include the flex generated header if we come from the cpp file.
 // srsly fak u flex.
-#ifndef NYAN_LEXER_FUCK_YOU_FLEX
+#pragma once
 #  include "flex_lexer.h"
-#endif
+
 
 #include "error.h"
 #include "token.h"
 
 
 // number of spaces per indent
-#define SPACES_PER_INDENT 4
-#define SPACES_PER_INDENT_STR "4"
+
+
 
 namespace nyan {
 
@@ -128,5 +128,3 @@ public:
 
 
 } // namespace nyan
-
-#endif

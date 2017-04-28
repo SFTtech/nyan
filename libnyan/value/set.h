@@ -1,6 +1,6 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
-#ifndef NYAN_NYAN_VALUE_SET_H_
-#define NYAN_NYAN_VALUE_SET_H_
+#pragma once
+
 
 #include <unordered_set>
 
@@ -41,5 +41,3 @@ protected:
 };
 
 } // namespace nyan
-
-#endif

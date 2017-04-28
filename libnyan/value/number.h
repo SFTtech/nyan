@@ -1,6 +1,6 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
-#ifndef NYAN_NYAN_VALUE_NUMBER_H_
-#define NYAN_NYAN_VALUE_NUMBER_H_
+#pragma once
+
 
 #include "value.h"
 
@@ -47,5 +47,3 @@ using NyanInt = Number<int64_t>;
 using NyanFloat = Number<double>;
 
 } // namespace std
-
-#endif
