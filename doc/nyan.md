@@ -77,7 +77,7 @@ Requirements:
   * Data packs ship configuration data and game content as .nyan files
   * Mod Packs can change and extend existing information easily,
     by applying data "patches"
-  * Patches are applied whenever the libnyan user decides
+  * Patches are applied whenever the `libnyan` user decides
     when or where to do so
 * nyan is typesafe
   * The type of a member is stored when declaring it
@@ -134,15 +134,6 @@ Concept:
       and another parent defines it independently)
       * C3 is applied first (unifies members by a common parent)
       * Name conflicts must then resolved by manual qualification again
-* A mod API could be implemented as follows:
-  Create a `nyan::Object` named `Mod` that has a member with a set
-  of patches to apply
-  * To create a mod: Inherit from this `Mod` `nyan::Object` and
-    add patches to the set
-  * List the object name in an ordinary .conf-style file so the engine
-    knows the name and can query for it
-  * The game engine then applies the patches of that object at the
-    appropriate moment
 
 
 ### Syntax
@@ -594,10 +585,126 @@ way.
 
 ### API
 
-Create a `NyanDatabase` and feed `.nyan` files into it.
-Query for `NyanObjects` and apply `NyanObjects` as patch.
-Query a `NyanObject` for member values.
+A mod API could be implemented as follows: Create a `nyan::Object` named `Mod`
+that has a member with a set of patches to apply. To add new data to the engine,
+inherit from this `Mod`-object and add patches to the set. This `Mod`-object is
+registered to the engine with a mod description file.
 
+In practice, this could look like this:
+
+``` python
+# Engine API definition: engine.nyan
+
+Mod:
+    patches : orderedset(Patch)
+
+Unit:
+    hp : int
+    can_create : set(Unit) = {}
+
+CFG:
+    initial_buildings : set(Unit)
+    name : text
+
+StartConfigs:
+    # available start game configurations
+    available : set(CFG) = {}
+```
+
+``` python
+# Data pack: pack.nyan
+
+import engine
+
+Villager(engine.Unit):
+    hp = 100
+    can_create = {TownCenter}
+
+TownCenter(engine.Unit):
+    hp = 1500
+    can_create = {Villager}
+
+DefaultConfig(engine.CFG):
+    initial_buildings = {TownCenter}
+    name = "you'll start with a town center"
+
+DefaultMod(engine.Mod):
+    Activate<engine.StartConfigs>():
+        available += {DefaultConfig}
+
+    patches = {Activate}
+```
+
+Mod index file `pack.nfo`:
+``` cfg
+load: pack.nyan
+mod: pack.DefaultMod
+```
+
+In the Engine, the load procedure could be done like this:
+
+1. Load engine.nyan
+1. Read `pack.nfo`
+1. Load `pack.nyan`
+1. Apply "mod-activating" patches in `pack.DefaultMod`
+1. Let user select one of `engine.StartConfigs.available`
+1. Generate map with the `CFG.initial_buildings`
+1. Display creatable units for each initial building
+
+When the newly created villager is selected, it can build towncenters!
+
+``` cpp
+// init
+nyan::Database db;
+nyan::Store store = db.create_store();
+store.load("engine.nyan");
+
+// userdata loading
+ModInfo nfo = read_mod_file("pack.nfo");
+store.load(nfo.load);
+nyan::Object mod_obj = store.get(nfo.mod);
+if (not mod_obj.extends("engine.Mod")) { error(); }
+
+nyan::OrderedSet mod_patches = mod_obj.get<nyan::OrderedSet>("patches");
+
+// activation of userdata
+for (auto &patch : mod_patches) {
+    patch.apply_in(store);
+}
+
+// presentation of userdata
+for (auto &obj : store.get("engine.StartConfigs").get<nyan::Set>("available")) {
+    present_in_selection(obj);
+}
+
+nyan::Object selected_startconfig = evaluate_selection();
+
+// use result of ui-selection
+printf("generate map with config %s", selected_startconfig.get<nyan::Text>("name"));
+place_buildings(selected_startconfig.get<nyan::Set>("initial_buildings"));
+
+run_game();
+
+// to check if a unit is dead:
+for (auto &engine_unit : get_all_units()) {
+    nyan::Object unit_type = engine_unit.get_type();
+    float max_hp = unit_type.get<nyan::Int>("hp");
+    float damage = engine_unit.current_damage();
+    if (damage > max_hp) {
+        engine_unit.die();
+    }
+
+    engine_unit.update_hp_bar(max_hp - damage);
+}
+
+// to display what units a selected entity can build:
+nyan::Object selected = get_selected_object_type();
+if (selected.extends("engine.Unit")) {
+    for (auto &unit : selected.get<nyan::Set>("can_create")) {
+        display_can_create(unit);
+    }
+}
+```
 
 ## nyanc - the nyan compiler
 
