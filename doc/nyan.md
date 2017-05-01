@@ -643,7 +643,7 @@ mod: pack.DefaultMod
 
 In the Engine, the load procedure could be done like this:
 
-1. Load engine.nyan
+1. Load `engine.nyan`
 1. Read `pack.nfo`
 1. Load `pack.nyan`
 1. Apply "mod-activating" patches in `pack.DefaultMod`
@@ -668,12 +668,12 @@ if (not mod_obj.extends("engine.Mod")) { error(); }
 nyan::OrderedSet mod_patches = mod_obj.get<nyan::OrderedSet>("patches");
 
 // activation of userdata
-for (auto &patch : mod_patches) {
+for (auto &patch : mod_patches.items<nyan::Patch>()) {
     patch.apply_in(store);
 }
 
 // presentation of userdata
-for (auto &obj : store.get("engine.StartConfigs").get<nyan::Set>("available")) {
+for (auto &obj : store.get("engine.StartConfigs").get<nyan::Set>("available").items<nyan::Object>()) {
     present_in_selection(obj);
 }
 
@@ -1065,7 +1065,7 @@ TeleportMod(Mod):
   * Teleport is another movement variant, but the cooldown timer must be mixed in.
     After an ability was used, the engine checks if the `Ability` is a `CooldownAbility`,
     and then deactivates the ability for some time for that unit.
-    When the engine checks `Teleport.is_child_of(CooldownAbility)`,
+    When the engine checks `Teleport.extends(CooldownAbility)`,
     it is true and the timer routine will run.
 * Why is there an `instant` member of `Movement`?
   * The game engine must support movement without pathfinding, otherwise even
