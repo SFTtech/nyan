@@ -136,7 +136,7 @@ Dependencies, Building and Running
 
 All of those observations are intended, not bugs.
 
-To easily fix them, recompile with `--dont-segfault --shut-up --new-girlfriend`.
+To get rid of them, recompile with `--dont-segfault --shut-up --new-girlfriend`.
 
 
 If this still does not help, try the [contact section](#contact)
@@ -160,11 +160,13 @@ The documentation is also in this repo:
 Contact
 -------
 
-Most of the developers hang around on our **IRC** channel (`#sfttech` on `freenode.net`).
-Do not hesitate to ping us, we might not see your message otherwise.
+If you have the desire to perform semi-human interaction,
+join our **Matrix** or **IRC** chatroom!
 
-For all technical discussion (ideas, problems, ...), use the [issue tracker](https://github.com/SFTtech/nyan/issues)!
-It's like a mailing list.
+* [`#sfttech:matrix.org`](https://riot.im/app/#/room/#sfttech:matrix.org)
+* [`irc.freenode.net #sfttech`](https://webchat.freenode.net/?channels=sfttech)
+
+For ideas, problems, ..., use the [issue tracker](https://github.com/SFTtech/nyan/issues)!
 
 If it's a problem with the usage of **nyan** in **openage**, [head over there](https://github.com/SFTtech/openage).
 
