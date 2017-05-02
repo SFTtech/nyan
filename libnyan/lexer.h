@@ -8,10 +8,13 @@
 #include <vector>
 #include <queue>
 
-// don't include the flex generated header if we come from the cpp file.
-// srsly fak u flex.
-#pragma once
+// We can't include the flex header if this file is included
+// from the flex cpp file.
+// This is because flex can't include its own generated header
+// in its generated cpp file.
+#ifndef NYAN_LEXER_FUCK_YOU_FLEX
 #  include "flex_lexer.h"
+#endif
 
 
 #include "error.h"
@@ -19,7 +22,8 @@
 
 
 // number of spaces per indent
-
+#define SPACES_PER_INDENT 4
+#define SPACES_PER_INDENT_STR "4"
 
 
 namespace nyan {

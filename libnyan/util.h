@@ -14,7 +14,8 @@
  * Branch prediction tuning.
  * The expression is expected to be true (=likely) or false (=unlikely).
  */
-
+#define likely(x)    __builtin_expect(!!(x), 1)
+#define unlikely(x)  __builtin_expect(!!(x), 0)
 
 
 namespace nyan {

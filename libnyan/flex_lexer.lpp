@@ -12,6 +12,9 @@
 #include <tuple>
 #include <vector>
 
+// A flex-generated .cpp file can't include its
+// corresponding generated .h file.
+// This macro is used to block the inclusion.
 #ifndef NYAN_LEXER_FUCK_YOU_FLEX
 #define NYAN_LEXER_FUCK_YOU_FLEX 1
 #endif
@@ -21,14 +24,22 @@
 
 using namespace std::string_literals;
 
-// Go fuck yourself flex.
-// Why can't I change the method signature in a better
-// way when generating the c++ member function?
-// Customizing the type signature works in C, but you forgot
-// to update the C++ class member...
+// This is the name of the function that does the lexing.
+// It is stored in the .cpp file, and we have to perform a dirty
+// trick here to change the method signature:
+// We subclass the generated NyanFlexLexer class
+// with a new Lexer class, which has a member function
+// that we inject to be generated with flex.
+//
+// The method signature (here: return type) can't be changed in C++ mode as
+// flex does not update the member method signature in the C++ class.
 // %option yyclass="NyanFlexLexer" will fuck it up even more.
 #define YY_DECL void nyan::Lexer::generate_token()
 
+// As we worked around by declaring the lexer method to be
+// method of a completely different class,
+// we have to create a "dummy" implementation of the
+// yylex class member that flex doesn't update.
 #ifndef NyanHEADER_H
 int NyanFlexLexer::yylex() { return 0; }
 #endif
