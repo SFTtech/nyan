@@ -1,5 +1,11 @@
 # test nyan file
+
+Dummy():
+    ...
+
+
 First():
+    # a first object!
     member : int = 1
 
 FirstPatch<First>():

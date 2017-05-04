@@ -152,13 +152,14 @@ void ASTObject::ast_members(util::Iterator<Token> &tokens) {
 		if (token->type == token_type::ID) {
 			this->members.push_back(ASTMember(*token, tokens));
 		}
-		else if (token->type == token_type::PASS) {
+		else if (token->type == token_type::PASS or
+		         token->type == token_type::ELLIPSIS) {
 			// "empty" member entry.
 			token = tokens.next();
 			if (token->type != token_type::ENDLINE and
 			    token->type != token_type::ENDFILE) {
-				throw ASTError("expected newline after pass, but got",
-				               *token);
+				throw ASTError("expected newline after pass or '...', "
+				               "but got", *token);
 			}
 
 		} else {
@@ -455,13 +456,13 @@ void ASTMemberValue::strb(std::ostringstream &builder) const {
 		throw Error{"unhandled container type"};
 	}
 
-	bool first = true;
-	for (auto &value : values) {
-		if (not first) {
+	bool comma_active = false;
+	for (auto &value : this->values) {
+		if (comma_active) {
 			builder << ", ";
-			first = false;
 		}
 		builder << value.get();
+		comma_active = true;
 	}
 
 	switch (this->container_type) {

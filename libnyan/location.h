@@ -19,7 +19,7 @@ public:
 	Location() = default;
 	Location(const Token &token);
 	Location(const File &file, int line, int line_offset);
-	virtual ~Location() = default;
+	~Location() = default;
 
 	int get_line() const;
 	int get_line_offset() const;
@@ -32,6 +32,7 @@ protected:
 	const File *file;
 	int line;
 	int line_offset;
+	// TODO: range-locations
 };
 
 } // namespace nyan

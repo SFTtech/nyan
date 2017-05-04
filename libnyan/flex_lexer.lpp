@@ -101,9 +101,10 @@ float          -?{digit}+\.{digit}*
 "}"                     { this->token(nyan::token_type::RBRACE); return; }
 
 "pass"                  { this->token(nyan::token_type::PASS); return; }
+"..."                   { this->token(nyan::token_type::ELLIPSIS); return; }
 "import"                { this->token(nyan::token_type::IMPORT); return; }
 "from"                  { this->token(nyan::token_type::FROM); return; }
-"as"                    { this->token(nyan::token_type::FROM); return; }
+"as"                    { this->token(nyan::token_type::AS); return; }
 {punct}|{assignpunct}|[=] { this->token(nyan::token_type::OPERATOR); return; }
 {int}                   { this->token(nyan::token_type::INT); return; }
 {float}                 { this->token(nyan::token_type::FLOAT); return; }

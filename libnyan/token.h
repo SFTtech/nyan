@@ -21,6 +21,7 @@ enum class token_type {
 	DEDENT,
 	ENDFILE,
 	ENDLINE,
+	ELLIPSIS,
 	FLOAT,
 	FROM,
 	ID,
@@ -54,6 +55,7 @@ constexpr const char *token_type_str(token_type type) {
 	case token_type::COLON:          return "colon";
 	case token_type::COMMA:          return "comma";
 	case token_type::DEDENT:         return "dedentation";
+	case token_type::ELLIPSIS:       return "ellipsis";
 	case token_type::ENDFILE:        return "end of file";
 	case token_type::ENDLINE:        return "end of line";
 	case token_type::FLOAT:          return "float";
@@ -115,7 +117,7 @@ public:
 	          int line_offset,
 	          token_type type,
 	          const std::string &value);
-	virtual ~Token() = default;
+	~Token() = default;
 
 	std::string str() const;
 	bool exists() const;

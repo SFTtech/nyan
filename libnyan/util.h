@@ -84,6 +84,9 @@ std::string strjoin(const std::string &delim,
 /**
  * Python-yield like iterator for containers.
  * You can fetch the next value until nothing is left.
+ *
+ * The passed container is stored as reference only,
+ * so it must be kept owned in the outside.
  */
 template <typename T, typename containerT=std::vector<T>>
 class Iterator {
