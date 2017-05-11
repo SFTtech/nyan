@@ -595,18 +595,18 @@ In practice, this could look like this:
 ``` python
 # Engine API definition: engine.nyan
 
-Mod:
+Mod():
     patches : orderedset(Patch)
 
-Unit:
+Unit():
     hp : int
     can_create : set(Unit) = {}
 
-CFG:
+CFG():
     initial_buildings : set(Unit)
     name : text
 
-StartConfigs:
+StartConfigs():
     # available start game configurations
     available : set(CFG) = {}
 ```
