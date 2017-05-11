@@ -18,11 +18,12 @@ class Location {
 public:
 	Location() = default;
 	Location(const Token &token);
-	Location(const File &file, int line, int line_offset);
+	Location(const File &file, int line, int line_offset, int length=0);
 	~Location() = default;
 
 	int get_line() const;
 	int get_line_offset() const;
+	int get_length() const;
 
 	std::string get_line_content() const;
 
@@ -32,7 +33,7 @@ protected:
 	const File *file;
 	int line;
 	int line_offset;
-	// TODO: range-locations
+	int length;
 };
 
 } // namespace nyan

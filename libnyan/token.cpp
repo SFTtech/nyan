@@ -11,18 +11,18 @@ namespace nyan {
 
 
 Token::Token(const File &file,
-                     int line, int line_offset,
-                     token_type type)
+             int line, int line_offset, int length,
+             token_type type)
 	:
-	location{file, line, line_offset},
+	location{file, line, line_offset, length},
 	type{type} {}
 
 
 Token::Token(const File &file,
-                     int line, int line_offset,
-                     token_type type, const std::string &value)
+             int line, int line_offset, int length,
+             token_type type, const std::string &value)
 	:
-	location{file, line, line_offset},
+	location{file, line, line_offset, length},
 	type{type},
 	value{value} {}
 

@@ -176,9 +176,17 @@ std::string FileError::show_problem_origin() const {
 	std::ostringstream builder;
 
 	size_t offset = this->location.get_line_offset();
+	size_t length = this->location.get_length();
+	if (length > 0) {
+		length -= 1;
+	}
+	else {
+		length = 5;
+	}
 
 	builder << this->location.get_line_content() << std::endl
-	        << std::string(offset, ' ') << "\x1b[36;1m^~~~~~~\x1b[m";
+	        << std::string(offset, ' ') << "\x1b[36;1m^"
+	        << std::string(length, '~') << "\x1b[m";
 
 	return builder.str();
 }

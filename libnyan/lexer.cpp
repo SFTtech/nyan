@@ -53,6 +53,7 @@ void Lexer::token(token_type type) {
 			this->file,
 			this->yylineno,
 			this->linepos - this->yyleng,
+			this->yyleng,
 			type,
 			this->yytext
 		});
@@ -62,6 +63,7 @@ void Lexer::token(token_type type) {
 			this->file,
 			this->yylineno,
 			this->linepos - this->yyleng,
+			this->yyleng,
 			type
 		});
 	}
@@ -75,7 +77,8 @@ TokenizeError Lexer::error(const std::string &msg) {
 		Location{
 			this->file,
 			this->yylineno,
-			this->linepos - this->yyleng
+			this->linepos - this->yyleng,
+			this->yyleng
 		},
 		msg
 	};

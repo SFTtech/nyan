@@ -14,11 +14,12 @@ Location::Location(const Token &token)
 
 
 Location::Location(const File &file,
-                           int line, int line_offset)
+                   int line, int line_offset, int length)
 	:
 	file{&file},
 	line{line},
-	line_offset{line_offset} {}
+	line_offset{line_offset},
+	length{length} {}
 
 
 int Location::get_line() const {
@@ -28,6 +29,10 @@ int Location::get_line() const {
 
 int Location::get_line_offset() const {
 	return this->line_offset;
+}
+
+int Location::get_length() const {
+	return this->length;
 }
 
 

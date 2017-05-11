@@ -109,14 +109,16 @@ class Token {
 public:
 	Token();
 	Token(const File &file,
-	          int line,
-	          int line_offset,
-	          token_type type);
+	      int line,
+	      int line_offset,
+	      int length,
+	      token_type type);
 	Token(const File &file,
-	          int line,
-	          int line_offset,
-	          token_type type,
-	          const std::string &value);
+	      int line,
+	      int line_offset,
+	      int length,
+	      token_type type,
+	      const std::string &value);
 	~Token() = default;
 
 	std::string str() const;
