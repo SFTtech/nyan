@@ -76,8 +76,8 @@ protected:
 class Error : public std::runtime_error {
 public:
 	Error(const std::string &msg,
-	          bool generate_backtrace=true,
-	          bool store_cause=true);
+	      bool generate_backtrace=true,
+	      bool store_cause=true);
 	virtual ~Error() = default;
 
 	/**

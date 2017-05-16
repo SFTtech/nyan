@@ -39,7 +39,7 @@ public:
 	                                  token_type end) const;
 
 protected:
-	virtual void strb(std::ostringstream &builder) const = 0;
+	virtual void strb(std::ostringstream &builder, int indentlevel=0) const = 0;
 };
 
 
@@ -54,7 +54,7 @@ public:
 	ASTMemberType();
 	ASTMemberType(const Token &name, util::Iterator<Token> &tokens);
 
-	void strb(std::ostringstream &builder) const override;
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 
 protected:
 	bool exists;
@@ -77,7 +77,7 @@ public:
 	                   util::Iterator<Token> &tokens);
 	ASTMemberValue(const Token &token);
 
-	void strb(std::ostringstream &builder) const override;
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 
 protected:
 	bool exists;
@@ -95,7 +95,7 @@ class ASTMember : public ASTBase {
 public:
 	ASTMember(const Token &name, util::Iterator<Token> &tokens);
 
-	void strb(std::ostringstream &builder) const override;
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 
 protected:
 	Token name;
@@ -113,7 +113,7 @@ class ASTImport : public ASTBase {
 public:
 	ASTImport(const Token &name, util::Iterator<Token> &tokens);
 
-	void strb(std::ostringstream &builder) const override;
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 
 protected:
 	Token namespace_name;
@@ -134,7 +134,7 @@ public:
 	void ast_inheritance(util::Iterator<Token> &tokens);
 	void ast_members(util::Iterator<Token> &tokens);
 
-	void strb(std::ostringstream &builder) const override;
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 
 protected:
 	Token name;
@@ -142,6 +142,7 @@ protected:
 	std::vector<Token> inheritance_add;
 	std::vector<Token> inheritance;
 	std::vector<ASTMember> members;
+	std::vector<ASTObject> objects;
 };
 
 
@@ -153,8 +154,9 @@ class AST : public ASTBase {
 public:
 	AST(util::Iterator<Token> &tokens);
 
-	void strb(std::ostringstream &builder) const override;
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 	const std::vector<ASTObject> &get_objects() const;
+	const std::vector<ASTImport> &get_imports() const;
 
 protected:
 	std::vector<ASTImport> imports;

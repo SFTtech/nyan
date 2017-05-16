@@ -88,7 +88,10 @@ float          -?{digit}+\.{digit}*
 \"(\\.|[^\\"])*\"       { this->token(nyan::token_type::STRING); return; }
 \'(\\.|[^\\'])*\'       { this->token(nyan::token_type::STRING); return; }
 
-"\n"                    { this->token(nyan::token_type::ENDLINE);
+"\n"                    { /* don't assign the `\n` for the next line */
+                          this->yylineno--;
+                          this->token(nyan::token_type::ENDLINE);
+                          this->yylineno++;
                           this->reset_linepos(); return; }
 
 "("                     { this->token(nyan::token_type::LPAREN); return; }

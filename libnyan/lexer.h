@@ -16,14 +16,9 @@
 #  include "flex_lexer.h"
 #endif
 
-
+#include "config.h"
 #include "error.h"
 #include "token.h"
-
-
-// number of spaces per indent
-#define SPACES_PER_INDENT 4
-#define SPACES_PER_INDENT_STR "4"
 
 
 namespace nyan {
@@ -50,19 +45,69 @@ public:
 	Token get_next_token();
 
 protected:
+
+	class Bracket {
+	public:
+		/**
+		 * Known bracket types.
+		 */
+
+		Bracket(token_type type, int indent);
+
+		/** This bracket is directly followed by a newline. */
+		void doesnt_hang(int hanging_indent);
+
+		/** Was this bracket not directly followed by a newline? */
+		bool is_hanging() const;
+
+		/** Does this bracket match the given token type? */
+		bool matches(token_type type) const;
+
+		/** Return the expected content indentation level. */
+		int get_content_indent() const;
+
+		/** Return the expected closing bracket indent level. */
+		std::string get_closing_indent() const;
+
+		/** Check if the closing indent is ok. */
+		bool closing_indent_ok(int indent) const;
+
+		/** Return the visual representation of the expected bracket */
+		const char *matching_type_str() const;
+
+		/** convert the token type to bracket type */
+		static bracket_type to_type(token_type token);
+
+	protected:
+		/** expected closing bracket type */
+		token_type expected_match() const;
+
+		/**
+		 * Indentation level of the line this bracket was in.
+		 */
+		int indentation;
+
+		/**
+		 * Type of this opening bracket.
+		 */
+		bracket_type type;
+
+		/**
+		 * true if the indentation mode is "hanging",
+		 * that is, if a continuation must happen at the
+		 * indent level of this opening bracket.
+		 * The expected indentation level of contained content is stored
+		 * in the `indentation` member.
+		 */
+		bool hanging;
+	};
+
 	/**
 	 * Defined by the flex lexer generator.
 	 * Produces a token by reading the input.
 	 * Place the token in the queue.
 	 */
 	void generate_token();
-
-	/**
-	 * Measure the indentation of a line,
-	 * Generate indentation tokens.
-	 * Return the difference to the previous indent.
-	 */
-	int handle_indent(const char *line);
 
 	/**
 	 * Create a token with correct text position and value.
@@ -86,6 +131,19 @@ protected:
 	void reset_linepos();
 
 	/**
+	 * Indentation enforcement in parens requires to track
+	 * the open and closing parens `(<[{}]>)`.
+	 */
+	void track_brackets(token_type type, int token_start);
+
+	/**
+	 * Measure the indentation of a line,
+	 * Generate indentation tokens.
+	 * Return the difference to the previous indent.
+	 */
+	void handle_indent(const char *line);
+
+	/**
 	 * The default line positon at the very beginning of one line.
 	 */
 	static constexpr int linepos_start = 0;
@@ -94,6 +152,27 @@ protected:
 	 * The indentation stack remembers the levels of indent.
 	 */
 	std::vector<int> indent_stack;
+
+	/**
+	 * The bracket stack remembers current open positions
+	 * of `(<[{}]>)`.
+	 */
+	std::vector<Bracket> bracket_stack;
+
+	/**
+	 * Set to true when a opening bracket was encountered.
+	 * If it is true and the next token is a newline,
+	 * the bracket is hanging.
+	 * It will be set to false when the token after a opening
+	 * bracket was processed.
+	 */
+	bool possibly_hanging;
+
+	/**
+	 * True when the indentation in brackets doesn't match.
+	 * This is only the case when for a closing bracket.
+	 */
+	bool bracketcloseindent_expected;
 
 	/**
 	 * Filename used for tokenization.

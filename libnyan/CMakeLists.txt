@@ -23,6 +23,7 @@ include_directories(
 add_library(nyan SHARED
 	flex_lexer.cpp
 	ast.cpp
+	config.cpp
 	container.cpp
 	database.cpp
 	datastructure/orderedset.cpp

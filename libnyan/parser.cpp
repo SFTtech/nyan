@@ -38,6 +38,8 @@ std::vector<Object *> Parser::parse(const File &file) {
 	// create ast from tokens
 	AST root = this->create_ast(tokens);
 
+	std::cout << root.str() << std::endl;
+
 	// create objects from tokens
 	std::vector<Object *> ret = this->create_objects(root);
 

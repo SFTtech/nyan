@@ -12,7 +12,7 @@ namespace nyan {
 class File;
 
 /**
- * Available tokens
+ * Available token types.
  */
 enum class token_type {
 	AS,
@@ -33,7 +33,6 @@ enum class token_type {
 	LBRACE,
 	LBRACKET,
 	LPAREN,
-	MISSING,
 	OPERATOR,
 	PASS,
 	RANGLE,
@@ -42,6 +41,17 @@ enum class token_type {
 	RPAREN,
 	STRING,
 };
+
+/**
+ * Known bracket types.
+ */
+enum class bracket_type {
+	PAREN,
+	ANGLE,
+	BRACKET,
+	BRACE,
+};
+
 
 /**
  * Text representations of the token types.
@@ -65,17 +75,16 @@ constexpr const char *token_type_str(token_type type) {
 	case token_type::INDENT:         return "indentation";
 	case token_type::INT:            return "int";
 	case token_type::INVALID:        return "invalid";
-	case token_type::LANGLE:         return "<";
-	case token_type::LBRACE:         return "{";
-	case token_type::LBRACKET:       return "[";
-	case token_type::LPAREN:         return "(";
-	case token_type::MISSING:        return "missing";
+	case token_type::LANGLE:         return "'<'";
+	case token_type::LBRACE:         return "'{'";
+	case token_type::LBRACKET:       return "'['";
+	case token_type::LPAREN:         return "'('";
 	case token_type::OPERATOR:       return "operator";
 	case token_type::PASS:           return "pass";
-	case token_type::RANGLE:         return ">";
-	case token_type::RBRACE:         return "}";
-	case token_type::RBRACKET:       return "]";
-	case token_type::RPAREN:         return ")";
+	case token_type::RANGLE:         return "'>'";
+	case token_type::RBRACE:         return "'}'";
+	case token_type::RBRACKET:       return "']'";
+	case token_type::RPAREN:         return "')'";
 	case token_type::STRING:         return "string";
 	}
 
