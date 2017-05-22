@@ -375,6 +375,8 @@ the calculation is done like this:
     * keep only those keys: `&= {k, k, ..}`, `&= {k: v, ..}`
   * `nyan::Object` reference:
     * `=` set the reference to some other `nyan::Object`
+    * This reference must not be non-abstract (i.e. all members
+      have a value defined)
 
 
 ### Namespaces, imports and forward declarations
