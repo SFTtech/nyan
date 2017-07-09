@@ -8,15 +8,11 @@
 
 namespace nyan {
 
-Lexer::Lexer(const File &file)
+Lexer::Lexer(const std::shared_ptr<File> &file)
 	:
 	NyanFlexLexer{},
-	possibly_hanging{false},
-	bracketcloseindent_expected{false},
 	file{file},
-	input{file.get()},
-	linepos{linepos_start},
-	finished{false} {
+	input{file->get_content()} {
 
 	// set the input stream in the flex class
 	this->switch_streams(&this->input, nullptr);
@@ -24,6 +20,7 @@ Lexer::Lexer(const File &file)
 	// The base indentation is zero of course.
 	this->indent_stack.push_back(0);
 }
+
 
 /*
  * Generate tokens until the queue has on available to return.
@@ -33,9 +30,11 @@ Token Lexer::get_next_token() {
 	if (this->finished) {
 		throw this->error("requested token but at EOF");
 	}
+
 	if (this->tokens.empty()) {
 		this->generate_token();
 	}
+
 	while (not this->tokens.empty()) {
 		auto ret = this->tokens.front();
 		this->tokens.pop();
@@ -147,6 +146,14 @@ token_type Lexer::Bracket::expected_match() const {
 	}
 
 	return expected;
+}
+
+
+void Lexer::endline() {
+	this->yylineno--;
+	this->token(token_type::ENDLINE);
+	this->yylineno++;
+	this->reset_linepos();
 }
 
 

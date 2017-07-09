@@ -10,37 +10,37 @@ namespace nyan {
 OrderedSet::OrderedSet() {}
 
 
-OrderedSet::OrderedSet(std::vector<ValueContainer> &values) {
+OrderedSet::OrderedSet(std::vector<ValueHolder> &&values) {
 	for (auto &value : values) {
 		this->values.add(std::move(value));
 	}
 }
 
 
-std::unique_ptr<Value> OrderedSet::copy() const {
+ValueHolder OrderedSet::copy() const {
 	throw InternalError{"TODO ordered set copy"};
 }
 
 
-bool OrderedSet::add(ValueContainer &&value) {
-	return this->values.add(std::move(value));
+bool OrderedSet::add(const ValueHolder &value) {
+	return this->values.add(value);
 }
 
 
-bool OrderedSet::contains(Value *value) {
+bool OrderedSet::contains(const ValueHolder &value) {
 	return this->values.contains(value);
 }
 
 
-bool OrderedSet::remove(Value *value) {
+bool OrderedSet::remove(const ValueHolder &value) {
 	throw InternalError{"TODO ordered set remove"};
 }
 
 
-void OrderedSet::apply_value(const Value *value, nyan_op operation) {
-	const OrderedSet *change = dynamic_cast<const OrderedSet *>(value);
+void OrderedSet::apply_value(const Value &value, nyan_op operation) {
+	const OrderedSet &change = dynamic_cast<const OrderedSet &>(value);
 
-	throw InternalError{"TODO"};
+	throw InternalError{"TODO orderedset apply value"};
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
@@ -101,9 +101,9 @@ std::string OrderedSet::repr() const {
 }
 
 
-const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(nyan_basic_type value_type) const {
+const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(const Type &with_type) const {
 
-	if (not value_type.is_container()) {
+	if (not with_type.is_container()) {
 		return no_nyan_ops;
 	}
 
@@ -119,11 +119,11 @@ const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(nyan_basic_typ
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
-	switch (value_type.container_type) {
-	case nyan_container_type::SET:
+	switch (with_type.get_container_type()) {
+	case container_t::SET:
 		return set_ops;
 
-	case nyan_container_type::ORDEREDSET:
+	case container_t::ORDEREDSET:
 		return orderedset_ops;
 
 	default:
@@ -132,10 +132,10 @@ const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(nyan_basic_typ
 }
 
 
-const nyan_basic_type &OrderedSet::get_type() const {
-	constexpr static nyan_basic_type type{
-		nyan_primitive_type::CONTAINER,
-		nyan_container_type::ORDEREDSET,
+const BasicType &OrderedSet::get_type() const {
+	constexpr static BasicType type{
+		primitive_t::CONTAINER,
+		container_t::ORDEREDSET,
 	};
 
 	return type;

@@ -10,34 +10,37 @@
 
 namespace nyan {
 
+/** datatype used for ordered set storage */
+using set_t = std::unordered_set<ValueHolder>;
+
+
 /**
  * Value to store a unordered set of things.
  */
 class Set
-	: public SetBase<std::unordered_set<ValueContainer>> {
+	: public SetBase<set_t> {
 
 	// fetch the constructors
-	using SetBase<
-		std::unordered_set<ValueContainer>>::SetBase;
+	using SetBase<set_t>::SetBase;
 
 public:
 	Set();
-	Set(std::vector<ValueContainer> &values);
+	Set(std::vector<ValueHolder> &&values);
 
 	std::string str() const override;
 	std::string repr() const override;
 
-	std::unique_ptr<Value> copy() const override;
+	ValueHolder copy() const override;
 
-	bool add(ValueContainer &&value) override;
-	bool contains(Value *value) override;
-	bool remove(Value *value) override;
+	bool add(const ValueHolder &value) override;
+	bool contains(const ValueHolder &value) override;
+	bool remove(const ValueHolder &value) override;
 
-	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
-	const nyan_basic_type &get_type() const override;
+	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
+	const BasicType &get_type() const override;
 
 protected:
-	void apply_value(const Value *value, nyan_op operation) override;
+	void apply_value(const Value &value, nyan_op operation) override;
 };
 
 } // namespace nyan

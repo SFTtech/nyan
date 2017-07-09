@@ -44,7 +44,7 @@ public:
 	/**
 	 * Return the file content.
 	 */
-	const std::string &get() const;
+	const std::string &get_content() const;
 
 	/**
 	 * Return the given line number of the file.
@@ -70,6 +70,11 @@ public:
 	size_t size() const;
 
 protected:
+	/**
+	 * Create line_info entries from the file content.
+	 */
+	void extract_lines();
+
 	std::string name;
 	std::string data;
 

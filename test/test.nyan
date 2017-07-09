@@ -3,7 +3,6 @@
 Dummy():
     ...
 
-
 First():
     # a first object!
     member : int = 1
@@ -11,25 +10,21 @@ First():
 FirstPatch<First>():
     member += 3
 
-Second():
+Second(First):
     pass
 
-NestingBase(asdf,
-            gschicht):
+NestingBase(First):
 
+    setmember : set(int) = {1,2,3,4,
+                            5,6,7,}
 
-    member : set(int) = {1,2,3,4,
-                         5,6,7,}
+    member = 2
 
-    SomeChild(wtf,
-              lol):
+    SomeChild(Dummy):
         pass
 
-    AnotherChild(
-        wtf,
-        lol
-    ):
-        member : set(int) = {
+    AnotherChild(SomeChild):
+        setmember : set(int) = {
             1,2,3,
             4,5,6
         }
@@ -37,19 +32,22 @@ NestingBase(asdf,
     anothermember : set(int) = {1,2,
                                 3,4,5}
 
-Third(Second):
+Third(First):
     rolf : int = 42
+    dieter : set(First) = {First}
 
-Test(First):
+Test(Second):
     member += 1337
     stuff : Second = Third
-    gschicht : int
+    gschicht : int = 0
 
-Patch<Test>():
-    ie : Second
+NewParent():
+    new_value : int = 0
+
+Patch<Test>[+NewParent]():
     moarstuff : int = 10
     gschicht = 235
-    wtf : float = 13374242.0
+    wtf : float = 13374242.0   # patching new members is disallowed!
 
 PatchPatch<Patch>():
     member += 15
@@ -57,15 +55,22 @@ PatchPatch<Patch>():
 
 SetTest():
     member : set(int) = {1, 1, 2, 3, 1}
+    # o{} for orderedset
     orderedmember : orderedset(int) += <1, 2, 3, 1, 2, 3, 2>
 
+# importing!
+import imported as imp
+import stuff.file
 
-# unit example
-Unit():
-    hp : int = 0
+import test
 
-Villager(Unit):
-    hp += 20
+UseImported(imp.ImportedObject):
+    it_works += 10
 
-UPatch<Unit>():
-    hp += 10
+Bla():
+    AnotherTest<test.Bla>():
+        ...
+
+    Test<imp.ImportedObject>():
+        ...
+    ...

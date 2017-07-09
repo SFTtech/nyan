@@ -17,6 +17,8 @@
 #define likely(x)    __builtin_expect(!!(x), 1)
 #define unlikely(x)  __builtin_expect(!!(x), 0)
 
+#define BREAKPOINT asm("int $3")
+
 
 namespace nyan {
 namespace util {
@@ -62,8 +64,8 @@ std::string symbol_name(const void *addr, bool require_exact_addr=true, bool no_
  */
 template <typename T>
 std::string strjoin(const std::string &delim,
-                    const std::vector<T> &container,
-                    const std::function<const std::string(const T &)> func=[](const T &in) {return in;}) {
+                    const T &container,
+                    const std::function<std::string(const typename T::value_type &)> func=[](const typename T::value_type &in) -> std::string {return in;}) {
 
 	std::ostringstream builder;
 
@@ -82,56 +84,66 @@ std::string strjoin(const std::string &delim,
 
 
 /**
- * Python-yield like iterator for containers.
- * You can fetch the next value until nothing is left.
- *
- * The passed container is stored as reference only,
- * so it must be kept owned in the outside.
+ * Split a string at a delimiter, push the result back in an iterator.
+ * Why doesn't the fucking standard library have std::string::split(delimiter)?
  */
-template <typename T, typename containerT=std::vector<T>>
-class Iterator {
-public:
-	Iterator(const containerT &container)
-		:
-		container{container},
-		iter{std::begin(container)},
-		reinserted{nullptr} {}
+template<typename ret_t>
+void split(const std::string &txt, char delimiter, ret_t result) {
+	std::stringstream splitter;
+	splitter.str(txt);
+	std::string part;
 
-	virtual ~Iterator() = default;
-
-	const containerT &container;
-	const std::string source;
-	typename containerT::const_iterator iter;
-	const T *reinserted;
-
-	const T *next() {
-		if (this->reinserted != nullptr) {
-			const T *ret = this->reinserted;
-			this->reinserted = nullptr;
-			return ret;
-		}
-
-		if (not this->full()) {
-			throw Error{"requested item from empty list"};
-		}
-
-		auto ret = &(*this->iter);
-		this->iter = std::next(this->iter);
-		return ret;
+	while (std::getline(splitter, part, delimiter)) {
+		*result = part;
+		result++;
 	}
+}
 
-	bool full() const {
-		return this->iter != std::end(this->container);
-	}
 
-	bool empty() const {
-		return not this->full();
-	}
+/**
+ * Split a string at a delimiter into a vector.
+ * Internally, uses the above iterator splitter.
+ */
+std::vector<std::string> split(const std::string &txt, char delim);
 
-	void reinsert(const T *item) {
-		this->reinserted = item;
+
+/**
+ * Check if the given string ends with the ending.
+ */
+bool ends_with(const std::string &txt, const std::string &end);
+
+
+/**
+ * Extend a vector with elements, without destroying source one.
+ */
+template <typename T>
+void vector_extend(std::vector<T> &vec, const std::vector<T> &ext) {
+	vec.reserve(vec.size() + ext.size());
+	vec.insert(std::end(vec), std::begin(ext), std::end(ext));
+}
+
+
+/*
+ * Extend a vector with elements with move semantics.
+ */
+template <typename T>
+void vector_extend(std::vector<T> &vec, std::vector<T> &&ext) {
+	if (vec.empty()) {
+		vec = std::move(ext);
 	}
-};
+	else {
+		vec.reserve(vec.size() + ext.size());
+		std::move(std::begin(ext), std::end(ext), std::back_inserter(vec));
+		ext.clear();
+	}
+}
+
+
+/**
+ * Creates a hash value as a combination of two other hashes. Can be called incrementally to create
+ * hash value from several variables.
+ */
+size_t hash_combine(size_t hash1, size_t hash2);
 
 } // namespace util
 } // namespace nyan

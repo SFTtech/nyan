@@ -16,9 +16,11 @@ class File;
  */
 enum class token_type {
 	AS,
+	AT,
 	COLON,
 	COMMA,
 	DEDENT,
+	DOT,
 	ENDFILE,
 	ENDLINE,
 	ELLIPSIS,
@@ -62,9 +64,11 @@ constexpr const char *token_type_str(token_type type) {
 
 	switch (type) {
 	case token_type::AS:             return "as";
+	case token_type::AT:             return "@";
 	case token_type::COLON:          return "colon";
 	case token_type::COMMA:          return "comma";
 	case token_type::DEDENT:         return "dedentation";
+	case token_type::DOT:            return "dot";
 	case token_type::ELLIPSIS:       return "ellipsis";
 	case token_type::ENDFILE:        return "end of file";
 	case token_type::ENDLINE:        return "end of line";
@@ -117,12 +121,12 @@ constexpr bool token_needs_payload(token_type type) {
 class Token {
 public:
 	Token();
-	Token(const File &file,
+	Token(const std::shared_ptr<File> &file,
 	      int line,
 	      int line_offset,
 	      int length,
 	      token_type type);
-	Token(const File &file,
+	Token(const std::shared_ptr<File> &file,
 	      int line,
 	      int line_offset,
 	      int length,
@@ -140,17 +144,6 @@ public:
 
 protected:
 	std::string value;
-};
-
-
-/**
- * Tokenize failure
- */
-class TokenizeError : public FileError {
-public:
-	TokenizeError(const Location &location,
-	              const std::string &msg);
-	virtual ~TokenizeError() = default;
 };
 
 } // namespace nyan

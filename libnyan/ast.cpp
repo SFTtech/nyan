@@ -14,6 +14,47 @@ using namespace std::string_literals;
 namespace nyan {
 
 
+void comma_list(token_type end,
+                TokenStream &tokens,
+                const std::function<void(const Token &, TokenStream &)> &func) {
+
+	auto token = tokens.next();
+	bool comma_expected = false;
+
+	// add identifiers until the expected end token is reached.
+	while (true) {
+		if (token->type == token_type::ENDLINE) {
+			token = tokens.next();
+			continue;
+		}
+		else if (token->type == end) {
+			break;
+		}
+		else if (token->type == token_type::COMMA) {
+			if (comma_expected) {
+				token = tokens.next();
+				comma_expected = false;
+				continue;
+			}
+			else {
+				throw ASTError{"expecting value, but got", *token};
+			}
+		}
+		else if (comma_expected) {
+			throw ASTError{"expected comma, but got", *token};
+		}
+
+		// value encountered, now process it.
+		func(*token, tokens);
+
+		comma_expected = true;
+
+		// now the container is over, or a comma must follow
+		token = tokens.next();
+	}
+}
+
+
 std::string ASTBase::str() const {
 	std::ostringstream builder;
 	this->strb(builder);
@@ -26,10 +67,18 @@ const std::vector<ASTObject> &AST::get_objects() const {
 }
 
 
-AST::AST(util::Iterator<Token> &tokens) {
+const std::vector<ASTImport> &AST::get_imports() const {
+	return this->imports;
+}
+
+
+AST::AST(TokenStream &tokens) {
 	while (tokens.full()) {
 		auto token = tokens.next();
-		if (token->type == token_type::ID) {
+		if (token->type == token_type::IMPORT) {
+			this->imports.push_back(ASTImport{tokens});
+		}
+		else if (token->type == token_type::ID) {
 			this->objects.push_back(ASTObject{*token, tokens});
 		}
 		else if (token->type == token_type::ENDFILE) {
@@ -47,8 +96,49 @@ AST::AST(util::Iterator<Token> &tokens) {
 	}
 }
 
+
+ASTImport::ASTImport(TokenStream &tokens) {
+	auto token = tokens.next();
+
+	if (token->type == token_type::ID) {
+		this->namespace_name = IDToken{*token, tokens};
+	} else {
+		throw ASTError("expected namespace name to import, encountered", *token);
+	}
+
+	token = tokens.next();
+	if (token->type == token_type::AS) {
+		token = tokens.next();
+
+		if (token->type != token_type::ID) {
+			throw ASTError{"expected namespace alias identifier, but encountered", *token};
+		}
+		this->alias = *token;
+		token = tokens.next();
+	}
+
+	if (token->type != token_type::ENDLINE) {
+		throw ASTError("newline expected after import, there is", *token);
+	}
+}
+
+const IDToken &ASTImport::get() const {
+	return this->namespace_name;
+}
+
+
+bool ASTImport::has_alias() const {
+	return (this->alias.get().size() > 0);
+}
+
+
+const Token &ASTImport::get_alias() const {
+	return this->alias;
+}
+
+
 ASTObject::ASTObject(const Token &name,
-                     util::Iterator<Token> &tokens)
+                     TokenStream &tokens)
 	:
 	name{name} {
 
@@ -65,7 +155,7 @@ ASTObject::ASTObject(const Token &name,
 	}
 
 	if (token->type == token_type::LPAREN) {
-		this->ast_inheritance(tokens);
+		this->ast_parents(tokens);
 	} else {
 		throw ASTError("create the object with (), i got", *token);
 	}
@@ -88,10 +178,11 @@ ASTObject::ASTObject(const Token &name,
 	this->ast_members(tokens);
 }
 
-void ASTObject::ast_targets(util::Iterator<Token> &tokens) {
+
+void ASTObject::ast_targets(TokenStream &tokens) {
 	auto token = tokens.next();
 	if (token->type == token_type::ID) {
-		this->target = *token;
+		this->target = IDToken{*token, tokens};
 	}
 	else {
 		throw ASTError("expected identifier, encountered", *token);
@@ -104,7 +195,8 @@ void ASTObject::ast_targets(util::Iterator<Token> &tokens) {
 	}
 }
 
-void ASTObject::ast_inheritance_mod(util::Iterator<Token> &tokens) {
+
+void ASTObject::ast_inheritance_mod(TokenStream &tokens) {
 	bool expect_comma = false;
 	auto token = tokens.next();
 
@@ -117,35 +209,75 @@ void ASTObject::ast_inheritance_mod(util::Iterator<Token> &tokens) {
 			throw ASTError("expected comma, encountered", *token);
 		}
 
-		nyan_op action = op_from_token(*token);
-
-		if (action != nyan_op::ADD) {
-			throw ASTError("expected + operator,"
-			               "instead got: '"s + token->get() +
-			               "' when using", *token);
+		if (token->type != token_type::OPERATOR) {
+			throw ASTError("expected operator, encountered", *token);
 		}
+
+		auto inheritance_op = token;
+		nyan_op action = op_from_token(*inheritance_op);
+
+		// currently, only inheritance parent adding is supported
+		if (action != nyan_op::ADD) {
+			throw ASTError{
+				"expected + operator,"
+				"instead got: '"s + op_to_string(action) +
+				"' when using",
+				*inheritance_op
+			};
+		}
+
 		token = tokens.next();
 
-		// add parent
-		if (token->type == token_type::ID) {
-			if (action == nyan_op::ADD) {
-				this->inheritance_add.push_back(*token);
-			}
-			expect_comma = true;
-		}
-		else {
+		if (token->type != token_type::ID) {
 			throw ASTError("expected identifier, encountered", *token);
 		}
 
+		switch (action) {
+		case nyan_op::ADD:
+			this->inheritance_add.push_back(IDToken{*token, tokens});
+			break;
+		default:
+			std::cout << inheritance_op->str() << std::endl;
+			throw ASTError{
+				"unknown inheritance modification"s + op_to_string(action),
+				*inheritance_op,
+				false
+			};
+		}
+
+		expect_comma = true;
 		token = tokens.next();
 	}
 }
 
-void ASTObject::ast_inheritance(util::Iterator<Token> &tokens) {
-	this->inheritance = this->comma_list(tokens, token_type::RPAREN);
+
+void ASTObject::ast_parents(TokenStream &tokens) {
+	auto token = tokens.next();
+	if (token->type == token_type::RPAREN) {
+		return;
+	}
+
+	if (token->type == token_type::ENDLINE) {
+		token = tokens.next();
+	}
+
+	if (token->type != token_type::ID) {
+		throw ASTError("expected inheritance parent identifier, but there is", *token);
+	}
+
+	tokens.reinsert(token);
+
+	comma_list(
+		token_type::RPAREN,
+		tokens,
+		[this] (const Token &token, TokenStream &stream) {
+			this->parents.push_back(IDToken{token, stream});
+		}
+	);
 }
 
-void ASTObject::ast_members(util::Iterator<Token> &tokens) {
+
+void ASTObject::ast_members(TokenStream &tokens) {
 	auto token = tokens.next();
 
 	while (token->type != token_type::DEDENT and
@@ -170,6 +302,7 @@ void ASTObject::ast_members(util::Iterator<Token> &tokens) {
 				object_next = true;
 			}
 			else {
+				// don't think this will ever happen, right?
 				throw ASTError("could not identify member or nested object defintion "
 				               "after", *token);
 			}
@@ -187,15 +320,18 @@ void ASTObject::ast_members(util::Iterator<Token> &tokens) {
 		         token->type == token_type::ELLIPSIS) {
 			// "empty" member entry.
 			token = tokens.next();
-			if (token->type != token_type::ENDLINE and
-			    token->type != token_type::ENDFILE) {
+			if (token->type != token_type::ENDLINE) {
 				throw ASTError("expected newline after pass or '...', "
 				               "but got", *token);
 			}
-
-		} else {
+		}
+		else {
 			throw ASTError("expected member or object identifier, "
 			               "instead got", *token);
+		}
+
+		if (tokens.empty()) {
+			throw Error{"reached end of file!"};
 		}
 
 		token = tokens.next();
@@ -203,15 +339,26 @@ void ASTObject::ast_members(util::Iterator<Token> &tokens) {
 }
 
 
+const Token &ASTObject::get_name() const {
+	return this->name;
+}
+
+
+const std::vector<ASTObject> &ASTObject::get_objects() const {
+	return this->objects;
+}
+
+
+
 ASTMember::ASTMember(const Token &name,
-                     util::Iterator<Token> &tokens)
-	:
-	name{name} {
+                     TokenStream &tokens) {
+
+	this->name = IDToken{name, tokens};
 
 	auto token = tokens.next();
 	bool had_def_or_decl = false;
 
-	// type specifier (the ": text" etc part)
+	// type specifier (the ": typename" part)
 	if (token->type == token_type::COLON) {
 		token = tokens.next();
 
@@ -237,14 +384,15 @@ ASTMember::ASTMember(const Token &name,
 
 		if (token->type == token_type::LANGLE or
 		    token->type == token_type::LBRACE) {
-			// multi-value container
 
-			nyan_container_type ctype;
-			if (token->type == token_type::LANGLE) {
-				ctype = nyan_container_type::ORDEREDSET;
-			} else if (token->type == token_type::LBRACE) {
-				ctype = nyan_container_type::SET;
-			} else {
+			// multi-value container
+			container_t ctype;
+			switch (token->type) {
+			case token_type::LANGLE:
+				ctype = container_t::ORDEREDSET; break;
+			case token_type::LBRACE:
+				ctype = container_t::SET; break;
+			default:
 				throw Error{"unhandled multi value container type"};
 			}
 
@@ -252,7 +400,7 @@ ASTMember::ASTMember(const Token &name,
 		}
 		else {
 			// single-value
-			this->value = ASTMemberValue{*token};
+			this->value = ASTMemberValue{IDToken{*token, tokens}};
 		}
 
 		had_def_or_decl = true;
@@ -275,22 +423,24 @@ ASTMember::ASTMember(const Token &name,
 
 ASTMemberType::ASTMemberType()
 	:
-	exists{false},
+	does_exist{false},
 	has_payload{false} {}
 
 
 ASTMemberType::ASTMemberType(const Token &name,
-                             util::Iterator<Token> &tokens)
+                             TokenStream &tokens)
 	:
-	exists{true},
-	name{name},
+	does_exist{true},
 	has_payload{false} {
 
+	this->name = IDToken{name, tokens};
+
+	// now there may follow a type payload, e.g. set(payloadtype)
 	auto token = tokens.next();
 	if (token->type == token_type::LPAREN) {
 		token = tokens.next();
 		if (token->type == token_type::ID) {
-			this->payload = *token;
+			this->payload = IDToken{*token, tokens};
 			this->has_payload = true;
 		}
 		else {
@@ -308,85 +458,74 @@ ASTMemberType::ASTMemberType(const Token &name,
 }
 
 
+bool ASTMemberType::exists() const {
+	return this->does_exist;
+}
+
+
 ASTMemberValue::ASTMemberValue()
 	:
-	exists{false} {}
+	does_exist{false} {}
 
 
-ASTMemberValue::ASTMemberValue(const Token &token)
+ASTMemberValue::ASTMemberValue(const IDToken &value)
 	:
-	exists{true},
-	container_type{nyan_container_type::SINGLE} {
+	does_exist{true},
+	container_type{container_t::SINGLE} {
 
-	this->values.push_back(token);
+	this->values.push_back(value);
 }
 
 
-ASTMemberValue::ASTMemberValue(nyan_container_type type,
-                               util::Iterator<Token> &tokens)
+ASTMemberValue::ASTMemberValue(container_t type,
+                               TokenStream &tokens)
 	:
-	exists{true},
+	does_exist{true},
 	container_type{type} {
 
-	if (this->container_type == nyan_container_type::SET) {
-		this->values = this->comma_list(tokens, token_type::RBRACE);
+	token_type end_token;
+
+	switch (this->container_type) {
+	case container_t::SET:
+		end_token = token_type::RBRACE; break;
+	case container_t::ORDEREDSET:
+		end_token = token_type::RANGLE; break;
+	case container_t::SINGLE:
+		throw Error{"wrong constructor called for single-element container"};
 	}
-	else if (this->container_type == nyan_container_type::ORDEREDSET) {
-		this->values = this->comma_list(tokens, token_type::RANGLE);
-	}
+
+	comma_list(
+		end_token,
+		tokens,
+		[this] (const Token &token, TokenStream &stream) {
+			this->values.push_back(IDToken{token, stream});
+		}
+	);
 }
 
 
-std::vector<Token> ASTBase::comma_list(util::Iterator<Token> &tokens,
-                                       token_type end) const {
-
-	std::vector<Token> ret;
-
-	auto token = tokens.next();
-	bool comma_expected = false;
-
-	// add values until the matching parenthesis
-	while (true) {
-		if (token->type == token_type::ENDLINE) {
-			token = tokens.next();
-			continue;
-		}
-		else if (token->type == end) {
-			break;
-		}
-		else if (token->type == token_type::COMMA) {
-			if (comma_expected) {
-				token = tokens.next();
-				comma_expected = false;
-				continue;
-			}
-			else {
-				throw ASTError{"expecting value, but got", *token};
-			}
-		}
-		else if (comma_expected) {
-			throw ASTError{"expected comma, but got", *token};
-		}
-
-		ret.push_back(*token);
-		comma_expected = true;
-
-		// now the container is over, or a comma must follow
-		token = tokens.next();
-	}
-
-	return ret;
+bool ASTMemberValue::exists() const {
+	// the size of this->values doesn't matter, as the value could be an empty set.
+	return this->does_exist;
 }
 
 
-void indenter(std::ostringstream &builder, int indentlevel) {
+const std::vector<IDToken> &ASTMemberValue::get_values() const {
+	return this->values;
+}
+
+
+const container_t &ASTMemberValue::get_container_type() const {
+	return this->container_type;
+}
+
+
+static void indenter(std::ostringstream &builder, int indentlevel) {
 	builder << std::string(SPACES_PER_INDENT * indentlevel, ' ');
 }
 
 
 void AST::strb(std::ostringstream &builder, int indentlevel) const {
-	builder << "### nyan tree ###" << std::endl;
-
 	size_t count = 0;
 	for (auto &obj : this->objects) {
 		builder << std::endl;
@@ -398,31 +537,36 @@ void AST::strb(std::ostringstream &builder, int indentlevel) const {
 }
 
 
+void ASTImport::strb(std::ostringstream &builder, int /*indentlevel*/) const {
+	builder << "import " << this->namespace_name.str();
+	if (this->has_alias()) {
+		builder << " as " << this->get_alias().get();
+	}
+}
+
+
 void ASTObject::strb(std::ostringstream &builder, int indentlevel) const {
 	indenter(builder, indentlevel);
 	builder << this->name.get();
 
 	auto token_str = [](const auto &in) {
-		return in.get();
+		return in.str();
 	};
 
 	// print <target>
 	if (this->target.exists()) {
-		builder << "<"
-		        << this->target.get()
-		        << ">";
+		builder << "<" << this->target.str() << ">";
 	}
 
 
 	if (this->inheritance_add.size() > 0) {
 		builder << "[+"
-		        << util::strjoin<Token>(", +", this->inheritance_add,
-		                                token_str)
+		        << util::strjoin(", +", this->inheritance_add, token_str)
 		        << "]";
 	}
 
 	builder << "("
-	        << util::strjoin<Token>(", ", this->inheritance, token_str)
+	        << util::strjoin(", ", this->parents, token_str)
 	        << "):"
 	        << std::endl;
 
@@ -445,14 +589,14 @@ void ASTObject::strb(std::ostringstream &builder, int indentlevel) const {
 
 void ASTMember::strb(std::ostringstream &builder, int indentlevel) const {
 	indenter(builder, indentlevel);
-	builder << this->name.get();
+	builder << this->name.str();
 
-	if (this->type.exists) {
+	if (this->type.exists()) {
 		builder << " : ";
 		this->type.strb(builder);
 	}
 
-	if (this->value.exists) {
+	if (this->value.exists()) {
 		builder << " "
 		        << op_to_string(this->operation)
 		        << " ";
@@ -465,24 +609,24 @@ void ASTMember::strb(std::ostringstream &builder, int indentlevel) const {
 
 
 void ASTMemberType::strb(std::ostringstream &builder, int /*indentlevel*/) const {
-	builder << this->name.get();
+	builder << this->name.str();
 
 	if (this->has_payload) {
-		builder << "(" << this->payload.get() << ")";
+		builder << "(" << this->payload.str() << ")";
 	}
 }
 
 
 void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) const {
 	switch (this->container_type) {
-	case nyan_container_type::SINGLE:
-		builder << this->values[0].get();
+	case container_t::SINGLE:
+		builder << this->values[0].str();
 		return;
 
-	case nyan_container_type::SET:
+	case container_t::SET:
 		builder << "{"; break;
 
-	case nyan_container_type::ORDEREDSET:
+	case container_t::ORDEREDSET:
 		builder << "<"; break;
 
 	default:
@@ -494,15 +638,15 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 		if (comma_active) {
 			builder << ", ";
 		}
-		builder << value.get();
+		builder << value.str();
 		comma_active = true;
 	}
 
 	switch (this->container_type) {
-	case nyan_container_type::SET:
+	case container_t::SET:
 		builder << "}"; break;
 
-	case nyan_container_type::ORDEREDSET:
+	case container_t::ORDEREDSET:
 		builder << ">"; break;
 
 	default:
@@ -511,7 +655,8 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 }
 
 
-ASTError::ASTError(const std::string &msg, const Token &token,
+ASTError::ASTError(const std::string &msg,
+                   const Token &token,
                    bool add_token)
 	:
 	FileError{Location{token}, ""} {
@@ -520,6 +665,24 @@ ASTError::ASTError(const std::string &msg, const Token &token,
 		std::ostringstream builder;
 		builder << msg << ": "
 		        << token_type_str(token.type);
+		this->msg = builder.str();
+	}
+	else {
+		this->msg = msg;
+	}
+}
+
+
+ASTError::ASTError(const std::string &msg,
+                   const IDToken &token,
+                   bool add_token)
+	:
+	FileError{Location{token}, ""} {
+
+	if (add_token) {
+		std::ostringstream builder;
+		builder << msg << ": "
+		        << token_type_str(token.get_type());
 		this->msg = builder.str();
 	}
 	else {

@@ -2,12 +2,9 @@
 
 #include "container.h"
 
-namespace std {
 
-size_t hash<nyan::ValueContainer>::operator ()(
-	const nyan::ValueContainer &val) const {
+namespace nyan {
 
-	return val->hash();
-}
+Container::Container() {}
 
-} // namespace std
+} // namespace nyan

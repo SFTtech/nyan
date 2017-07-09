@@ -1,0 +1,11 @@
+a():
+    member : int = 0
+
+b(a):
+    member += 1
+
+c(a):
+    member += 2
+
+d(b, c):
+    member += 4

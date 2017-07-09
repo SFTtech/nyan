@@ -14,18 +14,15 @@
 
 namespace nyan {
 
-void test_parser(const File &file) {
+void test_parser(const std::string &base_path, const std::string &filename) {
 	Database database;
 
-	Parser parser(&database);
-	std::vector<Object *> objs = parser.parse(file);
-
-	size_t i = 0;
-	for (auto &obj : objs) {
-		std::cout << "object " << i << " :" << std::endl;
-		std::cout << obj->str() << std::endl;
-		i += 1;
-	}
+	database.load(
+		filename,
+		[&base_path] (const std::string &filename) {
+			return std::make_shared<File>(base_path + "/" + filename);
+		}
+	);
 }
 
 
@@ -33,10 +30,18 @@ int run(flags_t flags, params_t params) {
 	try {
 		if (flags[option_flag::TEST_PARSER]) {
 			const std::string &filename = params[option_param::FILE];
-			File input{filename};
+
+			std::vector<std::string> parts = util::split(filename, '/');
+
+			// first file is assumed to be in the root.
+			std::string first_file = parts[parts.size() - 1];
+
+			// everything else is the base path
+			parts.pop_back();
+			std::string base_path = util::strjoin("/", parts);
 
 			try {
-				nyan::test_parser(input);
+				nyan::test_parser(base_path, first_file);
 			}
 			catch (FileError &err) {
 				std::cout << "\x1b[33;1mfile error:\x1b[m\n"
@@ -70,37 +75,37 @@ void help() {
 	          << "usage:" << std::endl
 	          << "-h --help                  -- show this" << std::endl
 	          << "-f --file <filename>       -- file to load" << std::endl
+	          << "-b --break                 -- debug-break on error" << std::endl
 	          << "   --test-parser           -- test the parser" << std::endl
 	          << "   --echo                  -- print the ast" << std::endl
 	          << "" << std::endl;
 }
 
-} // namespace nyan
 
-
-int main(int argc, char **argv) {
-	nyan::flags_t flags{
-		{nyan::option_flag::ECHO, false},
-		{nyan::option_flag::TEST_PARSER, false}
+std::pair<flags_t, params_t> argparse(int argc, char** argv) {
+	flags_t flags{
+		{option_flag::ECHO, false},
+		{option_flag::TEST_PARSER, false}
 	};
 
-	nyan::params_t params{
-		{nyan::option_param::FILE, ""}
+	params_t params{
+		{option_param::FILE, ""}
 	};
+
+	int option_index = 0;
 
 	while (true) {
-		int option_index = 0;
-
 		static struct option long_options[] = {
 			{"help", no_argument, 0, 'h'},
 			{"file", required_argument, 0, 'f'},
+			{"break", no_argument, 0, 'b'},
 			{"echo", no_argument, 0, 0},
 			{"test-parser", no_argument, 0, 0},
 			{0, 0, 0, 0}
 		};
 
 		int c = getopt_long(argc, argv,
-		                    "hf:",
+		                    "hf:b",
 		                    long_options, &option_index);
 		if (c == -1)
 			break;
@@ -109,16 +114,17 @@ int main(int argc, char **argv) {
 		case 0: {
 			const char *op_name = long_options[option_index].name;
 			if (strcmp("test-parser", op_name) == 0) {
-				flags[nyan::option_flag::TEST_PARSER] = true;
+				flags[option_flag::TEST_PARSER] = true;
 			}
 
 			break;
 		}
 		case 'f':
-			params[nyan::option_param::FILE] = optarg;
+			params[option_param::FILE] = optarg;
 			break;
 
-		case 'h': nyan::help(); exit(0); break;
+		case 'h': help(); exit(0); break;
+		case 'b': Error::enable_break(true); break;
 		case '?': break;
 
 		default: printf("error in getopt config: "
@@ -126,12 +132,39 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	// required positional args
+	if (option_index < argc) {
+		while (optind < argc) {
+			std::cout << argv[option_index] << std::endl;
+			option_index += 1;
+		}
+	}
+
+
+	return std::make_pair(flags, params);
+}
+
+} // namespace nyan
+
+
+int main(int argc, char **argv) {
+
+	auto args = nyan::argparse(argc, argv);
+	nyan::flags_t flags = args.first;
+	nyan::params_t params = args.second;
+
+#define NYAN_CATCHALL
+
+#ifndef NYAN_CATCHALL
 	try {
+#endif
 		return nyan::run(flags, params);
+#ifndef NYAN_CATCHALL
 	}
 	catch (std::exception &exc) {
 		std::cout << "\x1b[31;1mfatal error:\x1b[m "
 		          << exc.what() << std::endl;
 		return 1;
 	}
+#endif
 }

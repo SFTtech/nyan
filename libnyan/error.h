@@ -12,7 +12,6 @@
 
 namespace nyan {
 
-
 /**
  * A single symbol, as determined from a program counter, and returned by
  * Backtrace::get_symbols().
@@ -78,6 +77,7 @@ public:
 	Error(const std::string &msg,
 	      bool generate_backtrace=true,
 	      bool store_cause=true);
+
 	virtual ~Error() = default;
 
 	/**
@@ -130,6 +130,12 @@ public:
 	 */
 	const std::string &get_msg() const;
 
+	/**
+	 * Enable invocation of software breakpoint
+	 * when this Error is constructed.
+	 */
+	static void enable_break(bool enable);
+
 protected:
 	/**
 	 * The (optional) backtrace where the exception came from.
@@ -145,6 +151,11 @@ protected:
 	 * Re-throw this with rethrow_cause().
 	 */
 	std::exception_ptr cause;
+
+	/**
+	 * Issue software breakpoint when an error is constructed.
+	 */
+	static bool break_on_error;
 };
 
 
@@ -192,7 +203,6 @@ protected:
 };
 
 
-
 /**
  * Exception for name access problems.
  */
@@ -206,5 +216,22 @@ public:
 protected:
 	std::string name;
 };
+
+
+/**
+ * Tokenize failure exception.
+ */
+class TokenizeError : public FileError {
+public:
+	TokenizeError(const Location &location,
+	              const std::string &msg);
+};
+
+
+class FileReadError : public Error {
+public:
+	FileReadError(const std::string &msg);
+};
+
 
 } // namespace nyan

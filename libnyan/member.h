@@ -7,16 +7,12 @@
 #include <type_traits>
 #include <unordered_set>
 
-#include "location.h"
 #include "ops.h"
 #include "type.h"
-#include "type_container.h"
 #include "value/value.h"
-#include "value/container.h"
 
 namespace nyan {
 
-class Object;
 
 /**
  * Stores a member of a Object.
@@ -25,52 +21,18 @@ class Object;
 class Member {
 public:
 	/**
-	 * Member without value.
-	 */
-	Member(const Location &location, TypeContainer &&type);
-
-	/**
 	 * Member with value.
 	 */
-	Member(const Location &location,
-	           TypeContainer &&type, nyan_op operation,
-	           ValueContainer &&value);
+	Member(override_depth_t depth,
+	       nyan_op operation,
+	       ValueHolder &&value);
 
+	Member(const Member &other);
 	Member(Member &&other) noexcept;
-	const Member &operator =(Member &&other) noexcept;
+	Member &operator =(const Member &other);
+	Member &operator =(Member &&other) noexcept;
 
-	Member(const Member &other) = delete;
-	const Member &operator =(const Member &other) = delete;
-
-	virtual ~Member() = default;
-
-	/**
-	 * String representation of this member.
-	 */
-	std::string str() const;
-
-	/**
-	 * Return the value of this member.
-	 * @returns nullptr if there is no value yet.
-	 */
-	Value *get_value_ptr() const;
-
-	/**
-	 * Get a member value and cast the result to the
-	 * specified output type.
-	 */
-	template <typename T>
-	T *get_value() const {
-		static_assert(std::is_base_of<Value, T>::value,
-		              "only nyan value types are supported");
-
-		return dynamic_cast<T *>(this->get_value_ptr());
-	}
-
-	/**
-	 * Return the type of this member.
-	 */
-	Type *get_type() const;
+	~Member() = default;
 
 	/**
 	 * Provide the operation stored in the member.
@@ -78,56 +40,46 @@ public:
 	nyan_op get_operation() const;
 
 	/**
-	 * Save a previous result of `get_value` to bypass calculation
-	 * next time.
+	 * Return the value stored in this member.
 	 */
-	void cache_save(std::unique_ptr<Value> &&value);
+	const Value &get_value() const;
 
 	/**
-	 * Return the content of the value calculation cache.
-	 * nullptr if the cache is empty.
+	 * Apply another member to this one.
+	 * This applies the member with its operation
+	 * to this member.
 	 */
-	Value *cache_get() const;
+	void apply(const Member &change);
 
 	/**
-	 * Clear the value calculation cache.
+	 * String representation of this member.
 	 */
-	void cache_reset();
-
-	/**
-	 * Get the location where this member was defined.
-	 */
-	const Location &get_location() const;
+	std::string str() const;
 
 protected:
+
 	/**
-	 * The type of this member.
-	 * Either, this member defines the type, or it points
-	 * to the definition at another member.
+	 * Number of @ chars before the operation,
+	 * those define the override depth when applying the patch.
 	 */
-	TypeContainer type;
+	override_depth_t override_depth = 0;
 
 	/**
 	 * operation specified for this member.
 	 */
-	nyan_op operation;
+	nyan_op operation = nyan_op::INVALID;
 
 	/**
 	 * Value to cache the calculation result.
 	 * It stores the result of the application of all operations on
 	 * the inheritance tree.
 	 */
-	std::unique_ptr<Value> cached_value;
+	ValueHolder cached_value;
 
 	/**
-	 * Value of just this member.
+	 * Value stored in this member.
 	 */
-	ValueContainer value;
-
-	/**
-	 * Location where this member was defined.
-	 */
-	Location location;
+	ValueHolder value;
 };
 
 

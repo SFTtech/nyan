@@ -71,10 +71,12 @@ void Backtrace::trim_to_current_stack_frame() {
 
 constexpr const char *runtime_error_message = "polymorphic nyan error, catch by reference!";
 
+bool Error::break_on_error = false;
+
 
 Error::Error(const std::string &msg,
-                     bool generate_backtrace,
-                     bool store_cause)
+             bool generate_backtrace,
+             bool store_cause)
 	:
 	std::runtime_error{runtime_error_message},
 	backtrace{nullptr},
@@ -87,6 +89,10 @@ Error::Error(const std::string &msg,
 
 	if (store_cause) {
 		this->store_cause();
+	}
+
+	if (unlikely(this->break_on_error)) {
+		BREAKPOINT;
 	}
 }
 
@@ -146,69 +152,8 @@ const std::string &Error::get_msg() const {
 }
 
 
-InternalError::InternalError(const std::string &msg)
-	:
-	Error{msg} {}
-
-
-FileError::FileError(const Location &location,
-                             const std::string &msg)
-	:
-	Error{msg},
-	location{location} {}
-
-
-std::string FileError::str() const {
-	std::ostringstream builder;
-
-	builder << "\x1b[1m";
-
-	this->location.str(builder);
-
-	builder << "\x1b[31;1merror:\x1b[39;49m " << this->msg
-	        << "\x1b[0m";
-
-	return builder.str();
-}
-
-
-std::string FileError::show_problem_origin() const {
-	std::ostringstream builder;
-
-	size_t offset = this->location.get_line_offset();
-	size_t length = this->location.get_length();
-	if (length > 0) {
-		length -= 1;
-	}
-	else {
-		length = 5;
-	}
-
-	builder << this->location.get_line_content() << std::endl
-	        << std::string(offset, ' ') << "\x1b[36;1m^"
-	        << std::string(length, '~') << "\x1b[m";
-
-	return builder.str();
-}
-
-
-NameError::NameError(const Location &location,
-                     const std::string &msg,
-                     const std::string &name)
-	:
-	FileError{location, msg},
-	name{name} {}
-
-
-std::string NameError::str() const {
-	if (not this->name.empty()) {
-		std::ostringstream builder;
-		builder << this->msg << ": '" << this->name << "'";
-		return builder.str();
-	}
-	else {
-		return this->msg;
-	}
+void Error::enable_break(bool enable) {
+	Error::break_on_error = enable;
 }
 
 
@@ -279,5 +224,90 @@ std::ostream &operator <<(std::ostream &os, const Backtrace &bt) {
 
 	return os;
 }
+
+
+InternalError::InternalError(const std::string &msg)
+	:
+	Error{msg} {}
+
+
+FileError::FileError(const Location &location,
+                     const std::string &msg)
+	:
+	Error{msg},
+	location{location} {}
+
+
+std::string FileError::str() const {
+	std::ostringstream builder;
+
+	builder << "\x1b[1m";
+
+	this->location.str(builder);
+
+	builder << "\x1b[31;1merror:\x1b[39;49m " << this->msg
+	        << "\x1b[0m";
+
+	return builder.str();
+}
+
+
+std::string FileError::show_problem_origin() const {
+	std::ostringstream builder;
+
+	size_t offset = this->location.get_line_offset();
+	size_t length = this->location.get_length();
+
+	if (length > 0) {
+		length -= 1;
+	}
+	else {
+		length = 5;
+	}
+
+	builder << this->location.get_line_content() << std::endl
+	        << std::string(offset, ' ') << "\x1b[36;1m^"
+	        << std::string(length, '~') << "\x1b[m";
+
+	return builder.str();
+}
+
+
+NameError::NameError(const Location &location,
+                     const std::string &msg,
+                     const std::string &name)
+	:
+	FileError{location, msg},
+	name{name} {}
+
+
+std::string NameError::str() const {
+	std::ostringstream builder;
+	builder << "\x1b[1m";
+
+	this->location.str(builder);
+
+	builder << "\x1b[31;1mname error:\x1b[39;49m ";
+	builder << this->msg;
+
+	if (not this->name.empty()) {
+		builder << ": '" << this->name << "'";
+	}
+
+	builder << "\x1b[0m";
+
+	return builder.str();
+}
+
+
+TokenizeError::TokenizeError(const Location &location,
+                             const std::string &msg):
+	FileError{location, msg} {}
+
+
+FileReadError::FileReadError(const std::string &msg)
+	:
+	Error{msg} {}
+
 
 } // namespace nyan

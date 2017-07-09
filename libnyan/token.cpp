@@ -10,7 +10,7 @@
 namespace nyan {
 
 
-Token::Token(const File &file,
+Token::Token(const std::shared_ptr<File> &file,
              int line, int line_offset, int length,
              token_type type)
 	:
@@ -18,7 +18,7 @@ Token::Token(const File &file,
 	type{type} {}
 
 
-Token::Token(const File &file,
+Token::Token(const std::shared_ptr<File> &file,
              int line, int line_offset, int length,
              token_type type, const std::string &value)
 	:
@@ -53,11 +53,5 @@ std::string Token::str() const {
 bool Token::exists() const {
 	return this->get().size() > 0;
 }
-
-
-TokenizeError::TokenizeError(const Location &location,
-                             const std::string &msg)
-	:
-	FileError{location, msg} {}
 
 } // namespace nyan

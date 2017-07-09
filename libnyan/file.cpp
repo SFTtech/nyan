@@ -12,7 +12,29 @@ namespace nyan {
 File::File(const std::string &virtual_name, std::string &&data)
 	:
 	name{virtual_name},
-	data{data} {
+	data{std::move(data)} {
+
+	this->extract_lines();
+}
+
+
+File::File(const std::string &path)
+	:
+	File{path, util::read_file(path)} {
+
+	// util::read_file throws a FileReadError if unsuccessful.
+}
+
+
+
+File::File(File &&other) noexcept
+	:
+	name{std::move(other.name)},
+	data{std::move(other.data)} {}
+
+
+void File::extract_lines() {
+	this->lines.clear();
 
 	size_t pos = 0;
 	size_t len = 0;
@@ -29,17 +51,6 @@ File::File(const std::string &virtual_name, std::string &&data)
 }
 
 
-File::File(const std::string &path)
-	:
-	File{path, util::read_file(path)} {}
-
-
-File::File(File &&other) noexcept
-	:
-	name{std::move(other.name)},
-	data{std::move(other.data)} {}
-
-
 File &File::operator =(File &&other) noexcept {
 	this->name = std::move(other.name);
 	this->data = std::move(other.data);
@@ -52,7 +63,7 @@ const std::string &File::get_name() const {
 }
 
 
-const std::string &File::get() const {
+const std::string &File::get_content() const {
 	return this->data;
 }
 

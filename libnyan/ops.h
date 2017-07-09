@@ -15,16 +15,15 @@ class Token;
  * Operation identifiers for all builtin member types
  */
 enum class nyan_op {
+	INVALID,
 	ADD,
 	ADD_ASSIGN,
 	ASSIGN,
 	DIVIDE,
 	DIVIDE_ASSIGN,
 	INTERSECT_ASSIGN,
-	INVALID,
 	MULTIPLY,
 	MULTIPLY_ASSIGN,
-	PATCH,
 	SUBTRACT,
 	SUBTRACT_ASSIGN,
 	UNION_ASSIGN,
@@ -61,7 +60,6 @@ constexpr const char *op_to_string(nyan_op op) {
 	case nyan_op::INVALID:            return "=INVALID=";
 	case nyan_op::MULTIPLY:           return "*";
 	case nyan_op::MULTIPLY_ASSIGN:    return "*=";
-	case nyan_op::PATCH:              return "@=";
 	case nyan_op::SUBTRACT:           return "-";
 	case nyan_op::SUBTRACT_ASSIGN:    return "-=";
 	case nyan_op::UNION_ASSIGN:       return "|=";

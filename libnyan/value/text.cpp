@@ -15,25 +15,27 @@ Text::Text(const std::string &value)
 	value{value} {}
 
 
-Text::Text(const Token &token)
+Text::Text(const IDToken &token)
 	:
-	Text{token.get()} {}
+	Text{token.get_first()} {}
 
 
-std::unique_ptr<Value> Text::copy() const {
-	return std::make_unique<Text>(dynamic_cast<const Text &>(*this));
+ValueHolder Text::copy() const {
+	return ValueHolder{
+		std::make_shared<Text>(dynamic_cast<const Text &>(*this))
+	};
 }
 
 
-void Text::apply_value(const Value *value, nyan_op operation) {
-	const Text *change = dynamic_cast<const Text *>(value);
+void Text::apply_value(const Value &value, nyan_op operation) {
+	const Text &change = dynamic_cast<const Text &>(value);
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
-		this->value = change->value; break;
+		this->value = change.value; break;
 
 	case nyan_op::ADD_ASSIGN:
-		this->value += change->value; break;
+		this->value += change.value; break;
 
 	default:
 		throw Error{"unknown operation requested"};
@@ -62,13 +64,13 @@ bool Text::equals(const Value &other) const {
 }
 
 
-const std::unordered_set<nyan_op> &Text::allowed_operations(nyan_basic_type value_type) const {
+const std::unordered_set<nyan_op> &Text::allowed_operations(const Type &with_type) const {
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
 	};
 
-	if (value_type.primitive_type == nyan_primitive_type::TEXT) {
+	if (with_type.get_primitive_type() == primitive_t::TEXT) {
 		return ops;
 	}
 	else {
@@ -77,10 +79,10 @@ const std::unordered_set<nyan_op> &Text::allowed_operations(nyan_basic_type valu
 }
 
 
-const nyan_basic_type &Text::get_type() const {
-	constexpr static nyan_basic_type type{
-		nyan_primitive_type::TEXT,
-		nyan_container_type::SINGLE,
+const BasicType &Text::get_type() const {
+	constexpr static BasicType type{
+		primitive_t::TEXT,
+		container_t::SINGLE,
 	};
 
 	return type;

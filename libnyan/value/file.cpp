@@ -15,9 +15,9 @@ Filename::Filename(const std::string &path)
 	path{path} {}
 
 
-Filename::Filename(const Token &token)
+Filename::Filename(const IDToken &token)
 	:
-	Filename{token.get()} {}
+	Filename{token.get_first()} {}
 
 
 std::unique_ptr<Value> Filename::copy() const {
@@ -25,14 +25,14 @@ std::unique_ptr<Value> Filename::copy() const {
 }
 
 
-void Filename::apply_value(const Value *value, nyan_op operation) {
-	const Filename *change = dynamic_cast<const Filename *>(value);
+void Filename::apply_value(const Value &value, nyan_op operation) {
+	const Filename &change = dynamic_cast<const Filename &>(value);
 
 	// TODO: relative path resolution
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
-		this->path = change->path; break;
+		this->path = change.path; break;
 
 	default:
 		throw Error{"unknown operation requested"};
@@ -61,12 +61,12 @@ bool Filename::equals(const Value &other) const {
 }
 
 
-const std::unordered_set<nyan_op> &Filename::allowed_operations(nyan_basic_type value_type) const {
+const std::unordered_set<nyan_op> &Filename::allowed_operations(const Type &with_type) const {
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 	};
 
-	if (value_type.primitive_type == nyan_primitive_type::TEXT) {
+	if (with_type.get_primitive_type() == primitive_t::TEXT) {
 		return ops;
 	}
 	else {
@@ -75,10 +75,10 @@ const std::unordered_set<nyan_op> &Filename::allowed_operations(nyan_basic_type 
 }
 
 
-const nyan_basic_type &Filename::get_type() const {
-	constexpr static nyan_basic_type type{
-		nyan_primitive_type::FILENAME,
-		nyan_container_type::SINGLE,
+const BasicType &Filename::get_type() const {
+	constexpr static BasicType type{
+		primitive_t::FILENAME,
+		container_t::SINGLE,
 	};
 
 	return type;

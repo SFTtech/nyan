@@ -4,6 +4,8 @@
 
 #include "value.h"
 
+#include "../id_token.h"
+
 
 namespace nyan {
 
@@ -13,19 +15,19 @@ namespace nyan {
 template <typename T>
 class Number : public Value {
 public:
-	Number(const Token &token);
+	Number(const IDToken &token);
 	Number(T value);
 
-	std::unique_ptr<Value> copy() const override;
+	ValueHolder copy() const override;
 	std::string str() const override;
 	std::string repr() const override;
 	size_t hash() const override;
 
-	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
-	const nyan_basic_type &get_type() const override;
+	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
+	const BasicType &get_type() const override;
 
 protected:
-	void apply_value(const Value *value, nyan_op operation) override;
+	void apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override;
 
 	/**
@@ -38,12 +40,12 @@ protected:
 /**
  * Integer storage.
  */
-using NyanInt = Number<int64_t>;
+using Int = Number<int64_t>;
 
 
 /**
  * Floating point data type.
  */
-using NyanFloat = Number<double>;
+using Float = Number<double>;
 
 } // namespace std

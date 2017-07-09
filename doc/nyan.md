@@ -574,14 +574,14 @@ What does that mean?
 * You can create a view of the main database
 * You can create a view of a view
 * Querying values respects the view the query is executed in
-* If a patch is applied in a view, the parent ones remains unchanged  ASDF
-  and just queries to the view will yield an updated result
+* If a patch is applied in a view, the data changes are applied in this view
+  and all children of it. Parent view remain unaffected.
 
 Querying data works like this:
 * `nyan::Object obj = view.get(object_name)`
   * The `nyan::Object` is just a handle which is then used for real queries
 * `obj.get(member_name, time)` will evaluates the member of the object at a give time
-  * asdf
+  * This returns the `nyan::Value` stored in the member at the given time.
 
 Patching data works as follows:
 * Obtain a patch object from some view
@@ -592,10 +592,14 @@ Patching data works as follows:
   * `nyan::Transaction tx = view.new_transaction(time);`
 * Add one or more patch objects to the transaction
   * `tx.add(patch); tx.add(...);`
+  * `tx.add(another_patch, view.get(target_object_name))` is used to patch a child of
+    the patch target.
 * Commit the transaction
   * `bool success = tx.commit();`
   * This triggers, for each patch in the transaction:
     * Determine the patch target object by evaluating `__patch__`
+      * If a custom patch target was requested,
+        check if it currently is a child the default patch target.
     * Copy the patch target object in a (new) state at `time`
       * Query the view of the transaction at `time` for the target object, this may recursively query parent views
       * If there is no state at `time` in the view of the transaction, create a new state

@@ -1,0 +1,2 @@
+ImportedObject():
+    it_works : int = 42

@@ -13,9 +13,9 @@
 namespace nyan {
 
 template<>
-NyanInt::Number(const Token &token) {
+Int::Number(const IDToken &token) {
 	try {
-		this->value = std::stoll(token.get(), nullptr, 0);
+		this->value = std::stoll(token.get_first(), nullptr, 0);
 	}
 	catch (std::invalid_argument &) {
 		throw InternalError{"int token was not an int"};
@@ -27,9 +27,9 @@ NyanInt::Number(const Token &token) {
 
 
 template<>
-NyanFloat::Number(const Token &token) {
+Float::Number(const IDToken &token) {
 	try {
-		this->value = std::stod(token.get());
+		this->value = std::stod(token.get_first());
 	}
 	catch (std::invalid_argument &) {
 		throw InternalError{"float token was not a float"};
@@ -47,30 +47,32 @@ Number<T>::Number(T value)
 
 
 template <typename T>
-std::unique_ptr<Value> Number<T>::copy() const {
-	return std::make_unique<Number>(dynamic_cast<const Number &>(*this));
+ValueHolder Number<T>::copy() const {
+	return ValueHolder{
+		std::make_shared<Number>(dynamic_cast<const Number &>(*this))
+	};
 }
 
 
 template <typename T>
-void Number<T>::apply_value(const Value *value, nyan_op operation) {
-	const Number *change = dynamic_cast<const Number *>(value);
+void Number<T>::apply_value(const Value &value, nyan_op operation) {
+	const Number &change = dynamic_cast<const Number &>(value);
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
-		this->value = change->value; break;
+		this->value = change.value; break;
 
 	case nyan_op::ADD_ASSIGN:
-		this->value += change->value; break;
+		this->value += change.value; break;
 
 	case nyan_op::SUBTRACT_ASSIGN:
-		this->value -= change->value; break;
+		this->value -= change.value; break;
 
 	case nyan_op::MULTIPLY_ASSIGN:
-		this->value *= change->value; break;
+		this->value *= change.value; break;
 
 	case nyan_op::DIVIDE_ASSIGN:
-		this->value /= change->value; break;
+		this->value /= change.value; break;
 
 	default:
 		throw Error{"unknown operation requested"};
@@ -107,7 +109,7 @@ bool Number<T>::equals(const Value &other) const {
 
 template <typename T>
 const std::unordered_set<nyan_op> &
-Number<T>::allowed_operations(nyan_basic_type value_type) const {
+Number<T>::allowed_operations(const Type &with_type) const {
 
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
@@ -117,34 +119,32 @@ Number<T>::allowed_operations(nyan_basic_type value_type) const {
 		nyan_op::DIVIDE_ASSIGN,
 	};
 
-	const nyan_primitive_type &type = value_type.primitive_type;
-
 	// all allowed number types
-	if (type == nyan_primitive_type::FLOAT or
-	    type == nyan_primitive_type::INT) {
+	switch (with_type.get_primitive_type()) {
+	case  primitive_t::FLOAT:
+	case primitive_t::INT:
 		return ops;
-	}
-	else {
+	default:
 		return no_nyan_ops;
 	}
 }
 
 
 template<>
-const nyan_basic_type &NyanInt::get_type() const {
-	constexpr static nyan_basic_type type{
-		nyan_primitive_type::INT,
-		nyan_container_type::SINGLE
+const BasicType &Int::get_type() const {
+	constexpr static BasicType type{
+		primitive_t::INT,
+		container_t::SINGLE
 	};
 	return type;
 }
 
 
 template<>
-const nyan_basic_type &NyanFloat::get_type() const {
-	constexpr static nyan_basic_type type{
-		nyan_primitive_type::FLOAT,
-		nyan_container_type::SINGLE
+const BasicType &Float::get_type() const {
+	constexpr static BasicType type{
+		primitive_t::FLOAT,
+		container_t::SINGLE
 	};
 
 	return type;

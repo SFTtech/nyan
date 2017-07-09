@@ -4,6 +4,8 @@
 
 #include "file.h"
 #include "token.h"
+#include "id_token.h"
+
 
 namespace nyan {
 
@@ -13,13 +15,27 @@ Location::Location(const Token &token)
 	Location{token.location} {}
 
 
-Location::Location(const File &file,
+Location::Location(const IDToken &token)
+	:
+	Location{token.get_start_location()} {
+
+	// use the full id length as location length
+	this->length = token.get_length();
+}
+
+
+Location::Location(const std::shared_ptr<File> &file,
                    int line, int line_offset, int length)
 	:
-	file{&file},
+	file{file},
 	line{line},
 	line_offset{line_offset},
 	length{length} {}
+
+
+Location::Location(const std::string &custom)
+	:
+	msg{custom} {}
 
 
 int Location::get_line() const {
@@ -42,6 +58,11 @@ std::string Location::get_line_content() const {
 
 
 void Location::str(std::ostringstream &builder) const {
+	if (this->msg.size() > 0) {
+		builder << this->msg;
+		return;
+	}
+
 	builder << this->file->get_name() << ":"
 	        << this->line << ":"
 	        << this->line_offset << ": ";

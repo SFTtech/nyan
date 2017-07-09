@@ -5,47 +5,53 @@
 #include <unordered_set>
 #include <vector>
 
+#include "c3.h"
 #include "database.h"
 #include "error.h"
+#include "object_state.h"
 #include "util.h"
+#include "value/object.h"
+#include "view.h"
 
 
 namespace nyan {
 
-Object::Object(const Location &location, Database *database)
+Object::Object(const fqon_t &name, const std::shared_ptr<View> &origin)
 	:
-	location{location},
-	database{database} {}
+	origin{origin},
+	name{name} {}
 
 
-const std::string &Object::get_name() const {
+Object::~Object() {}
+
+
+const fqon_t &Object::get_name() const {
 	return this->name;
 }
 
 
-bool Object::is_registered() const {
-	return (this->database != nullptr);
+const View &Object::get_view() const {
+	return *this->origin;
 }
 
 
-const Value &Object::get(const std::string &member) {
-	Member *obj_member = this->get_member_ptr_rw(member);
+const Value &Object::get(const memberid_t &member, order_t t) const {
+	// TODO: don't allow for patches? only possible if there's at least one = for that member
 
-	// first, try the cache lookup.
-	const Value *cached = obj_member->cache_get();
-	if (cached != nullptr) {
-		return *cached;
+	// TODO: try the cache lookup. but when is it invalid?
+
+	/*
+	// get references to all parentobject-states
+	std::vector<std::shared_ptr<ObjectState>> parents;
+	for (auto &parent : this->linearize_parents(t)) {
+		parents.push_back(this->origin->get_raw(parent, t));
 	}
-
-	// first, find origin of the member.
-	// linearize the parent classes.
-	auto &linearization = this->get_linearization();
 
 	// find the last value assigning with =
 	// it sets the base value where we apply the modifications then
 	size_t defined_by = 0;
-	const Value *base_value = nullptr;
-	for (Object *obj : linearization) {
+	Value *base_value = nullptr;
+	for (auto &obj : parents) {
 		const Member *obj_member = obj->get_member(member);
 		if (obj_member != nullptr) {
 			if (obj_member->get_operation() == nyan_op::ASSIGN) {
@@ -59,23 +65,23 @@ const Value &Object::get(const std::string &member) {
 	// no operator = was found for this member
 	// -> no parent assigned a value.
 	// TODO: detect this at load time!
-	if (defined_by >= linearization.size()) {
+	if (defined_by >= linearization.size() or base_value == nullptr) {
 		throw Error{"no operator = found for member"};
 	}
 
-	// if this object defines the value, return it directly.
+	// if this object defines the value, no aggregation is needed.
 	if (defined_by == 0) {
 		return *base_value;
 	}
 
-	// create a "working copy" of the value
-	// the changes will be applied to it now.
-	// TODO: move that to the data store
+	// Create a working copy of the value
+	// TODO: store it in the first parent, i.e. this object state
 	std::unique_ptr<Value> result = base_value->copy();
 
-	// Walk back and apply the value changes.
+	// walk back and apply the value changes
 	while (true) {
-		const Member *change = linearization[defined_by]->get_member_ptr(member);
+		// asdf member lookup
+		const Member *change = parents[defined_by]->get_member_ptr(member);
 		if (change != nullptr) {
 			result->apply(change);
 		}
@@ -93,351 +99,69 @@ const Value &Object::get(const std::string &member) {
 
 	// and return the reference.
 	return result_ref;
+	*/
+
 }
 
 
-/*
- * determine the type of a member.
- * look at the parents and get the member there.
- * if they don't have it, return nullptr.
- */
-Type *Object::infer_type(const std::string &member) const {
-	// test if the member is already declared in this object
-	const Member *obj_member = this->get_member_ptr(member);
-	if (obj_member != nullptr) {
-		// this object has this member.
-		return obj_member->get_type();
-	}
-
-	// this object doesn't have the member.
-	// determine the type from its parents.
-	auto &linearization = this->get_linearization();
-
-	// assumption: all parents must be valid objects.
-	// walk over the parents to find the latest type specialization
-	for (Object *obj : linearization) {
-		const Member *member_ptr = obj->get_member_ptr(member);
-
-		// parent has the member, it has to be valid
-		// because of the assumption
-		// and the linearization fixes the multi inheritance.
-		if (member_ptr != nullptr) {
-			return member_ptr->get_type();
-		}
-	}
-
-	return nullptr;
+const std::vector<fqon_t> &Object::get_parents(order_t t) {
+	// asdf look in view for parents
 }
 
 
 const Type &Object::get_member_type(const std::string &member) const {
-	return *this->get_member(member)->get_type();
+	// asdf contact type system
 }
 
 
-const Member *Object::get_member(const std::string &member) const {
-	const Member *ret = this->get_member_ptr(member);
-
-	if (ret == nullptr) {
-		std::ostringstream builder;
-		builder << "Could not find member '" << member
-		        << "' in object '" << this->get_name() << "'" << std::endl;
-		throw NameError{this->location, builder.str()};
-	}
-
-	return ret;
-}
-
-
-const Member *Object::get_member_ptr(const std::string &member) const {
-	auto it = this->members.find(member);
-	if (it != std::end(this->members)) {
-		return &it->second;
-	}
-	else {
-		return nullptr;
-	}
-}
-
-
-Member *Object::get_member_ptr_rw(const std::string &member) {
-	auto it = this->members.find(member);
-	if (it != std::end(this->members)) {
-		return &it->second;
-	}
-	else {
-		return nullptr;
-	}
-}
-
-
-bool Object::has(const std::string &member) const {
-	return this->members.find(member) != std::end(this->members);
-}
-
-
-bool Object::is_child_of(const Object *parent) const {
-	if (this == parent) {
-		return true;
-	}
-
-	auto &linearization = this->get_linearization();
-
-	for (const Object *obj : linearization) {
-		if (parent == obj) {
-			return true;
-		}
-	}
+bool Object::has(const memberid_t &member, order_t t) const {
+	// asdf
 	return false;
 }
 
 
-void Object::patch(const Object *top) {
-	if (not top->is_patch()) {
-		// TODO: also display the `top` location.
-		throw TypeError{
-			this->location,
-			"provided patch doesn't specify <target> "
-			"(or has __patch__) member"
-		};
+bool Object::extends(fqon_t other_fqon, order_t t) {
+	if (this->name == other_fqon) {
+		return true;
 	}
 
-	// TODO: store the applied value in a different storage
+	auto &linearization = this->linearize_parents(t);
 
-	// TODO: verify if we're in the patch target set
-	// TODO: recalculate linearization of this object if the parents changed.
-	this->apply_value(top, nyan_op::PATCH);
+	for (auto &obj : linearization) {
+		if (obj == other_fqon) {
+			return true;
+		}
+	}
+
+	return false;
 }
+
 
 
 bool Object::is_patch() const {
-	return this->has("__patch__");
+	// must be a patch from the beginning of time!
+	// TODO: typedb knows if patch, no need to process
+	return this->has("__patch__", DEFAULT_T);
 }
 
 
-void Object::apply_value(const Value *value, nyan_op operation) {
-	const Object *change = dynamic_cast<const Object *>(value);
-
-	switch (operation) {
-	case nyan_op::PATCH:
-		this->patch(change);
-
-	default:
-		throw Error{"unknown operation requested"};
-	}
+const fqon_t &Object::get_target() const {
+	return this->get<ObjectValue>("__patch__", DEFAULT_T).get();
 }
 
 
-std::unique_ptr<Value> Object::copy() const {
-	throw Error{"nyanobject copy"};
-}
-
-
-size_t Object::hash() const {
-	return std::hash<std::string>{}(this->name);
-}
-
-
-bool Object::equals(const Value &other) const {
-	auto &other_val = dynamic_cast<const Object &>(other);
-	return this->get_name() == other_val.get_name();
-}
-
-
-const std::unordered_set<nyan_op> &Object::allowed_operations(nyan_basic_type value_type) const {
-
-	const static std::unordered_set<nyan_op> ops{
-		nyan_op::ASSIGN,
-		nyan_op::PATCH,
-	};
-
-	if (value_type.primitive_type == nyan_primitive_type::OBJECT) {
-		return ops;
-	}
-	else {
-		return no_nyan_ops;
-	}
-}
-
-
-const nyan_basic_type &Object::get_type() const {
-	constexpr static nyan_basic_type type{
-		nyan_primitive_type::OBJECT,
-		nyan_container_type::SINGLE,
-	};
-
-	return type;
-}
-
-
-const std::vector<Object *> &Object::get_linearization() const {
-	return this->linearization;
-}
-
-
-const std::vector<Object *> &Object::generate_linearization() {
-	std::unordered_set<Object *> seen;
-	return this->linearize_walk(seen);
-}
-
-
-void Object::delete_linearization() {
-	this->linearization.clear();
-}
-
-
-
-/*
- * c3 linearization of cls(a, b, ...):
- * c3(cls) = [cls] + merge(c3(a), c3(b), ..., [a, b, ...])
- *
- * merge: take first head of lists which is not in any tail of all lists.
- * that head can be the first for multiple lists, pick it from all them.
- * if valid, add to output and remove from all lists where it is head.
- * repeat until all lists are empty.
- * if all heads of the lists appear somewhere in a tail,
- * no linearization exists.
- */
-const std::vector<Object *> &Object::linearize_walk(std::unordered_set<Object *> &seen) {
-
-	// test for inheritance loops
-	if (seen.find(this) != std::end(seen)) {
-		throw Error{"c3: recursive inheritance loop detected"};
-	} else {
-		seen.insert(this);
-	}
-
-	// if already calculated, return directly.
-	if (this->linearization.size() > 0) {
-		return this->linearization;
-	}
-
-	// The current object is always the first in the returned list
-	this->linearization.push_back(this);
-
-	// Calculate the parent linearization recursively
-	std::vector<std::vector<Object *>> par_linearizations;
-	for (auto &parent : this->parents) {
-		// Recursive call to get the linearization of the parent
-		par_linearizations.push_back(parent->linearize_walk(seen));
-	}
-
-	// Add the list of parents to the lists to merge
-	par_linearizations.push_back(
-		std::vector<Object *>{
-			std::begin(this->parents),
-			std::end(this->parents),
+const std::vector<fqon_t> &Object::linearize_parents(order_t t) {
+	return linearize(
+		this->name,
+		[this, &t] (const fqon_t &name) -> ObjectState& {
+			return *this->origin->get_raw(name, t);
 		}
 	);
-
-	// Index to start with in each list
-	std::vector<size_t> sublists_heads{par_linearizations.size(), 0};
-
-	// Perform the merge of all parent linearizations
-	while (true) {
-		Object *candidate = nullptr;
-		bool candidate_ok = false;
-		size_t sublists_available = par_linearizations.size();
-
-		// Try to find a head that is not element of any tail
-		for (size_t i = 0; i < par_linearizations.size(); i++) {
-			const auto &par_linearization = par_linearizations[i];
-			const size_t headpos = sublists_heads[i];
-
-			// The head position has reached the end
-			if (headpos >= par_linearization.size()) {
-				sublists_available -= 1;
-				continue;
-			}
-
-			// Pick a head
-			candidate = par_linearization[headpos];
-			candidate_ok = true;
-
-			// Test if the candidate is in any tail
-			for (auto &tail : par_linearizations) {
-
-				// Start one slot after the head
-				for (size_t j = headpos + 1; j < tail.size(); j++) {
-
-					// The head is in that tail, so we fail
-					if (unlikely(candidate == tail[j])) {
-						candidate_ok = false;
-						break;
-					}
-				}
-
-				// Don't try further tails as one already failed.
-				if (unlikely(not candidate_ok)) {
-					break;
-				}
-			}
-
-			// The candidate was not in any tail
-			if (candidate_ok) {
-				break;
-			} else {
-				// Try the next candidate
-				continue;
-			}
-		}
-
-		// We found a candidate, add it to the return list
-		if (candidate_ok) {
-			this->linearization.push_back(candidate);
-
-			// Advance all the lists where the candidate was the head
-			for (size_t i = 0; i < par_linearizations.size(); i++) {
-				const auto &par_linearization = par_linearizations[i];
-				const size_t headpos = sublists_heads[i];
-
-				if (headpos < par_linearization.size()) {
-					if (par_linearization[headpos] == candidate) {
-						sublists_heads[i] += 1;
-					}
-				}
-			}
-		}
-
-		// No more sublists have any entry
-		if (sublists_available == 0) {
-			return this->linearization;
-		}
-	}
-
-	throw Error{"cyclic hierarchy, c3 linearization impossible"};
 }
 
 
-std::string Object::str() const {
-	std::ostringstream builder;
-
-	builder << this->name << "(";
-	if (this->parents.size() > 0) {
-		builder << util::strjoin<Object *>(
-			",", this->parents,
-			[](const auto obj) {return obj->name;}
-		);
-	}
-	builder << "):" << std::endl;
-
-	if (this->members.size() == 0) {
-		builder << "    pass" << std::endl;
-	}
-	else {
-		for (auto &entry : this->members) {
-			builder << "    " << entry.first
-			        << entry.second.str()
-			        << std::endl;
-		}
-	}
-
-	return builder.str();
-}
-
-
-std::string Object::repr() const {
-	return this->name;
+std::shared_ptr<ObjectState> Object::get_raw(order_t t) const {
+	return this->origin->get_raw(this->name, t);
 }
 
 } // namespace nyan

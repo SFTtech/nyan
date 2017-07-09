@@ -1,7 +1,7 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
-
+#include <memory>
 #include <vector>
 
 #include "ast.h"
@@ -14,30 +14,32 @@ class Database;
 class File;
 class Member;
 class Object;
-class TypeContainer;
-class ValueContainer;
 
 /**
  * The parser for nyan.
  */
 class Parser {
 public:
-	Parser(Database *database);
+	Parser();
 	virtual ~Parser() = default;
 
-	std::vector<Object *> parse(const File &file);
+	/**
+	 * Parse a file and return its AST.
+	 */
+	AST parse(const std::shared_ptr<File> &file);
 
 protected:
 	/**
 	 * Create the token stream from a file.
 	 */
-	std::vector<Token> tokenize(const File &file) const;
+	std::vector<Token> tokenize(const std::shared_ptr<File> &file) const;
 
 	/**
 	 * Create the abstact syntax tree from a token stream.
 	 */
 	AST create_ast(const std::vector<Token> &tokens) const;
 
+#if 0
 	/**
 	 * Create nyan objects and place them in the database
 	 * (which was specified in the constructor)
@@ -82,11 +84,7 @@ protected:
 	 * Store the inheritance modifications of a patch.
 	 */
 	void inheritance_mod(Object *obj, const ASTObject &astobj) const ;
-
-	/**
-	 * The database where the parser will add resulting data to.
-	 */
-	Database *database;
+#endif
 };
 
 } // namespace nyan

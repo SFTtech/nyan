@@ -1,58 +1,113 @@
 // Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
-
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
-#include "namespace.h"
+#include "config.h"
+#include "meta_info.h"
+#include "namespace_finder.h"
+#include "state.h"
 
 
 namespace nyan {
 
+class ASTObject;
+class File;
+class Namespace;
+class View;
+
+
+
+/**
+ * Be in a namespace, look up an alias, and get the original namespace.
+ * namespace => {alias => original namespace}
+ */
+using namespace_lookup_t = std::unordered_map<Namespace, NamespaceFinder>;
+
+
 /**
  * Nyan database.
- * This is the main entry handle for accessing and modifying data
- * stored in nyan.
  */
-class Database {
-	friend class Object;
-	friend class Namespace;
-
+class Database : std::enable_shared_from_this<Database> {
 public:
-	Database(Database *parent=nullptr);
-	virtual ~Database();
+
+	Database();
+
+	~Database();
 
 	/**
-	 * Add the given nyan object to the store.
-	 * returns a pointer to the storage position.
+	 * Function that provides a file for a given filename.
+	 * Used to query and open imported files.
 	 */
-	Object *add(std::unique_ptr<Object> &&obj);
+	using filefetcher_t = std::function<std::shared_ptr<File>(const std::string &filename)>;
 
 	/**
-	 * Return the Object with given full name.
-	 * returns nullptr if not found.
+	 * Load a nyan file.
+	 * This loads imported files as well.
 	 */
-	Object *get(const std::string &name) const;
+	void load(const std::string &filename,
+	          const filefetcher_t &filefetcher);
+
+	/**
+	 * Return a new view to the database, it allows changes.
+	 */
+	std::shared_ptr<View> new_view();
+
+	/**
+	 * Return the database state.
+	 */
+	const State &get_state() const {
+		return this->state;
+	};
 
 protected:
-	/**
-	 * The parent database which this database overlays.
-	 */
-	Database *parent;
+
+	void create_obj_info(
+		size_t *counter,
+		const NamespaceFinder &current_file,
+		const Namespace &ns,
+		const Namespace &objname,
+		const ASTObject &astobj
+	);
+
+	void create_obj_content(
+		std::vector<fqon_t> *new_objs,
+		const NamespaceFinder &current_file,
+		const Namespace &ns,
+		const Namespace &objname,
+		const ASTObject &astobj
+	);
+
+	void create_obj_state(
+		const NamespaceFinder &current_file,
+		const Namespace &ns,
+		const Namespace &objname,
+		const ASTObject &astobj
+	);
+
+	void linearize_new(const std::vector<fqon_t> &new_objs);
+
+	void resolve_types(const std::vector<fqon_t> &new_objs);
+
+#if 0
+	ValueHolder create_member_value(const ASTMemberValue &astmembervalue) const;
+	ValueHolder value_from_value_token(const Token &value_token) const;
+#endif
 
 	/**
-	 * The root namespace.
+	 * Database start state.
+	 * Used as base for the changes, those are tracked in a View.
 	 */
-	Namespace root;
+	State state;
 
 	/**
-	 * Object unique name -> Object map.
-	 * The unique name is the namespace.objectname
-	 * e.g. "government.nsa.quantuminsert.timings"
+	 * Tracks type information and locations of the database content etc.
 	 */
-	std::unordered_map<std::string, std::unique_ptr<Object>> objects;
+	MetaInfo meta_info;
+
+	// namespace tracking?
 };
 
 } // namespace nyan

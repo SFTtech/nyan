@@ -5,6 +5,7 @@
 #include <string>
 
 #include "value.h"
+#include "../id_token.h"
 
 
 namespace nyan {
@@ -15,18 +16,18 @@ namespace nyan {
 class Filename : public Value {
 public:
 	Filename(const std::string &path);
-	Filename(const Token &token);
+	Filename(const IDToken &token);
 
-	std::unique_ptr<Value> copy() const override;
+	ValueHolder copy() const override;
 	std::string str() const override;
 	std::string repr() const override;
 	size_t hash() const override;
 
-	const std::unordered_set<nyan_op> &allowed_operations(nyan_basic_type value_type) const override;
-	const nyan_basic_type &get_type() const override;
+	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
+	const BasicType &get_type() const override;
 
 protected:
-	void apply_value(const Value *value, nyan_op operation) override;
+	void apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override;
 
 	std::string path;

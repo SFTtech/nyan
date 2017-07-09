@@ -30,7 +30,7 @@ public:
 	/**
 	 * Create a lexer for the given file.
 	 */
-	Lexer(const File &file);
+	Lexer(const std::shared_ptr<File> &file);
 	virtual ~Lexer() = default;
 
 	// no moves and copies
@@ -110,6 +110,11 @@ protected:
 	void generate_token();
 
 	/**
+	 * Emit line ending token for current position.
+	 */
+	void endline();
+
+	/**
 	 * Create a token with correct text position and value.
 	 * Add the token to the queue.
 	 */
@@ -166,18 +171,18 @@ protected:
 	 * It will be set to false when the token after a opening
 	 * bracket was processed.
 	 */
-	bool possibly_hanging;
+	bool possibly_hanging = false;
 
 	/**
 	 * True when the indentation in brackets doesn't match.
 	 * This is only the case when for a closing bracket.
 	 */
-	bool bracketcloseindent_expected;
+	bool bracketcloseindent_expected = false;
 
 	/**
-	 * Filename used for tokenization.
+	 * Input file used for tokenization.
 	 */
-	const File &file;
+	std::shared_ptr<File> file;
 
 	/**
 	 * String stream which is fed into the lexer.
@@ -187,7 +192,7 @@ protected:
 	/**
 	 * Current position in a line.
 	 */
-	int linepos;
+	int linepos = linepos_start;
 
 	/**
 	 * Available tokens.
@@ -197,7 +202,7 @@ protected:
 	/**
 	 * Indicates whether the tokenization has reached the end.
 	 */
-	bool finished;
+	bool finished = false;
 };
 
 

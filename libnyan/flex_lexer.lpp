@@ -60,14 +60,15 @@ int NyanFlexLexer::yylex() { return 0; }
 
 digit          [0-9]
 id             [A-Za-z_][A-Za-z0-9_]*
-punct          [-+*/|%&@]
+punct          [-+*/|%&]
 assignpunct    {punct}=
 int            (-|0[xX])?{digit}+
 float          -?{digit}+\.{digit}*
 
 %%
 
-"#"[^\n]*\n       { /* ignore comments */ this->reset_linepos(); }
+^[ ]*#[^\n]*\n    { /* comments in empty lines */ this->reset_linepos(); }
+"#"[^\n]*\n       { /* trailing comments */ this->endline(); }
 
 "\t"              { throw this->error("tab character"); }
 
@@ -89,10 +90,7 @@ float          -?{digit}+\.{digit}*
 \'(\\.|[^\\'])*\'       { this->token(nyan::token_type::STRING); return; }
 
 "\n"                    { /* don't assign the `\n` for the next line */
-                          this->yylineno--;
-                          this->token(nyan::token_type::ENDLINE);
-                          this->yylineno++;
-                          this->reset_linepos(); return; }
+                          this->endline(); return; }
 
 "("                     { this->token(nyan::token_type::LPAREN); return; }
 ")"                     { this->token(nyan::token_type::RPAREN); return; }
@@ -102,6 +100,7 @@ float          -?{digit}+\.{digit}*
 "]"                     { this->token(nyan::token_type::RBRACKET); return; }
 "{"                     { this->token(nyan::token_type::LBRACE); return; }
 "}"                     { this->token(nyan::token_type::RBRACE); return; }
+"@"                     { this->token(nyan::token_type::AT); return; }
 
 "pass"                  { this->token(nyan::token_type::PASS); return; }
 "..."                   { this->token(nyan::token_type::ELLIPSIS); return; }
@@ -114,6 +113,7 @@ float          -?{digit}+\.{digit}*
 {id}                    { this->token(nyan::token_type::ID); return; }
 ":"                     { this->token(nyan::token_type::COLON); return; }
 ","                     { this->token(nyan::token_type::COMMA); return; }
+"."                     { this->token(nyan::token_type::DOT); return; }
 
 [ \r]                   { /* ignore space */ }
 "\f"                    { yylineno -= 1; }

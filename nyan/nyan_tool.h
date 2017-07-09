@@ -21,8 +21,8 @@ enum class option_param {
 	FILE
 };
 
-using flags_t = std::unordered_map<nyan::option_flag, bool>;
-using params_t = std::unordered_map<nyan::option_param, std::string>;
+using flags_t = std::unordered_map<option_flag, bool>;
+using params_t = std::unordered_map<option_param, std::string>;
 
 
 /**

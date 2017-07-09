@@ -1,0 +1,6 @@
+MoreData():
+    pass
+
+import imported
+import imported as bla
+import stuff.file as self

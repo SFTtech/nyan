@@ -10,37 +10,38 @@ namespace nyan {
 Set::Set() {}
 
 
-Set::Set(std::vector<ValueContainer> &values) {
+Set::Set(std::vector<ValueHolder> &&values) {
 	for (auto &value : values) {
 		this->values.insert(std::move(value));
 	}
 }
 
 
-std::unique_ptr<Value> Set::copy() const {
+ValueHolder Set::copy() const {
 	throw InternalError{"TODO set copy"};
 }
 
 
-bool Set::add(ValueContainer &&value) {
-	return std::get<1>(this->values.insert(std::move(value)));
+bool Set::add(const ValueHolder &value) {
+	return std::get<1>(this->values.insert(value));
 }
 
 
-bool Set::contains(Value *value) {
+bool Set::contains(const ValueHolder &value) {
 	return (this->values.find(value) != std::end(this->values));
 }
 
 
-bool Set::remove(Value *value) {
+bool Set::remove(const ValueHolder &value) {
 	return (1 == this->values.erase(value));
 }
 
 
-void Set::apply_value(const Value *value, nyan_op operation) {
-	const Set *change = dynamic_cast<const Set *>(value);
+void Set::apply_value(const Value &value, nyan_op operation) {
+	// TODO: may be another type of baseset
+	const Set &change = dynamic_cast<const Set &>(value);
 
-	throw InternalError{"TODO"};
+	throw InternalError{"TODO apply_value set"};
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
@@ -66,6 +67,8 @@ void Set::apply_value(const Value *value, nyan_op operation) {
 
 
 std::string Set::str() const {
+	// same as repr(), except we use str().
+
 	std::ostringstream builder;
 	builder << "{";
 
@@ -84,6 +87,8 @@ std::string Set::str() const {
 
 
 std::string Set::repr() const {
+	// same as str(), except we use repr().
+
 	std::ostringstream builder;
 	builder << "{";
 
@@ -101,9 +106,9 @@ std::string Set::repr() const {
 }
 
 
-const std::unordered_set<nyan_op> &Set::allowed_operations(nyan_basic_type value_type) const {
+const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type) const {
 
-	if (not value_type.is_container()) {
+	if (not with_type.is_container()) {
 		return no_nyan_ops;
 	}
 
@@ -115,8 +120,8 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(nyan_basic_type value
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
-	switch (value_type.container_type) {
-	case nyan_container_type::SET:
+	switch (with_type.get_container_type()) {
+	case container_t::SET:
 		return ops;
 
 	default:
@@ -125,10 +130,10 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(nyan_basic_type value
 }
 
 
-const nyan_basic_type &Set::get_type() const {
-	constexpr static nyan_basic_type type{
-		nyan_primitive_type::CONTAINER,
-		nyan_container_type::SET,
+const BasicType &Set::get_type() const {
+	constexpr static BasicType type{
+		primitive_t::CONTAINER,
+		container_t::SET,
 	};
 
 	return type;

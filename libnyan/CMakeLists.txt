@@ -23,31 +23,45 @@ include_directories(
 add_library(nyan SHARED
 	flex_lexer.cpp
 	ast.cpp
+	basic_type.cpp
+	c3.cpp
 	config.cpp
-	container.cpp
+	curve/curve.cpp
+	curve/keyframe_container.cpp
 	database.cpp
 	datastructure/orderedset.cpp
 	error.cpp
 	file.cpp
+	id_token.cpp
 	lexer.cpp
 	location.cpp
 	member.cpp
+	member_info.cpp
+	meta_info.cpp
 	namespace.cpp
+	namespace_finder.cpp
 	object.cpp
+	object_info.cpp
+	object_state.cpp
 	ops.cpp
 	parser.cpp
-	ptr_container.cpp
+	state.cpp
 	token.cpp
+	token_stream.cpp
+	transaction.cpp
 	type.cpp
-	type_container.cpp
 	util.cpp
-	value/value.cpp
 	value/container.cpp
 	value/number.cpp
+	value/object.cpp
 	value/orderedset.cpp
 	value/set.cpp
 	value/set_base.cpp
 	value/text.cpp
+	value/value.cpp
+	value/value_holder.cpp
+	value/value_wrapper.cpp
+	view.cpp
 )
 
 target_link_libraries(nyan

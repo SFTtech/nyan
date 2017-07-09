@@ -24,7 +24,6 @@ nyan_op op_from_string(const std::string &str) {
 		{"/=", nyan_op::DIVIDE_ASSIGN},
 		{"|=", nyan_op::UNION_ASSIGN},
 		{"&=", nyan_op::INTERSECT_ASSIGN},
-		{"@=", nyan_op::PATCH},
 	};
 
 	auto it = str_to_op.find(str);

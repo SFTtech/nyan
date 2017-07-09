@@ -57,7 +57,7 @@ std::string read_file(const std::string &filename, bool binary) {
 		builder << "failed reading file '"
 		        << filename << "': "
 		        << strerror(errno);
-		throw Error{builder.str()};
+		throw FileReadError{builder.str()};
 	}
 }
 
@@ -113,6 +113,27 @@ std::string symbol_name(const void *addr,
 	}
 }
 
+
+std::vector<std::string> split(const std::string &txt, char delimiter) {
+	std::vector<std::string> items;
+	// use the back inserter iterator and the templated split function.
+	split(txt, delimiter, std::back_inserter(items));
+	return items;
+}
+
+
+bool ends_with(const std::string &txt, const std::string &end) {
+	if (end.size() > txt.size()) {
+		return false;
+	}
+	return std::equal(end.rbegin(), end.rend(), txt.rbegin());
+}
+
+
+size_t hash_combine(size_t hash1, size_t hash2) {
+	// Taken from http://www.boost.org/doc/libs/1_55_0/doc/html/hash/reference.html#boost.hash_combine
+	return hash1 ^ (hash2 + 0x9e3779b9 + ((hash1 << 6) + (hash1 >> 2)));
+}
 
 } // namespace util
 } // namespace nyan

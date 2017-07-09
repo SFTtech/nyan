@@ -12,7 +12,7 @@ namespace datastructure {
 
 /**
  * Linked list to support removing elements by pointer.
- * T must be something that is normally wrapped in PtrContainer.
+ * `T` must be hashable as a key in `value_storage_t`.
  */
 template <typename T>
 class OrderedSet {
@@ -61,12 +61,12 @@ protected:
 			const OrderedSet,
 			OrderedSet>::type;
 
-		OrderedSetIterator(set_type *set, bool use_start)
+		OrderedSetIterator(set_type &set, bool use_start)
 			:
 			iter{use_start ?
-			     set->value_order.begin()
+			     set.value_order.begin()
 			     :
-			     set->value_order.end()} {}
+			     set.value_order.end()} {}
 
 		virtual ~OrderedSetIterator() = default;
 
@@ -86,7 +86,7 @@ protected:
 		}
 
 		/**
-		 * Check if this iterator points to the same container element
+		 * Check if this iterator points to the same element
 		 * as the other iterator.
 		 */
 		bool operator ==(const OrderedSetIterator& other) const {
@@ -96,7 +96,7 @@ protected:
 
 		/**
 		 * Check if the iterator does not point to the same
-		 * container element as the other iterator.
+		 * element as the other iterator.
 		 */
 		bool operator !=(const OrderedSetIterator& other) const {
 			return not (*this == other);
@@ -131,7 +131,7 @@ public:
 	 * Add an entry to the orderedset.
 	 * If already in the set, move entry to the end.
 	 */
-	bool add(T &&value) {
+	bool add(const T &value) {
 		// maybe it is even faster if we check existence with
 		// this->values.find(value) first, although then
 		// we need to hash value twice: once for the find
@@ -143,7 +143,7 @@ public:
 		// as list position, use a dummy which gets replaced below
 		list_iter list_pos{};
 		auto ins = this->values.insert(
-			std::make_pair(std::move(value), list_pos));
+			std::make_pair(value, list_pos));
 		auto value_pos = std::get<0>(ins);
 		bool new_insert = std::get<1>(ins);
 
@@ -169,6 +169,8 @@ public:
 		return new_insert;
 	}
 
+	// TODO: add add(T &&value) function
+
 	/**
 	 * Is the specified value stored in this set?
 	 */
@@ -183,12 +185,14 @@ public:
 		return this->value_order.size();
 	}
 
+	/** provide the begin iterator of this set */
 	const_iterator begin() const {
-		return OrderedSetIterator<const T>{this, true};
+		return OrderedSetIterator<const T>{*this, true};
 	}
 
+	/** provide the end iterator of this set */
 	const_iterator end() const {
-		return OrderedSetIterator<const T>{this, false};
+		return OrderedSetIterator<const T>{*this, false};
 	}
 };
 

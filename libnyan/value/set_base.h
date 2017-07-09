@@ -5,9 +5,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "../container.h"
-#include "../ptr_container.h"
-#include "value.h"
 #include "container.h"
 
 
@@ -46,9 +43,8 @@ public:
 	 * Get the element the iterator is currently pointing to.
 	 */
 	elem_type &operator *() const override {
-		// unpack the ValueContainer
-		auto &&it = *this->iterator;
-		return *(it.get());
+		// unpack the ValueHolder
+		return *(*this->iterator);
 	}
 
 protected:
@@ -69,7 +65,7 @@ protected:
 
 
 /**
- * Nyan value to store a unordered set of things.
+ * Nyan value to store set of things.
  *
  * T is the underlying storage type to store the Values.
  */
@@ -90,6 +86,7 @@ public:
 		throw Error{"Sets are not hashable."};
 	}
 
+
 	size_t size() const override {
 		return this->values.size();
 	}
@@ -101,6 +98,7 @@ public:
 
 
 	iterator end() override {
+		// also throw the error above.
 		return this->begin();
 	}
 
@@ -117,14 +115,14 @@ public:
 		// that all Containers support.
 		//
 		// iterator::elem_type = the single element type of the iteration.
-		// Set             = the target set class,
+		// Set                 = the target set class,
 		//                       which is non-const in this begin()
 		//                       implementation,
 		//                       but not in the begin() below.
 		// (this, true)        = use this set as target, use the beginning.
 		auto real_iterator = std::make_unique<
 			SetIterator<const_iterator::elem_type,
-			                const SetBase>>(this, true);
+			            const SetBase>>(this, true);
 
 		return const_iterator{std::move(real_iterator)};
 	}
@@ -134,7 +132,7 @@ public:
 		// see explanation in the begin() above
 		auto real_iterator = std::make_unique<
 			SetIterator<const_iterator::elem_type,
-			                const SetBase>>(this, false);
+			            const SetBase>>(this, false);
 
 		return const_iterator{std::move(real_iterator)};
 	}
@@ -153,7 +151,7 @@ protected:
 	 */
 	bool equals(const Value &other) const override {
 		auto &other_val = dynamic_cast<const SetBase &>(other);
-		throw InternalError{"TODO set equality"};
+		throw InternalError{"TODO set equality test"};
 	}
 
 	value_storage values;
