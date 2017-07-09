@@ -110,9 +110,13 @@ Concept:
   * Patches are used to change a target `nyan::Object` at runtime
   * It is created for exactly one `nyan::Object` with `PatchName<TargetObject>`
   * Internally, the target object is referenced in a member named `__patch__`
-  * Can modify **member values** of the assigned `nyan::Object`
+  * Can modify **member values** of the target `nyan::Object`
   * Can add **inheritance** parents of the target `nyan::Object`
-  * Can add new members, but not remove them
+  * Can *not* add new members or remove them
+  * When activated, member values are calculated by inheritance
+    * The patch inherits from the target object
+    * Values are calculated top-down
+    * The resulting values are stored as the target object
 * A `nyan::Object` can inherit from an ordered set of `nyan::Object`s
   (-> from a *nyan::Patch* as well)
   * Members of parent objects are inherited
@@ -157,7 +161,8 @@ Inherited(ObjName, OtherObj, ...):
 PatchName<TargetNyanObject>[+AdditionalParent, +OtherNewParent, ...]():
     member_to_modify = absolute_value
     member_to_update += relative_value
-    new_member : TypeName = value
+    member_to_replace @+= relative_value
+    member_to_replace_too @= absolute_value
 
 ParentObject():
     NestedObject(Inherited):
@@ -185,10 +190,11 @@ ParentObject():
 
 * It is a patch iff `<Target>` is written in the definition or the object
   has a member `__patch__ : Object`
-  * The patch can only be applied for the specified object or any child of it
+  * The patch will be applied for the specified object only
   * A patch can add a new inheritance parent to the target
     * Done with the `[+AdditionalParent, ...]` syntax, which just creates
-      a member `__parents_add__ : orderedset(Object)`
+      a member `__parents_add__ : orderedset(Object) = <AdditionalParent>`
+    * The activation of this parent must not induce name clashes, [see below](#Multi inheritance). When the patch is checked, this is verified at load time.
     * This can be used to inject a "middle object" in between two inheriting
       objects, because the multi inheritance linearization resolves the order
       * Imagine something like `TentacleMonster -> Unit`
@@ -196,14 +202,26 @@ ParentObject():
       * What we do first is create `MonsterBase -> Unit`
       * After applying a patch with `+MonsterBase` it is `TentacleMonster -> Unit, MonsterBase`
       * The linearization will result in `TentacleMonster -> MonsterBase -> Unit`
-* The patch will fail to be loaded if:
-  * The patch target is not known
-  * Any of changed members is not present in the patch target
-  * Any of the added parents is not known
-  * -> Blind patching is not allowed
-* The patch will succeed to load if:
-  * The patch target already inherits from a parent to be added
-  * -> Inheritance patching doesn't conflict with other patches
+  * A patch modifies the value of the target object only
+    * The target object operator will remain the same
+    * The target object value will be changed according to the operation
+      in the patch
+  * A patch replaces the operator and value of a target object,
+    if the patch operation is prefixed with an `@`
+    * Multiple `@` characters are allowed, so they are transferred
+      into the patched object. This is only allowed for patching patches.
+    * When applied, the `n` `@` chars from the patch will result
+      in `n-1` `@` chars in the patched patch. That way,
+      operator overrides can be propagated to arbitrarily nested patches.
+  * The patch will fail to be loaded if:
+    * The patch target is not known
+    * Any of changed members is not present in the patch target
+    * Any of the added parents is not known
+    * -> Blind patching is not allowed
+  * The patch will succeed to load if:
+    * All members of the patch are available in the patch target
+    * The patch target already inherits from a parent to be added
+    * -> Inheritance patching doesn't conflict with other patches
 
 
 #### Multi inheritance
@@ -374,9 +392,10 @@ the calculation is done like this:
     * deletion of keys: `-= {k, k, ...}`, `-= {k: v, ..}`
     * keep only those keys: `&= {k, k, ..}`, `&= {k: v, ..}`
   * `nyan::Object` reference:
-    * `=` set the reference to some other `nyan::Object`
-    * This reference must not be non-abstract (i.e. all members
-      have a value defined)
+    * `= NewObject` set the reference to some other object.
+      This reference must not be non-abstract (i.e. all members
+      have a value defined). And it must be type-compatible, of course.
+
 
 
 ### Namespaces, imports and forward declarations
@@ -532,65 +551,74 @@ old ones.
 
 `.nyan` files are read by the nyan interpreter part of `libnyan`.
 
-* You feed in a directory containing many `.nyan` files
-* It parses the contents and adds it to the `nyan::Database`
-* It does type checking to verify the integrity of the data hierarchy
+* You feed `.nyan` files into the `nyan::Database`
+* All data is loaded and checked for validity
 * You can query any member and object of the store
-* You can use pointers to them in the engine
-* You can apply patches to any object at any time
+* You can hold `nyan::Object`s as handles
+* You can apply patches to any object at a given time, all already-applied patches after that time are undone
+* All data history is stored over time
 
 
-### Database subtrees
+### Database views
 
-Problem: Different Players have different states of the same nyan tree.
+Problem: Different players and teams have different states of the same nyan tree.
 
-Solution: Create another hierarchy of state trees.
+Solution: Hierarchy of state views.
 
-A nyan database can have a parent database.
+A `nyan::View` has a parent which is either the root database or another `nyan::View`.
 
-The child database then stores the state for the player, the parent the
-global state.
+The view then stores the state for e.g. a player.
 
 What does that mean?
 
-* One can create a sub-database of the main database
-* If a patch is applied in that subdatabase, the main one remains unchanged
-  and just queries to the subdatabase will yield an updated result
-* Internally, this works as follows:
-  * Query the subdatabase for a patch object
-    * If it is known in the subdatabase, return it
-    * Else return it from the parent database
-  * When that patch is applied to a subdatabase, the subdatabase tries to
-    * Find the target object in its store or otherwise get it from the
-      parent database. If it doesn't have it either, query the next parent
-      until the root was reached.
-    * If it was not found in in the subdatabase, create an object with the
-      target object name in the subdatabase which inherits from the object
-      in the parent database. This is repeated until the direct parent
-      database has a object of the correct name.
-    * Apply the patch to the object in the subdatabase.
+* You can create a view of the main database
+* You can create a view of a view
+* Querying values respects the view the query is executed in
+* If a patch is applied in a view, the parent ones remains unchanged  ASDF
+  and just queries to the view will yield an updated result
 
-If objects are queried in subdatabases and not found, the query is
-redirected to their parent database and no child object is created in the
-subdatabase.
+Querying data works like this:
+* `nyan::Object obj = view.get(object_name)`
+  * The `nyan::Object` is just a handle which is then used for real queries
+* `obj.get(member_name, time)` will evaluates the member of the object at a give time
+  * asdf
 
-If they were found, the value is determined via the inheritance tree
-normally.
+Patching data works as follows:
+* Obtain a patch object from some view
+  * `nyan::Object patch = view.get(patch_name);`
+  * If it is known in the view, return it
+  * Else return it from the parent view
+* Create a transaction with this Patch to change the view state at the desired time
+  * `nyan::Transaction tx = view.new_transaction(time);`
+* Add one or more patch objects to the transaction
+  * `tx.add(patch); tx.add(...);`
+* Commit the transaction
+  * `bool success = tx.commit();`
+  * This triggers, for each patch in the transaction:
+    * Determine the patch target object by evaluating `__patch__`
+    * Copy the patch target object in a (new) state at `time`
+      * Query the view of the transaction at `time` for the target object, this may recursively query parent views
+      * If there is no state at `time` in the view of the transaction, create a new state
+      * Copy the target object into the state at `time` in the view of the transaction
+    * Linearize the inheritance hierary to a list of patch objects
+      * e.g. if we have a `SomePatch<TargetObj>()` and `AnotherPatch(SomePatch)` and we would like to apply `AnotherPatch`, this will result in `[SomePatch, AnotherPatch]`
+    * Apply the list left to right and modify the copied target object
+    * Notify child views that this patch was applied, perform the patch there as well
 
-This approach reuses the value generation for same-named objects in
-different databases. If the team gets a database with the main db as
-parent and each player gets a database with the matching team db as
-parent, team boni and player specific updates can be handled in an "easy"
+This approach allows different views of the database state and integrates with the
+patch idea so e.g. team boni and player specific updates can be handled in an "easy"
 way.
 
 
 
-### API
+### Embedding nyan
 
 A mod API could be implemented as follows: Create a `nyan::Object` named `Mod`
 that has a member with a set of patches to apply. To add new data to the engine,
 inherit from this `Mod`-object and add patches to the set. This `Mod`-object is
 registered to the engine with a mod description file.
+
+#### API definition example
 
 In practice, this could look like this:
 
@@ -600,9 +628,13 @@ In practice, this could look like this:
 Mod():
     patches : orderedset(Patch)
 
+Tech():
+    patches : orderedset(Patch)
+
 Unit():
     hp : int
     can_create : set(Unit) = {}
+    can_research : set(Tech) = {}
 
 CFG():
     initial_buildings : set(Unit)
@@ -622,9 +654,16 @@ Villager(engine.Unit):
     hp = 100
     can_create = {TownCenter}
 
+Loom(Tech):
+    HPBoost<Villager>():
+        hp += 50
+
+    patches = {HPBoost}
+
 TownCenter(engine.Unit):
     hp = 1500
     can_create = {Villager}
+    can_research = {Loom}
 
 DefaultConfig(engine.CFG):
     initial_buildings = {TownCenter}
@@ -637,76 +676,126 @@ DefaultMod(engine.Mod):
     patches = {Activate}
 ```
 
-Mod index file `pack.nfo`:
-``` cfg
+Mod information file `pack.nfo`:
+``` ini
 load: pack.nyan
 mod: pack.DefaultMod
+# could be extended with dependency and version information
 ```
 
-In the Engine, the load procedure could be done like this:
+#### Embedding in the engine
+
+The mod API definitions in `engine.nyan` have to be designed exacly the way the
+C++ engine code is then using it. It sets up the type system so that the nyan
+C++ API can then be used to provide the correct information to the program that embeds nyan.
+
+The load procedure and data access could be done like this:
 
 1. Load `engine.nyan`
 1. Read `pack.nfo`
 1. Load `pack.nyan`
 1. Apply "mod-activating" patches in `pack.DefaultMod`
 1. Let user select one of `engine.StartConfigs.available`
-1. Generate map with the `CFG.initial_buildings`
-1. Display creatable units for each initial building
+1. Generate a map and place the `CFG.initial_buildings`
+1. Display creatable units for each building on that map
 
 When the newly created villager is selected, it can build towncenters!
+And the towncenter can research a healthpoint-upgrade for villagers.
 
 ``` cpp
-// init
+// callback function for reading nyan files via the engine
+// we need this so nyan can access into e.g. archives of the engine.
+std::string base_path = "/some/game/root";
+auto file_fetcher = [base_path] (const std::string &filename) {
+    return std::make_shared<File>(base_path + '/' + filename);
+};
+
+// initialization of API
 nyan::Database db;
-nyan::Store store = db.create_store();
-store.load("engine.nyan");
+db.load("engine.nyan", file_fetcher);
 
-// userdata loading
+// load the userdata
 ModInfo nfo = read_mod_file("pack.nfo");
-store.load(nfo.load);
-nyan::Object mod_obj = store.get(nfo.mod);
-if (not mod_obj.extends("engine.Mod")) { error(); }
+db.load(nfo.load, file_fetcher);
 
-nyan::OrderedSet mod_patches = mod_obj.get<nyan::OrderedSet>("patches");
+// modification view: this is the changed database state
+std::shared_ptr<nyan::View> root = db.new_view();
 
-// activation of userdata
+nyan::Object mod_obj = root->get(nfo.mod);
+if (not mod_obj.extends("engine.Mod", 0)) { error(); }
+
+nyan::OrderedSet mod_patches = mod_obj.get<nyan::OrderedSet>("patches", 0);
+
+// activation of userdata (at t=0)
+nyan::Transaction mod_activation = root->new_transaction(0);
+
 for (auto &patch : mod_patches.items<nyan::Patch>()) {
-    patch.apply_in(store);
+    mod_activation.add(patch);
 }
 
-// presentation of userdata
-for (auto &obj : store.get("engine.StartConfigs").get<nyan::Set>("available").items<nyan::Object>()) {
+if (not mod_activation.commit()) { error("failed transaction"); }
+
+// presentation of userdata (t=0)
+for (auto &obj : root->get("engine.StartConfigs").get<nyan::Set>("available", 0).items<nyan::Object>()) {
     present_in_selection(obj);
 }
 
-nyan::Object selected_startconfig = evaluate_selection();
+// feedback from ui
+nyan::Object selected_startconfig = ...;
 
 // use result of ui-selection
-printf("generate map with config %s", selected_startconfig.get<nyan::Text>("name"));
-place_buildings(selected_startconfig.get<nyan::Set>("initial_buildings"));
+printf("generate map with config %s", selected_startconfig.get<nyan::Text>("name", 0));
+place_buildings(selected_startconfig.get<nyan::Set>("initial_buildings", 0));
 
+// set up teams and players
+auto player0 = std::make_shared<nyan::View>(root);
+auto player1 = std::make_shared<nyan::View>(root);
+
+
+// ====== let's assume the game runs now
 run_game();
 
-// to check if a unit is dead:
-for (auto &engine_unit : get_all_units()) {
-    nyan::Object unit_type = engine_unit.get_type();
-    float max_hp = unit_type.get<nyan::Int>("hp");
-    float damage = engine_unit.current_damage();
-    if (damage > max_hp) {
-        engine_unit.die();
-    }
 
+// to check if a unit is dead:
+engine::Unit engine_unit = ...;
+nyan::Object unit_type = engine_unit.get_type();
+int max_hp = unit_type.get<nyan::Int>("hp", current_game_time);
+float damage = engine_unit.current_damage();
+if (damage > max_hp) {
+    engine_unit.die();
+}
+else {
     engine_unit.update_hp_bar(max_hp - damage);
 }
 
 // to display what units a selected entity can build:
 nyan::Object selected = get_selected_object_type();
-if (selected.extends("engine.Unit")) {
-    for (auto &unit : selected.get<nyan::Set>("can_create")) {
-        display_can_create(unit);
+if (selected.extends("engine.Unit", current_game_time)) {
+    for (auto &unit : selected.get<nyan::Set>("can_create", current_game_time).items<nyan::Object>()) {
+        display_creatable(unit);
     }
 }
+
+// technology research:
+nyan::Object tech = get_tech_to_research();
+std::shared_ptr<nyan::View> &target = target_player();
+nyan::Transaction research = target.new_transaction(current_game_time);
+for (auto &patch : tech.get<nyan::Orderedset>("patches", current_game_time).items<nyan::Patch>()) {
+    research.add(patch);
+}
+
+if (not research.commit()) { error("failed transaction"); }
 ```
+
+
+### Creating a scripting API
+
+nyan does provide any possibility to execute code.
+But nyan can be used as entry-point for full dynamic scripting APIs:
+The names of hook functions to be called are set up through nyan.
+The validity of code that is called that way is impossible to check,
+so this can lead to runtime crashes.
+
 
 ## nyanc - the nyan compiler
 
