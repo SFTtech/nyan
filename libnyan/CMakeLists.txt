@@ -45,6 +45,7 @@ add_library(nyan SHARED
 	object_state.cpp
 	ops.cpp
 	parser.cpp
+	patch_info.cpp
 	state.cpp
 	token.cpp
 	token_stream.cpp

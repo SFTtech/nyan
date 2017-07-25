@@ -12,6 +12,7 @@
 #include "namespace.h"
 #include "object_state.h"
 #include "parser.h"
+#include "patch_info.h"
 #include "util.h"
 #include "view.h"
 
@@ -301,7 +302,7 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 	const IDToken &target = astobj.target;
 	if (target.exists()) {
 		fqon_t target_id = scope.find(ns, target, this->meta_info);
-		info->set_target(std::move(target_id));
+		info->add_patch(std::make_shared<PatchInfo>(std::move(target_id)), true);
 	}
 
 	// a patch may add inheritance parents
@@ -383,75 +384,145 @@ void Database::linearize_new(const std::vector<fqon_t> &new_objects) {
 }
 
 
+void Database::find_type(bool skip_first,
+                         const memberid_t &member_id,
+                         const std::vector<fqon_t> &search_parents,
+                         const ObjectInfo &obj_info,
+                         const std::function<void(const fqon_t &, const MemberInfo &, const std::shared_ptr<Type> &)> &def_found) {
+
+	// member doesn't have type yet. find it.
+	for (auto &parent : search_parents) {
+
+		// at the very beginning, we have to skip the object
+		// we want to find the type for. it's the first in the linearization.
+		if (skip_first) {
+			skip_first = false;
+			continue;
+		}
+
+		ObjectInfo *parent_info = this->meta_info.get_object(parent);
+		const MemberInfo *parent_member_info = parent_info->get_member(member_id);
+
+		// parent doesn't have this member
+		if (not parent_member_info) {
+			continue;
+		}
+
+		if (parent_member_info->is_initial_def()) {
+			const std::shared_ptr<Type> &new_type = parent_member_info->get_type();
+
+			if (unlikely(not new_type.get())) {
+				throw InternalError{"initial type definition has no type"};
+			}
+
+			def_found(parent, *parent_member_info, new_type);
+		}
+		// else that member knows the type,
+		// but we're looking for the initial definition.
+	}
+
+	// recurse into the patch target
+	if (obj_info.is_patch()) {
+		const fqon_t &target = obj_info.get_patch()->get_target();
+
+		const ObjectInfo *obj_info = this->meta_info.get_object(target);
+		ObjectState *obj_state = this->state.get(target).get();
+		const auto &target_lin = obj_state->get_linearization();
+
+		// recurse into the target.
+		// check if the patch defines the member as well -> error.
+		// otherwise, infer type from patch.
+		this->find_type(false, member_id, target_lin, *obj_info, def_found);
+	}
+}
+
+
+
 void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 
 	using namespace std::string_literals;
 
-	// resolve member types:
-	// link member types to matching parent if not known yet.
+	// link patch information to the origin patch
+	// and check if there's not multiple patche targets per object hierarchy
 	for (auto &obj : new_objects) {
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
 		ObjectState *obj_state = this->state.get(obj).get();
 
-		// check if each member has a type
+		const auto &parents = obj_state->get_linearization();
+		auto it = std::begin(parents);
+		++it; // skip first, it's the object itself.
+		for (auto end = std::end(parents); it != end; ++it) {
+			ObjectInfo *parent_info = this->meta_info.get_object(*it);
+
+			if (parent_info->is_initial_patch()) {
+				if (unlikely(obj_info->is_initial_patch())) {
+					// TODO: show patch target instead of member
+					throw ReasonError{
+						obj_info->get_location(),
+						"child patches can't declare a patch target",
+						{{parent_info->get_location(), "parent that declares the patch"}}
+					};
+				}
+				else {
+					// this is patch because of inheritance.
+					// false => it wasn't initially a patch.
+					obj_info->add_patch(parent_info->get_patch(), false);
+				}
+			}
+		}
+	}
+
+	// resolve member types:
+	// link member types to matching parent if not known yet.
+	// this required that patch targets are linked.
+	for (auto &obj : new_objects) {
+		ObjectInfo *obj_info = this->meta_info.get_object(obj);
+		ObjectState *obj_state = this->state.get(obj).get();
+
+		const auto &parents_lin = obj_state->get_linearization();
+
+		// resolve the type for each member
 		for (auto &it : obj_info->get_members()) {
 			const memberid_t &member_id = it.first;
 			MemberInfo &member_info = it.second;
 
-			// type for this member is needed
-			bool type_needed = true;
+			// if the member already defines it, we found it already.
+			// we still need to check for conflicts though.
+			bool type_found = member_info.is_initial_def();
 
-			// member has a type and it's defined as initial def
-			// -> no parent should define it.
-			if (member_info.is_initial_def()) {
-				type_needed = false;
-			}
-
-			// TODO: figure out a type from a patch target
-			// when? after top parent has been reached?
-
-			// member doesn't have type yet. find it.
-			const auto &parents_lin = obj_state->get_linearization();
-
-			auto parent = std::begin(parents_lin);
-			// first parent is always the object itself, skip it.
-			++parent;
-			for (auto end=std::end(parents_lin); parent != end; ++parent) {
-				ObjectInfo *parent_info = this->meta_info.get_object(*parent);
-				const MemberInfo *parent_member_info = parent_info->get_member(member_id);
-
-				// parent doesn't have this member
-				if (not parent_member_info) {
-					continue;
-				}
-
-				if (parent_member_info->is_initial_def()) {
-					const std::shared_ptr<Type> &new_type = parent_member_info->get_type();
-
-					if (unlikely(not new_type.get())) {
-						throw InternalError{"initial type definition has no type"};
-					}
-					else if (unlikely(type_needed == false)) {
+			// start the recursion into the inheritance tree,
+			// which includes the recursion into patch targets.
+			this->find_type(
+				true,  // make sure the object we search the type for isn't checked with itself.
+				member_id, parents_lin, *obj_info,
+				[&member_info, &type_found, &member_id]
+				(const fqon_t &parent,
+				 const MemberInfo &source_member_info,
+				 const std::shared_ptr<Type> &new_type) {
+					// check if the member we're looking for isn't already typed.
+					if (unlikely(member_info.is_initial_def())) {
 						// another parent defines this type,
-						// which is disallowed.
+						// which is disallowed!
 
-						// TODO: show location of type instead of member
-						throw TypeError{
+						// TODO: show location of infringing type instead of member
+						throw ReasonError{
 							member_info.get_location(),
-							("parent '"s + *parent
-							 + "' already defines type of '" + member_id + "'")
+							("parent '"s + parent
+							 + "' already defines type of '" + member_id + "'"),
+							{{source_member_info.get_location(), "parent that declares the member"}}
 						};
 					}
 
-					type_needed = false;
+					type_found = true;
 					member_info.set_type(new_type, false);
 				}
-			}
+			);
 
-			if (unlikely(type_needed)) {
+			if (unlikely(not type_found)) {
 				throw TypeError{
 					member_info.get_location(),
-					"no parent defines the type of '"s + member_id + "'"
+					"could not infer type of '"s + member_id
+					+ "' from parents or patch target"
 				};
 			}
 		}
@@ -532,6 +603,7 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 
 // TODO: check if operator is allowed for the value type.
 // TODO: sanity check for inheritance operator compat (no += on undef parent)
+// TODO: check if an object has inher parent adds, it must be a patch.
 
 
 std::shared_ptr<View> Database::new_view() {

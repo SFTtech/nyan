@@ -6,6 +6,7 @@
 
 #include "error.h"
 #include "util.h"
+#include "patch_info.h"
 
 
 namespace nyan {
@@ -13,6 +14,11 @@ namespace nyan {
 ObjectInfo::ObjectInfo(const Location &location)
 	:
 	location{location} {}
+
+
+const Location &ObjectInfo::get_location() const {
+	return this->location;
+}
 
 
 MemberInfo &ObjectInfo::add_member(const fqon_t &name, MemberInfo &&member) {
@@ -41,14 +47,30 @@ const MemberInfo *ObjectInfo::get_member(const memberid_t &name) const {
 }
 
 
-void ObjectInfo::set_target(const fqon_t &name) {
-	this->target = name;
-	this->is_patch = true;
+bool ObjectInfo::is_patch() const {
+	return this->patch_info.get() != nullptr;
 }
 
 
-void ObjectInfo::add_inheritance_add(const fqon_t &name) {
-	this->inheritance_add.push_back(name);
+bool ObjectInfo::is_initial_patch() const {
+	return this->initial_patch;
+}
+
+
+PatchInfo &ObjectInfo::add_patch(const std::shared_ptr<PatchInfo> &info, bool initial) {
+	this->initial_patch = initial;
+	this->patch_info = info;
+	return *this->patch_info.get();
+}
+
+
+const std::shared_ptr<PatchInfo> &ObjectInfo::get_patch() const {
+	return this->patch_info;
+}
+
+
+void ObjectInfo::add_inheritance_add(fqon_t &&name) {
+	this->inheritance_add.push_back(std::move(name));
 }
 
 
@@ -57,8 +79,8 @@ std::string ObjectInfo::str() const {
 
 	builder << "ObjectInfo";
 
-	if (this->target.size() > 0) {
-		builder << " <" << this->target << ">";
+	if (this->is_patch()) {
+		builder << " " << this->patch_info->str();
 	}
 
 	if (this->inheritance_add.size() > 0) {

@@ -228,9 +228,29 @@ public:
 };
 
 
+/**
+ * Error thrown when reading nyan files fails.
+ * This is a "low level" error, i.e. file not found,
+ * permission problems etc.
+ */
 class FileReadError : public Error {
 public:
 	FileReadError(const std::string &msg);
+};
+
+
+/**
+ * Exception class to store an error with one or multiple reasons.
+ */
+class ReasonError : public FileError {
+public:
+	ReasonError(const Location &location, const std::string &msg,
+	            std::vector<std::pair<Location, std::string>> &&reasons={});
+
+	std::string show_problem_origin() const override;
+
+protected:
+	std::vector<std::pair<Location, std::string>> reasons;
 };
 
 

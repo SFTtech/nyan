@@ -11,6 +11,9 @@
 
 namespace nyan {
 
+class PatchInfo;
+
+
 /**
  * Information about an object.
  * Used for the type system and error messages.
@@ -22,15 +25,21 @@ public:
 	explicit ObjectInfo(const Location &location);
 	~ObjectInfo() = default;
 
+	const Location &get_location() const;
+
 	MemberInfo &add_member(const memberid_t &name, MemberInfo &&member);
 
 	member_info_t &get_members();
 
 	const MemberInfo *get_member(const memberid_t &name) const;
 
-	void set_target(const fqon_t &name);
+	PatchInfo &add_patch(const std::shared_ptr<PatchInfo> &info, bool initial);
+	const std::shared_ptr<PatchInfo> &get_patch() const;
 
-	void add_inheritance_add(const fqon_t &name);
+	void add_inheritance_add(fqon_t &&name);
+
+	bool is_patch() const;
+	bool is_initial_patch() const;
 
 	std::string str() const;
 
@@ -41,14 +50,16 @@ protected:
 	Location location;
 
 	/**
-	 * Patch target name.
+	 * Is this object an initial patch?
+	 * It is one when it was declared with <blabla>.
+	 * Otherwise we just link to the parent that does.
 	 */
-	fqon_t target;
+	bool initial_patch;
 
 	/**
-	 * True if this patch or a load-time parent has a target.
+	 * Patch target and modification information.
 	 */
-	bool is_patch = false;
+	std::shared_ptr<PatchInfo> patch_info;
 
 	/**
 	 * List of objects to add to the patch target.

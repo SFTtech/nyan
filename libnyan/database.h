@@ -89,6 +89,12 @@ protected:
 
 	void linearize_new(const std::vector<fqon_t> &new_objs);
 
+	void find_type(bool skip_first,
+	               const memberid_t &member_id,
+	               const std::vector<fqon_t> &search_parents,
+	               const ObjectInfo &obj_info,
+	               const std::function<void(const fqon_t &, const MemberInfo &, const std::shared_ptr<Type> &)> &def_found);
+
 	void resolve_types(const std::vector<fqon_t> &new_objs);
 
 #if 0

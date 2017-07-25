@@ -252,23 +252,26 @@ std::string FileError::str() const {
 }
 
 
-std::string FileError::show_problem_origin() const {
-	std::ostringstream builder;
-
-	size_t offset = this->location.get_line_offset();
-	size_t length = this->location.get_length();
+static void visualize_location(std::ostringstream &builder, const Location &location) {
+	size_t offset = location.get_line_offset();
+	size_t length = location.get_length();
 
 	if (length > 0) {
 		length -= 1;
 	}
 	else {
-		length = 5;
+		length = 0;
 	}
 
-	builder << this->location.get_line_content() << std::endl
+	builder << location.get_line_content() << std::endl
 	        << std::string(offset, ' ') << "\x1b[36;1m^"
 	        << std::string(length, '~') << "\x1b[m";
+}
 
+
+std::string FileError::show_problem_origin() const {
+	std::ostringstream builder;
+	visualize_location(builder, this->location);
 	return builder.str();
 }
 
@@ -308,6 +311,38 @@ TokenizeError::TokenizeError(const Location &location,
 FileReadError::FileReadError(const std::string &msg)
 	:
 	Error{msg} {}
+
+
+ReasonError::ReasonError(const Location &location, const std::string &msg,
+                         std::vector<std::pair<Location, std::string>> &&reasons)
+	:
+	FileError{location, msg},
+	reasons{std::move(reasons)} {}
+
+
+std::string ReasonError::show_problem_origin() const {
+	std::ostringstream builder;
+
+	visualize_location(builder, this->location);
+
+	for (const auto &reason : this->reasons) {
+		const Location &loc = reason.first;
+		const std::string &msg = reason.second;
+
+		builder << std::endl << "\x1b[1m";
+
+		loc.str(builder);
+
+		builder << "\x1b[30;1mnote:\x1b[39;49m "
+		        << msg
+		        << "\x1b[0m" << std::endl;
+
+		visualize_location(builder, loc);
+		builder << std::endl;
+	}
+
+	return builder.str();
+}
 
 
 } // namespace nyan

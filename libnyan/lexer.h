@@ -48,10 +48,6 @@ protected:
 
 	class Bracket {
 	public:
-		/**
-		 * Known bracket types.
-		 */
-
 		Bracket(token_type type, int indent);
 
 		/** This bracket is directly followed by a newline. */

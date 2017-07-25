@@ -9,3 +9,10 @@ c(a):
 
 d(b, c):
     member += 4
+
+
+pa<a>():
+    member += 1
+
+pa1(pa):
+    member -= 1
