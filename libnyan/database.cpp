@@ -551,14 +551,14 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 		}
 
 		// create the member with operation and value
-		Member &new_member = members.insert({
+		Member &new_member = members.emplace(
 			memberid,
 			Member{
 				0,          // TODO: get override depth from AST (the @-count)
 				operation,
 				Value::from_ast(*member_type, astmember.value, scope, ns, this->meta_info)
 			}
-		}).first->second;
+		).first->second;
 
 		const Value &new_value = new_member.get_value();
 

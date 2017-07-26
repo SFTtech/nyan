@@ -49,6 +49,7 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		fqon_t obj_id = scope.find(ns, value_token, names);
 
 		// TODO asdf: (enqueue) check if object is non-abstract!
+		// TODO: check if value extends the type!
 
 		member_value = ValueHolder{
 			std::make_shared<ObjectValue>(std::move(obj_id))
@@ -94,9 +95,14 @@ ValueHolder Value::from_ast(const Type &target_type,
 	values.reserve(astmembervalue.get_values().size());
 
 	// convert all tokens to values
+	const Type *element_type = target_type.get_element_type();
+	if (unlikely(element_type == nullptr)) {
+		throw InternalError{"container element type is nonexisting"};
+	}
+
 	for (auto &value_token : astmembervalue.get_values()) {
 		values.push_back(
-			value_from_value_token(target_type,
+			value_from_value_token(*element_type,
 			                       value_token,
 			                       scope,
 			                       ns,
