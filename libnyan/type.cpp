@@ -2,12 +2,16 @@
 
 #include "type.h"
 
+#include <algorithm>
+
 #include "ast.h"
 #include "error.h"
 #include "id_token.h"
 #include "meta_info.h"
 #include "namespace.h"
 #include "namespace_finder.h"
+#include "object_state.h"
+#include "state.h"
 #include "token.h"
 
 
@@ -126,13 +130,31 @@ bool Type::is_basic_compatible(const BasicType &type) const {
 }
 
 
-bool Type::can_be_in(const Type &other) const {
-	// this check also guarantees that other.element_type exists:
-	if (not other.is_container()) {
-		return false;
+bool Type::is_parent(const fqon_t &child, const State &state) const {
+	if (unlikely(not this->get_basic_type().is_object())) {
+		throw InternalError{"object parent check for non-object type"};
 	}
 
-	throw InternalError{"TODO check container compatibility"};
+	std::shared_ptr<ObjectState> objstate_ptr = state.get(child);
+	if (unlikely(objstate_ptr.get() == nullptr)) {
+		throw InternalError{"type test for object not in state"};
+	}
+
+	const ObjectState &objstate = *objstate_ptr.get();
+	const std::vector<fqon_t> &lin = objstate.get_linearization();
+
+	// the type is in the linearization list -> it's a parent or the same
+	if (std::find(std::begin(lin), std::end(lin), this->target) != std::end(lin)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+const fqon_t &Type::get_target() const {
+	return this->target;
 }
 
 
@@ -162,13 +184,7 @@ std::string Type::str() const {
 	}
 	else {
 		if (this->get_primitive_type() == primitive_t::OBJECT) {
-			// asdf todo what is the any-object?
-			if (this->target == "") {
-				return "__any__";
-			}
-			else {
-				return this->target;
-			}
+			return this->target;
 		}
 
 		if (this->get_container_type() == container_t::SINGLE) {

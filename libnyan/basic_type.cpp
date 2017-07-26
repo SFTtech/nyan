@@ -10,6 +10,10 @@
 
 namespace nyan {
 
+bool BasicType::is_object() const {
+	return (this->primitive_type == primitive_t::OBJECT);
+}
+
 bool BasicType::is_fundamental() const {
 	switch (this->primitive_type) {
 	case primitive_t::TEXT:

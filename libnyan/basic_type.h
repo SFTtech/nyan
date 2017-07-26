@@ -58,6 +58,11 @@ public:
 	container_t container_type;
 
 	/**
+	 * Return whether the type is object.
+	 */
+	bool is_object() const;
+
+	/**
 	 * Return whether the given type is fundamental.
 	 * Primitive types are int, float, text, etc.
 	 * Non-primitive types are containers and objects.

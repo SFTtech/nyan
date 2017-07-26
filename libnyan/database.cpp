@@ -215,7 +215,7 @@ void Database::load(const std::string &filename,
 
 void Database::create_obj_info(size_t *counter,
                                const NamespaceFinder &current_file,
-                               const Namespace &ns,
+                               const Namespace &,
                                const Namespace &objname,
                                const ASTObject &astobj) {
 
@@ -231,7 +231,7 @@ void Database::create_obj_info(size_t *counter,
 		};
 	}
 
-	ObjectInfo &info = this->meta_info.add_object(
+	this->meta_info.add_object(
 		objname.to_fqon(),
 		ObjectInfo{astobj.name}
 	);
@@ -556,7 +556,10 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 			Member{
 				0,          // TODO: get override depth from AST (the @-count)
 				operation,
-				Value::from_ast(*member_type, astmember.value, scope, ns, this->meta_info)
+				Value::from_ast(*member_type, astmember.value,
+				                scope, ns,
+				                this->meta_info,
+				                this->state)
 			}
 		).first->second;
 

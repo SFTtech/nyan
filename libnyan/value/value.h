@@ -12,10 +12,12 @@
 namespace nyan {
 
 class ASTMemberValue;
-class Object;
 class Member;
+class MetaInfo;
 class Namespace;
 class NamespaceFinder;
+class Object;
+class State;
 
 
 /**
@@ -33,7 +35,8 @@ public:
 	                            const ASTMemberValue &val,
 	                            const NamespaceFinder &scope,
 	                            const Namespace &ns,
-	                            const MetaInfo &names);
+	                            const MetaInfo &names,
+	                            const State &state);
 
 	/**
 	 * Return a copy of this Value.

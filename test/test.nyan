@@ -34,11 +34,10 @@ NestingBase(First):
 
 Third(First):
     rolf : int = 42
-    dieter : set(First) = {First}
+    dieter : set(First) = {First, Second}
 
 Test(Second):
     member += 1337
-    stuff : Second = Third
     gschicht : int = 0
 
 NewParent():
@@ -47,7 +46,7 @@ NewParent():
 Patch<Test>[+NewParent]():
     moarstuff : int = 10
     gschicht = 235
-    wtf : float = 13374242.0   # patching new members is disallowed!
+    wtf : float = 13374242.0
     ie : First = First
 
 PatchPatch<Patch>():

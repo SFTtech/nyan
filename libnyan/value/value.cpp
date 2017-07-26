@@ -25,7 +25,11 @@ static ValueHolder value_from_value_token(const Type &target_type,
                                           const IDToken &value_token,
                                           const NamespaceFinder &scope,
                                           const Namespace &ns,
-                                          const MetaInfo &names) {
+                                          const MetaInfo &names,
+                                          const State &state) {
+
+	using namespace std::string_literals;
+
 	ValueHolder member_value;
 
 	switch (target_type.get_primitive_type()) {
@@ -49,7 +53,14 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		fqon_t obj_id = scope.find(ns, value_token, names);
 
 		// TODO asdf: (enqueue) check if object is non-abstract!
-		// TODO: check if value extends the type!
+
+		if (unlikely(not target_type.is_parent(obj_id, state))) {
+			throw TypeError{
+				value_token,
+				"value (resolved as "s + obj_id
+				+ ") does not match type " + target_type.get_target()
+			};
+		}
 
 		member_value = ValueHolder{
 			std::make_shared<ObjectValue>(std::move(obj_id))
@@ -69,7 +80,8 @@ ValueHolder Value::from_ast(const Type &target_type,
                             const ASTMemberValue &astmembervalue,
                             const NamespaceFinder &scope,
                             const Namespace &ns,
-                            const MetaInfo &names) {
+                            const MetaInfo &names,
+                            const State &state) {
 
 	// TODO: someday values may be nested more than one level.
 	//       then this function must be boosted a bit.
@@ -85,9 +97,7 @@ ValueHolder Value::from_ast(const Type &target_type,
 
 		return value_from_value_token(target_type,
 		                              astmembervalue.get_values()[0],
-		                              scope,
-		                              ns,
-		                              names);
+		                              scope, ns, names, state);
 	}
 
 	// process multi-value values (orderedsets etc)
@@ -102,11 +112,8 @@ ValueHolder Value::from_ast(const Type &target_type,
 
 	for (auto &value_token : astmembervalue.get_values()) {
 		values.push_back(
-			value_from_value_token(*element_type,
-			                       value_token,
-			                       scope,
-			                       ns,
-			                       names)
+			value_from_value_token(*element_type, value_token,
+			                       scope, ns, names, state)
 		);
 	}
 
