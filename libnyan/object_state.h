@@ -31,6 +31,7 @@ public:
 
 	bool has_member(const memberid_t &name) const;
 	const Member *get_member(const memberid_t &name) const;
+	const std::unordered_map<memberid_t, Member> &get_members() const;
 
 	void set_linearization(std::vector<fqon_t> &&lin);
 	const std::vector<fqon_t> &get_linearization() const;

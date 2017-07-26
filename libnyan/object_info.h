@@ -37,6 +37,7 @@ public:
 	const std::shared_ptr<PatchInfo> &get_patch() const;
 
 	void add_inheritance_add(fqon_t &&name);
+	const std::vector<fqon_t> get_inheritance_add() const;
 
 	bool is_patch() const;
 	bool is_initial_patch() const;

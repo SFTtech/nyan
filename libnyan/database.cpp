@@ -189,62 +189,18 @@ void Database::load(const std::string &filename,
 	                                this,
 	                                _1, _2, _3, _4));
 
-	// TODO asdf member values.
-
-	// TODO: create value by type
-	// TODO: create check operation for value
+	// verify hierarchy consistency
+	this->check_hierarchy(new_objects);
 
 	/*
-	  ast
-	    x import[]
-	    x   namespace_name
-	    x   alias
-	      object[]
-	    x   name
-	    t   target
-	    t   inheritance_add[]
-	    s   parents[]
-	    x   member[]
-	    x     name
-	    s     operation
-	    t     type
-	            does_exist
-	    t       name
-	            has_payload
-	    t       payload
-	    s     value
-	            does_exist
-	            container_type
-	    s       values[]
-	    ... objects[]
-
-	  typetree
-	    name -> objectinfo
-	      location
-	      target                     (objects)
-	      inheritance_add[]          (objects)
-	      memberid -> memberinfo
-	        location
-	        type                     (objects)
-
-	  statetree
-	    name -> objectstate
-	      memberid -> member
-	        override_depth
-	        operation
-	        value                    (objects)
-	      parents[]
-	        fqon_t                   (objects) [linearize after setting]
-
-
-	  * The patch will fail to be loaded if:
-	  * The patch target is not known
-	  * Any of changed members is not present in the patch target
-	  * Any of the added parents is not known
-	  * -> Blind patching is not allowed
-	  * The patch will succeed to load if:
-	  * The patch target already inherits from a parent to be added
-	  * -> Inheritance patching doesn't conflict with other patches
+	 * The patch will fail to be loaded if:
+	 * The patch target is not known
+	 * Any of changed members is not present in the patch target
+	 * Any of the added parents is not known
+	 * -> Blind patching is not allowed
+	 * The patch will succeed to load if:
+	 * The patch target already inherits from a parent to be added
+	 * -> Inheritance patching doesn't conflict with other patches
 	 */
 
 	std::cout << std::endl << "METAINFO:" << std::endl
@@ -384,14 +340,16 @@ void Database::linearize_new(const std::vector<fqon_t> &new_objects) {
 }
 
 
-void Database::find_type(bool skip_first,
-                         const memberid_t &member_id,
-                         const std::vector<fqon_t> &search_parents,
-                         const ObjectInfo &obj_info,
-                         const std::function<void(const fqon_t &, const MemberInfo &, const std::shared_ptr<Type> &)> &def_found) {
+void Database::find_member(bool skip_first,
+                           const memberid_t &member_id,
+                           const ObjectState &obj_state,
+                           const ObjectInfo &obj_info,
+                           const std::function<bool(const fqon_t &, const MemberInfo &, const Member *)> &member_found) {
+
+	bool finished = false;
 
 	// member doesn't have type yet. find it.
-	for (auto &parent : search_parents) {
+	for (auto &parent : obj_state.get_linearization()) {
 
 		// at the very beginning, we have to skip the object
 		// we want to find the type for. it's the first in the linearization.
@@ -401,6 +359,9 @@ void Database::find_type(bool skip_first,
 		}
 
 		ObjectInfo *parent_info = this->meta_info.get_object(parent);
+		if (unlikely(parent_info == nullptr)) {
+			throw InternalError{"object information not retrieved"};
+		}
 		const MemberInfo *parent_member_info = parent_info->get_member(member_id);
 
 		// parent doesn't have this member
@@ -408,39 +369,39 @@ void Database::find_type(bool skip_first,
 			continue;
 		}
 
-		if (parent_member_info->is_initial_def()) {
-			const std::shared_ptr<Type> &new_type = parent_member_info->get_type();
-
-			if (unlikely(not new_type.get())) {
-				throw InternalError{"initial type definition has no type"};
-			}
-
-			def_found(parent, *parent_member_info, new_type);
+		const ObjectState *par_state = this->state.get(parent).get();
+		if (unlikely(par_state == nullptr)) {
+			throw InternalError{"object state not retrieved"};
 		}
-		// else that member knows the type,
-		// but we're looking for the initial definition.
+		const Member *member = par_state->get_member(member_id);
+
+		finished = member_found(parent, *parent_member_info, member);
+
+		if (finished) {
+			break;
+		}
 	}
 
 	// recurse into the patch target
-	if (obj_info.is_patch()) {
+	if (not finished and obj_info.is_patch()) {
 		const fqon_t &target = obj_info.get_patch()->get_target();
-
 		const ObjectInfo *obj_info = this->meta_info.get_object(target);
-		ObjectState *obj_state = this->state.get(target).get();
-		const auto &target_lin = obj_state->get_linearization();
+		const ObjectState *obj_state = this->state.get(target).get();
 
 		// recurse into the target.
 		// check if the patch defines the member as well -> error.
 		// otherwise, infer type from patch.
-		this->find_type(false, member_id, target_lin, *obj_info, def_found);
+		this->find_member(false, member_id, *obj_state, *obj_info, member_found);
 	}
 }
-
 
 
 void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 
 	using namespace std::string_literals;
+
+	// TODO: if inheritance parents are added,
+	//       should a patch be able to modify the newly accessible members?
 
 	// link patch information to the origin patch
 	// and check if there's not multiple patche targets per object hierarchy
@@ -479,8 +440,6 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
 		ObjectState *obj_state = this->state.get(obj).get();
 
-		const auto &parents_lin = obj_state->get_linearization();
-
 		// resolve the type for each member
 		for (auto &it : obj_info->get_members()) {
 			const memberid_t &member_id = it.first;
@@ -492,29 +451,43 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 
 			// start the recursion into the inheritance tree,
 			// which includes the recursion into patch targets.
-			this->find_type(
+			this->find_member(
 				true,  // make sure the object we search the type for isn't checked with itself.
-				member_id, parents_lin, *obj_info,
+				member_id, *obj_state, *obj_info,
 				[&member_info, &type_found, &member_id]
 				(const fqon_t &parent,
 				 const MemberInfo &source_member_info,
-				 const std::shared_ptr<Type> &new_type) {
-					// check if the member we're looking for isn't already typed.
-					if (unlikely(member_info.is_initial_def())) {
-						// another parent defines this type,
-						// which is disallowed!
+				 const Member *) {
 
-						// TODO: show location of infringing type instead of member
-						throw ReasonError{
-							member_info.get_location(),
-							("parent '"s + parent
-							 + "' already defines type of '" + member_id + "'"),
-							{{source_member_info.get_location(), "parent that declares the member"}}
-						};
+					if (source_member_info.is_initial_def()) {
+						const std::shared_ptr<Type> &new_type = source_member_info.get_type();
+
+						if (unlikely(not new_type.get())) {
+							throw InternalError{"initial type definition has no type"};
+						}
+
+						// check if the member we're looking for isn't already typed.
+						if (unlikely(member_info.is_initial_def())) {
+							// another parent defines this type,
+							// which is disallowed!
+
+							// TODO: show location of infringing type instead of member
+							throw ReasonError{
+								member_info.get_location(),
+								("parent '"s + parent
+								 + "' already defines type of '" + member_id + "'"),
+								{{source_member_info.get_location(), "parent that declares the member"}}
+							};
+						}
+
+						type_found = true;
+						member_info.set_type(new_type, false);
 					}
+					// else that member knows the type,
+					// but we're looking for the initial definition.
 
-					type_found = true;
-					member_info.set_type(new_type, false);
+					// we need to traverse all members and never stop early.
+					return false;
 				}
 			);
 
@@ -574,7 +547,7 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 
 		if (unlikely(operation == nyan_op::INVALID)) {
 			// the ast buildup should have ensured this.
-			throw InternalError{"member has value but invalid operator"};
+			throw InternalError{"member has value but no operator"};
 		}
 
 		// create the member with operation and value
@@ -591,9 +564,10 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 
 		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(*member_type);
 
-		if (allowed_ops.find(operation) == std::end(allowed_ops)) {
+		if (unlikely(allowed_ops.find(operation) == std::end(allowed_ops))) {
 			// TODO: show location of operation
-			throw TypeError{astmember.name, "invalid operator for member type"};
+			// TODO: show allowed ones?
+			throw TypeError{astmember.name, "invalid operator for this member type"};
 		}
 	}
 
@@ -601,9 +575,73 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 }
 
 
-// TODO: check if operator is allowed for the value type.
-// TODO: sanity check for inheritance operator compat (no += on undef parent)
-// TODO: check if an object has inher parent adds, it must be a patch.
+void Database::check_hierarchy(const std::vector<fqon_t> &new_objs) {
+	for (auto &obj : new_objs) {
+
+		ObjectInfo *obj_info = this->meta_info.get_object(obj);
+		ObjectState *obj_state = this->state.get(obj).get();
+		if (unlikely(obj_info == nullptr)) {
+			throw InternalError{"object info could not be retrieved"};
+		}
+		if (unlikely(obj_state == nullptr)) {
+			throw InternalError{"initial object state could not be retrieved"};
+		}
+
+		// check if an object has inher parent adds, it must be a patch.
+		if (obj_info->get_inheritance_add().size() > 0) {
+			if (unlikely(not obj_info->is_patch())) {
+				throw FileError{
+					obj_info->get_location(),
+					"Inheritance additions can only be done in patches."
+				};
+			}
+		}
+
+
+		// check that relative operators can't be performed when the parent has no value.
+		for (auto &it : obj_state->get_members()) {
+			bool assign_ok = false;
+			bool other_op = false;
+
+			this->find_member(
+				false, it.first, *obj_state, *obj_info,
+				[&assign_ok, &other_op] (const fqon_t &,
+				                         const MemberInfo &,
+				                         const Member *member) {
+					// member has no value
+					if (member == nullptr) {
+						return false;
+					}
+
+					nyan_op op = member->get_operation();
+					if (op == nyan_op::ASSIGN) {
+						assign_ok = true;
+						return true;
+					}
+					else if (likely(op != nyan_op::INVALID)) {
+						other_op = true;
+					}
+					else {
+						// op == INVALID
+						throw InternalError{"member has invalid operator"};
+					}
+					return false;
+				}
+			);
+
+			if (unlikely(other_op and not assign_ok)) {
+				const MemberInfo *member_info = obj_info->get_member(it.first);
+				throw FileError{
+					member_info->get_location(),
+					"this member was never assigned a value."
+				};
+			}
+		}
+
+		// TODO: check the @-propagation is type-compatible for each operator
+		//       -> can we even know? yes, as the patch target depth must equal @-count.
+	}
+}
 
 
 std::shared_ptr<View> Database::new_view() {

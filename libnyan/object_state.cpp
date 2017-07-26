@@ -54,6 +54,11 @@ const Member *ObjectState::get_member(const memberid_t &name) const {
 }
 
 
+const std::unordered_map<memberid_t, Member> &ObjectState::get_members() const {
+	return this->members;
+}
+
+
 const std::vector<fqon_t> &ObjectState::get_linearization() const {
 	return this->linearization;
 }

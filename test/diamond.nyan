@@ -12,7 +12,8 @@ d(b, c):
 
 
 pa<a>():
-    member += 1
+    member += 8
 
-pa1(pa):
-    member -= 1
+pb<b>():
+    newmember : int = 0
+    member += 16

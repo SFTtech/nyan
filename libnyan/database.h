@@ -15,6 +15,7 @@ namespace nyan {
 
 class ASTObject;
 class File;
+class Member;
 class Namespace;
 class View;
 
@@ -89,18 +90,17 @@ protected:
 
 	void linearize_new(const std::vector<fqon_t> &new_objs);
 
-	void find_type(bool skip_first,
-	               const memberid_t &member_id,
-	               const std::vector<fqon_t> &search_parents,
-	               const ObjectInfo &obj_info,
-	               const std::function<void(const fqon_t &, const MemberInfo &, const std::shared_ptr<Type> &)> &def_found);
+	void find_member(
+		bool skip_first,
+		const memberid_t &member_id,
+		const ObjectState &obj_state,
+		const ObjectInfo &obj_info,
+		const std::function<bool(const fqon_t &, const MemberInfo &, const Member *)> &member_found
+	);
 
 	void resolve_types(const std::vector<fqon_t> &new_objs);
 
-#if 0
-	ValueHolder create_member_value(const ASTMemberValue &astmembervalue) const;
-	ValueHolder value_from_value_token(const Token &value_token) const;
-#endif
+	void check_hierarchy(const std::vector<fqon_t> &new_objs);
 
 	/**
 	 * Database start state.
