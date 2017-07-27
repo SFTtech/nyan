@@ -12,6 +12,7 @@
 namespace nyan {
 
 class PatchInfo;
+class State;
 
 
 /**
@@ -30,6 +31,7 @@ public:
 	MemberInfo &add_member(const memberid_t &name, MemberInfo &&member);
 
 	member_info_t &get_members();
+	const member_info_t &get_members() const;
 
 	const MemberInfo *get_member(const memberid_t &name) const;
 

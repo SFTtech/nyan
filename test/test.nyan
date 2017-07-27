@@ -6,6 +6,8 @@ Dummy():
 First():
     # a first object!
     member : int = 1
+    test : text = "stuff"
+    #bla : file = "stuff"  # TODO :)
 
 FirstPatch<First>():
     member += 3
@@ -32,9 +34,12 @@ NestingBase(First):
     anothermember : set(int) = {1,2,
                                 3,4,5}
 
+Fourth(First):
+    guenther : int = 1337
+
 Third(First):
     rolf : int = 42
-    dieter : set(First) = {First, Second}
+    dieter : set(First) = {First, Second, Fourth}
 
 Test(Second):
     member += 1337
@@ -46,11 +51,12 @@ NewParent():
 Patch<Test>[+NewParent]():
     moarstuff : int = 10
     gschicht = 235
+    member += 1
     wtf : float = 13374242.0
     ie : First = First
 
 PatchPatch<Patch>():
-    member += 15
+    member /= 15
     ie = Third
 
 SetTest():

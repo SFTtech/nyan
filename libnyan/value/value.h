@@ -13,11 +13,7 @@ namespace nyan {
 
 class ASTMemberValue;
 class Member;
-class MetaInfo;
-class Namespace;
-class NamespaceFinder;
 class Object;
-class State;
 
 
 /**
@@ -33,10 +29,7 @@ public:
 	 */
 	static ValueHolder from_ast(const Type &target_type,
 	                            const ASTMemberValue &val,
-	                            const NamespaceFinder &scope,
-	                            const Namespace &ns,
-	                            const MetaInfo &names,
-	                            const State &state);
+	                            const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value);
 
 	/**
 	 * Return a copy of this Value.

@@ -184,13 +184,15 @@ void Database::load(const std::string &filename,
 	this->resolve_types(new_objects);
 
 
+	std::vector<std::pair<fqon_t, Location>> objs_in_values;
+
 	// state value creation
 	ast_obj_walk(imports, std::bind(&Database::create_obj_state,
-	                                this,
+	                                this, &objs_in_values,
 	                                _1, _2, _3, _4));
 
 	// verify hierarchy consistency
-	this->check_hierarchy(new_objects);
+	this->check_hierarchy(new_objects, objs_in_values);
 
 	/*
 	 * The patch will fail to be loaded if:
@@ -503,10 +505,13 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 }
 
 
-void Database::create_obj_state(const NamespaceFinder &scope,
+void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_in_values,
+                                const NamespaceFinder &scope,
                                 const Namespace &ns,
                                 const Namespace &objname,
                                 const ASTObject &astobj) {
+
+	using namespace std::string_literals;
 
 	if (astobj.members.size() == 0) {
 		// no members, nothing to do.
@@ -556,15 +561,35 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 			Member{
 				0,          // TODO: get override depth from AST (the @-count)
 				operation,
-				Value::from_ast(*member_type, astmember.value,
-				                scope, ns,
-				                this->meta_info,
-				                this->state)
+				Value::from_ast(
+					*member_type, astmember.value,
+					// function to determine object names used in values:
+					[&scope, &ns, this, &objs_in_values]
+					(const Type &target_type,
+					 const IDToken &token) -> fqon_t {
+
+						// find the desired object in the scope
+						fqon_t obj_id = scope.find(ns, token, this->meta_info);
+
+						// check if the type of the value is okay
+						if (unlikely(not target_type.is_parent(obj_id, this->state))) {
+							throw TypeError{
+								token,
+								"value (resolved as "s + obj_id
+								+ ") does not match type " + target_type.get_target()
+							};
+						}
+
+						// remember to check if this object can be used as value
+						objs_in_values->push_back({obj_id, Location{token}});
+
+						return obj_id;
+					}
+				)
 			}
 		).first->second;
 
 		const Value &new_value = new_member.get_value();
-
 		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(*member_type);
 
 		if (unlikely(allowed_ops.find(operation) == std::end(allowed_ops))) {
@@ -578,7 +603,10 @@ void Database::create_obj_state(const NamespaceFinder &scope,
 }
 
 
-void Database::check_hierarchy(const std::vector<fqon_t> &new_objs) {
+void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
+                               const std::vector<std::pair<fqon_t, Location>> &objs_in_values) {
+	using namespace std::string_literals;
+
 	for (auto &obj : new_objs) {
 
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
@@ -643,6 +671,75 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs) {
 
 		// TODO: check the @-propagation is type-compatible for each operator
 		//       -> can we even know? yes, as the patch target depth must equal @-count.
+	}
+
+
+	std::unordered_set<fqon_t> obj_values_ok;
+
+	for (auto &it : objs_in_values) {
+		const fqon_t &obj_id = it.first;
+
+		if (obj_values_ok.find(obj_id) != std::end(obj_values_ok)) {
+			// the object is non-abstract.
+			continue;
+		}
+
+		const ObjectState *test_obj_state = this->state.get(obj_id).get();
+		if (unlikely(test_obj_state == nullptr)) {
+			throw InternalError{"object used in value has no state"};
+		}
+		const auto &lin = test_obj_state->get_linearization();
+
+		std::unordered_set<fqon_t> pending_members;
+
+		for (auto obj = std::rbegin(lin); obj != std::rend(lin); ++obj) {
+			const ObjectInfo *obj_info = this->meta_info.get_object(*obj);
+			if (unlikely(obj_info == nullptr)) {
+				throw InternalError{"object used as value has no metainfo"};
+			}
+			const ObjectState *obj_state = this->state.get(*obj).get();
+			if (unlikely(obj_state == nullptr)) {
+				throw InternalError{"object in hierarchy has no state"};
+			}
+
+			const auto &state_members = obj_state->get_members();
+
+			// the member is undefined if it's stored in the info
+			// but not in the state.
+
+			for (auto &it : obj_info->get_members()) {
+				const memberid_t &member_id = it.first;
+
+				if (state_members.find(member_id) == std::end(state_members)) {
+					// member is not in the state.
+					pending_members.insert(member_id);
+				}
+			}
+
+			for (auto &it : state_members) {
+				const memberid_t &member_id = it.first;
+				const Member &member = it.second;
+				nyan_op op = member.get_operation();
+
+				// member has = operation, so it's no longer pending.
+				if (op == nyan_op::ASSIGN) {
+					pending_members.erase(member_id);
+				}
+			}
+		}
+
+		if (pending_members.size() == 0) {
+			obj_values_ok.insert(obj_id);
+		}
+		else {
+			const Location &loc = it.second;
+
+			throw TypeError{
+				loc,
+				"this object has members without values: "s
+				+ util::strjoin(", ", pending_members)
+			};
+		}
 	}
 }
 

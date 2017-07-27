@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "config.h"
@@ -82,6 +83,7 @@ protected:
 	);
 
 	void create_obj_state(
+		std::vector<std::pair<fqon_t, Location>> *objs_in_values,
 		const NamespaceFinder &current_file,
 		const Namespace &ns,
 		const Namespace &objname,
@@ -100,7 +102,8 @@ protected:
 
 	void resolve_types(const std::vector<fqon_t> &new_objs);
 
-	void check_hierarchy(const std::vector<fqon_t> &new_objs);
+	void check_hierarchy(const std::vector<fqon_t> &new_objs,
+	                     const std::vector<std::pair<fqon_t, Location>> &objs_in_values);
 
 	/**
 	 * Database start state.

@@ -7,6 +7,7 @@
 #include "error.h"
 #include "util.h"
 #include "patch_info.h"
+#include "state.h"
 
 
 namespace nyan {
@@ -32,6 +33,10 @@ MemberInfo &ObjectInfo::add_member(const fqon_t &name, MemberInfo &&member) {
 
 
 ObjectInfo::member_info_t &ObjectInfo::get_members() {
+	return this->member_info;
+}
+
+const ObjectInfo::member_info_t &ObjectInfo::get_members() const {
 	return this->member_info;
 }
 
