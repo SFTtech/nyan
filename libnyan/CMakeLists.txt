@@ -53,6 +53,7 @@ add_library(nyan SHARED
 	type.cpp
 	util.cpp
 	value/container.cpp
+	value/file.cpp
 	value/number.cpp
 	value/object.cpp
 	value/orderedset.cpp

@@ -5,6 +5,7 @@
 #include <typeinfo>
 
 #include "../error.h"
+#include "../util.h"
 #include "../token.h"
 
 
@@ -17,7 +18,15 @@ Text::Text(const std::string &value)
 
 Text::Text(const IDToken &token)
 	:
-	Text{token.get_first()} {}
+	Text{token.get_first()} {
+
+	if (unlikely(token.get_type() != token_type::STRING)) {
+		throw FileError{
+			token,
+			"invalid value for text"
+		};
+	}
+}
 
 
 ValueHolder Text::copy() const {

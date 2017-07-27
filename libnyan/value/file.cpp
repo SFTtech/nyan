@@ -4,24 +4,38 @@
 
 #include <typeinfo>
 
-#include "error.h"
-#include "token.h"
+#include "../error.h"
+#include "../id_token.h"
+#include "../util.h"
 
 
 namespace nyan {
 
 Filename::Filename(const std::string &path)
 	:
-	path{path} {}
+	path{path} {
+
+	// TODO relative path resolution
+}
 
 
 Filename::Filename(const IDToken &token)
 	:
-	Filename{token.get_first()} {}
+	Filename{token.get_first()} {
+
+	if (unlikely(token.get_type() != token_type::STRING)) {
+		throw FileError{
+			token,
+			"invalid value for filename"
+		};
+	}
+}
 
 
-std::unique_ptr<Value> Filename::copy() const {
-	return std::make_unique<Filename>(dynamic_cast<const Filename &>(*this));
+ValueHolder Filename::copy() const {
+	return ValueHolder{
+		std::make_shared<Filename>(dynamic_cast<const Filename &>(*this))
+	};
 }
 
 
@@ -66,7 +80,7 @@ const std::unordered_set<nyan_op> &Filename::allowed_operations(const Type &with
 		nyan_op::ASSIGN,
 	};
 
-	if (with_type.get_primitive_type() == primitive_t::TEXT) {
+	if (with_type.get_primitive_type() == primitive_t::FILENAME) {
 		return ops;
 	}
 	else {

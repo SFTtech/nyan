@@ -5,9 +5,9 @@ Dummy():
 
 First():
     # a first object!
-    member : int = 1
-    test : text = "stuff"
-    #bla : file = "stuff"  # TODO :)
+    member : int = 15
+    test : text = "rofl lol"
+    bla : file = "wtf.h4x"
 
 FirstPatch<First>():
     member += 3

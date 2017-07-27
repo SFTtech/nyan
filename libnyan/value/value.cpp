@@ -42,7 +42,22 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		};
 		break;
 	}
+	case primitive_t::FILENAME: {
+		// TODO: make relative to current namespace
+		member_value = ValueHolder{
+			std::make_shared<Filename>(value_token)
+		};
+		break;
+	}
 	case primitive_t::OBJECT: {
+
+		if (unlikely(value_token.get_type() != token_type::ID)) {
+			throw FileError{
+				value_token,
+				"invalid value for object, expecting object id"
+			};
+		}
+
 		fqon_t obj_id = get_obj_value(target_type, value_token);
 
 		member_value = ValueHolder{

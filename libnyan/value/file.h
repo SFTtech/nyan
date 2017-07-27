@@ -5,10 +5,12 @@
 #include <string>
 
 #include "value.h"
-#include "../id_token.h"
 
 
 namespace nyan {
+
+class IDToken;
+
 
 /**
  * Nyan value to store file names as nyan values.

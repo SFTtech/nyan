@@ -28,7 +28,8 @@ public:
 
 	const Location &get_location() const;
 
-	MemberInfo &add_member(const memberid_t &name, MemberInfo &&member);
+	MemberInfo &add_member(const memberid_t &name,
+	                       MemberInfo &&member);
 
 	member_info_t &get_members();
 	const member_info_t &get_members() const;

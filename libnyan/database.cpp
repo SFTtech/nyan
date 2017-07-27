@@ -94,8 +94,6 @@ void Database::load(const std::string &filename,
 		const Namespace &namespace_to_import = cur_ns_it->first;
 		const Location &req_location = cur_ns_it->second;
 
-		std::cout << "loading file " << namespace_to_import.to_filename() << std::endl;
-
 		auto it = imports.find(namespace_to_import);
 		if (it != std::end(imports)) {
 			// this namespace is already imported!
@@ -154,11 +152,6 @@ void Database::load(const std::string &filename,
 		to_import.erase(cur_ns_it);
 	}
 
-
-	for (auto &it : imports) {
-		std::cout << it.first.str() << " has known info:" << std::endl
-		          << it.second.str() << std::endl;
-	}
 
 	using namespace std::placeholders;
 

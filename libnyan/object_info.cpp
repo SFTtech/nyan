@@ -22,10 +22,15 @@ const Location &ObjectInfo::get_location() const {
 }
 
 
-MemberInfo &ObjectInfo::add_member(const fqon_t &name, MemberInfo &&member) {
+MemberInfo &ObjectInfo::add_member(const memberid_t &name,
+                                   MemberInfo &&member) {
+
+	// copy the location so it's still valid if the insert fails.
+	Location loc = member.get_location();
+
 	auto ret = this->member_info.insert({name, std::move(member)});
 	if (ret.second == false) {
-		throw Error{name + ": member already known"};
+		throw FileError{loc, "member already in this object"};
 	}
 
 	return ret.first->second;

@@ -8,12 +8,30 @@
 #include "../error.h"
 #include "../ops.h"
 #include "../token.h"
+#include "../util.h"
 
 
 namespace nyan {
 
+static void check_token(const IDToken &token, token_type expected) {
+
+	using namespace std::string_literals;
+
+	if (unlikely(token.get_type() != expected)) {
+		throw FileError{
+			token,
+			"invalid value for number, expected "s
+			+ token_type_str(expected)
+		};
+	}
+}
+
+
 template<>
 Int::Number(const IDToken &token) {
+
+	check_token(token, token_type::INT);
+
 	try {
 		this->value = std::stoll(token.get_first(), nullptr, 0);
 	}
@@ -28,6 +46,9 @@ Int::Number(const IDToken &token) {
 
 template<>
 Float::Number(const IDToken &token) {
+
+	check_token(token, token_type::FLOAT);
+
 	try {
 		this->value = std::stod(token.get_first());
 	}

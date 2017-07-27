@@ -63,7 +63,7 @@ id             [A-Za-z_][A-Za-z0-9_]*
 punct          [-+*/|%&]
 assignpunct    {punct}=
 int            (-|0[xX])?{digit}+
-float          -?{digit}+\.{digit}*
+float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 
 %%
 
