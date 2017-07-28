@@ -26,8 +26,7 @@ add_library(nyan SHARED
 	basic_type.cpp
 	c3.cpp
 	config.cpp
-	curve/curve.cpp
-	curve/keyframe_container.cpp
+	curve.cpp
 	database.cpp
 	datastructure/orderedset.cpp
 	error.cpp

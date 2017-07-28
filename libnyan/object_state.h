@@ -30,6 +30,7 @@ public:
 	const std::vector<fqon_t> &get_parents() const;
 
 	bool has_member(const memberid_t &name) const;
+	Member *get_member(const memberid_t &name);
 	const Member *get_member(const memberid_t &name) const;
 	const std::unordered_map<memberid_t, Member> &get_members() const;
 

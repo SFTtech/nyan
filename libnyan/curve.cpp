@@ -2,7 +2,7 @@
 
 #include "curve.h"
 
-namespace nyan {
-namespace curve {
 
-}} // nyan::curve
+namespace nyan {
+
+} // namespace nyan

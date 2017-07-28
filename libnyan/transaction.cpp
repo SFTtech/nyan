@@ -70,11 +70,13 @@ bool Transaction::commit_view(std::shared_ptr<View> &target_view) {
 	for (auto &target_child_view_weakptr : target_view->get_children()) {
 		auto target_child_view = target_child_view_weakptr.lock();
 		if (not target_child_view) {
-			throw Error{"child view vanished"};
+			throw InternalError{"child view vanished"};
 		}
 
 		failed |= this->commit_view(target_child_view);
 	}
+
+	// TODO: update the object-changed pointer in the target view
 
 	return failed;
 }

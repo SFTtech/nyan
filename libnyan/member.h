@@ -52,6 +52,11 @@ public:
 	void apply(const Member &change);
 
 	/**
+	 * Save a value to the cache.
+	 */
+	void cache_save(ValueHolder &&value);
+
+	/**
 	 * String representation of this member.
 	 */
 	std::string str() const;

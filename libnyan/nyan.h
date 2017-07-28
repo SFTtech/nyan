@@ -23,11 +23,13 @@
 #include "type.h"
 #include "util.h"
 #include "value/value.h"
+#include "value/file.h"
 #include "value/container.h"
 #include "value/number.h"
 #include "value/orderedset.h"
 #include "value/set.h"
 #include "value/text.h"
+#include "view.h"
 
 
 /**

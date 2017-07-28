@@ -21,14 +21,14 @@ class View;
  */
 class State {
 public:
-	State(std::shared_ptr<State> &&previous_state);
+	State(const std::shared_ptr<State> &previous_state);
 
 	State();
 
 	/**
 	 * Get the object with the given name from this state.
 	 */
-	std::shared_ptr<ObjectState> get(const fqon_t &fqon) const;
+	const std::shared_ptr<ObjectState> &get(const fqon_t &fqon) const;
 
 	/**
 	 * Add an object to the state.

@@ -45,6 +45,16 @@ bool ObjectState::has_member(const memberid_t &name) const {
 }
 
 
+Member *ObjectState::get_member(const memberid_t &name) {
+	auto it = this->members.find(name);
+	if (it == std::end(this->members)) {
+		return nullptr;
+	}
+	return &it->second;
+}
+
+
+// Thanks C++, always redundancy free!
 const Member *ObjectState::get_member(const memberid_t &name) const {
 	auto it = this->members.find(name);
 	if (it == std::end(this->members)) {

@@ -27,6 +27,7 @@ public:
 	const obj_info_t &get_objects() const;
 
 	ObjectInfo *get_object(const fqon_t &name);
+	const ObjectInfo *get_object(const fqon_t &name) const;
 
 	bool has_object(const fqon_t &name) const;
 

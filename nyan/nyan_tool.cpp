@@ -15,14 +15,29 @@
 namespace nyan {
 
 void test_parser(const std::string &base_path, const std::string &filename) {
-	Database database;
+	auto db = Database::create();
 
-	database.load(
+	db->load(
 		filename,
 		[&base_path] (const std::string &filename) {
 			return std::make_shared<File>(base_path + "/" + filename);
 		}
 	);
+
+	std::shared_ptr<View> root = db->new_view();
+
+	Object second = root->get("test.Second");
+	std::cout << "Second.member == " << second.get<Int>("member") << std::endl;
+	Object first = root->get("test.First");
+	std::cout << "First.test == " << first.get<Text>("test") << std::endl;
+
+	Object patch = root->get("test.FirstPatch");
+	Transaction tx = root->new_transaction();
+	tx.add(patch);
+	tx.commit();
+
+	std::cout << "after change: Second.member == "
+	          << second.get<Int>("member") << std::endl;
 }
 
 

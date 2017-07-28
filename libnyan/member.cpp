@@ -79,6 +79,11 @@ void Member::apply(const Member &change) {
 }
 
 
+void Member::cache_save(ValueHolder &&value) {
+	this->cached_value = std::move(value);
+}
+
+
 std::string Member::str() const {
 	std::ostringstream builder;
 

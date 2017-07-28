@@ -13,13 +13,21 @@
 #include "object_state.h"
 #include "parser.h"
 #include "patch_info.h"
+#include "state.h"
 #include "util.h"
 #include "view.h"
 
 
 namespace nyan {
 
-Database::Database() {}
+std::shared_ptr<Database> Database::create() {
+	return std::make_shared<Database>();
+}
+
+
+Database::Database()
+	:
+	state{std::make_shared<State>()} {}
 
 
 Database::~Database() {}
@@ -202,7 +210,7 @@ void Database::load(const std::string &filename,
 	          << this->meta_info.str() << std::endl;
 
 	std::cout << std::endl << "INITIAL STATE:" << std::endl
-	          << this->state.str() << std::endl;
+	          << this->state->str() << std::endl;
 
 	// TODO: check pending objectvalues (probably not needed as they're all loaded)
 }
@@ -270,7 +278,7 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 	}
 
 	// fill initial state:
-	this->state.add_object(
+	this->state->add_object(
 		obj_fqon,
 		std::make_shared<ObjectState>(
 			std::move(object_parents)
@@ -321,7 +329,7 @@ void Database::linearize_new(const std::vector<fqon_t> &new_objects) {
 		linearize_recurse(
 			obj,
 			[this] (const fqon_t &name) -> ObjectState& {
-				return *this->state.get(name);
+				return *this->state->get(name);
 			},
 			&seen
 		);
@@ -364,7 +372,7 @@ void Database::find_member(bool skip_first,
 			continue;
 		}
 
-		const ObjectState *par_state = this->state.get(parent).get();
+		const ObjectState *par_state = this->state->get(parent).get();
 		if (unlikely(par_state == nullptr)) {
 			throw InternalError{"object state not retrieved"};
 		}
@@ -381,7 +389,7 @@ void Database::find_member(bool skip_first,
 	if (not finished and obj_info.is_patch()) {
 		const fqon_t &target = obj_info.get_patch()->get_target();
 		const ObjectInfo *obj_info = this->meta_info.get_object(target);
-		const ObjectState *obj_state = this->state.get(target).get();
+		const ObjectState *obj_state = this->state->get(target).get();
 
 		// recurse into the target.
 		// check if the patch defines the member as well -> error.
@@ -402,7 +410,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 	// and check if there's not multiple patche targets per object hierarchy
 	for (auto &obj : new_objects) {
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
-		ObjectState *obj_state = this->state.get(obj).get();
+		ObjectState *obj_state = this->state->get(obj).get();
 
 		const auto &parents = obj_state->get_linearization();
 		auto it = std::begin(parents);
@@ -433,7 +441,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 	// this required that patch targets are linked.
 	for (auto &obj : new_objects) {
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
-		ObjectState *obj_state = this->state.get(obj).get();
+		ObjectState *obj_state = this->state->get(obj).get();
 
 		// resolve the type for each member
 		for (auto &it : obj_info->get_members()) {
@@ -516,7 +524,7 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 		throw InternalError{"object info could not be retrieved"};
 	}
 
-	ObjectState &objstate = *this->state.get(objname.to_fqon());
+	ObjectState &objstate = *this->state->get(objname.to_fqon());
 
 	std::unordered_map<memberid_t, Member> members;
 
@@ -603,7 +611,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 	for (auto &obj : new_objs) {
 
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
-		ObjectState *obj_state = this->state.get(obj).get();
+		ObjectState *obj_state = this->state->get(obj).get();
 		if (unlikely(obj_info == nullptr)) {
 			throw InternalError{"object info could not be retrieved"};
 		}
@@ -677,7 +685,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			continue;
 		}
 
-		const ObjectState *test_obj_state = this->state.get(obj_id).get();
+		const ObjectState *test_obj_state = this->state->get(obj_id).get();
 		if (unlikely(test_obj_state == nullptr)) {
 			throw InternalError{"object used in value has no state"};
 		}
@@ -690,7 +698,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			if (unlikely(obj_info == nullptr)) {
 				throw InternalError{"object used as value has no metainfo"};
 			}
-			const ObjectState *obj_state = this->state.get(*obj).get();
+			const ObjectState *obj_state = this->state->get(*obj).get();
 			if (unlikely(obj_state == nullptr)) {
 				throw InternalError{"object in hierarchy has no state"};
 			}
@@ -734,6 +742,9 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			};
 		}
 	}
+
+	// TODO: check if @-overrides change an = to something else
+	// without a = remaining somewhere in a parent
 }
 
 

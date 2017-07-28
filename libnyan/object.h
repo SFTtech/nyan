@@ -13,6 +13,7 @@
 
 namespace nyan {
 
+class ObjectInfo;
 class ObjectState;
 class Type;
 class Value;
@@ -43,13 +44,13 @@ public:
 	 * Get a member value of this object.
 	 * This performs tree traversal for value calculations.
 	 */
-	const Value &get(const memberid_t &member, order_t t=DEFAULT_T) const;
+	const Value &get(const memberid_t &member, order_t t=DEFAULT_T);
 
 	/**
 	 * Invokes the get function and then does a cast.
 	 */
 	template <typename T>
-	const T &get(memberid_t member, order_t t=DEFAULT_T) const {
+	const T &get(memberid_t member, order_t t=DEFAULT_T) {
 		try {
 			return dynamic_cast<const T&>(this->get(member, t));
 		}
@@ -64,21 +65,20 @@ public:
 	const std::vector<fqon_t> &get_parents(order_t t=DEFAULT_T);
 
 	/**
-	 * Get the type of some member.
-	 * This retrieves the information from the type system.
-	 */
-	const Type &get_member_type(const std::string &member) const;
-
-	/**
 	 * Test if this object has a member of given name.
 	 */
-	bool has(const memberid_t &member, order_t t=DEFAULT_T) const;
+	bool has(const memberid_t &member, order_t t=DEFAULT_T);
 
 	/**
 	 * Test if this object is a child of the given parent.
 	 * Returns true if parent equals this object.
 	 */
 	bool extends(fqon_t other_fqon, order_t t=DEFAULT_T);
+
+	/**
+	 * Return the object metadata.
+	 */
+	const ObjectInfo &get_info() const;
 
 	/**
 	 * Check if this object is a patch.
@@ -102,14 +102,6 @@ public:
 	const std::vector<fqon_t> &linearize_parents(order_t t=DEFAULT_T);
 
 protected:
-
-	/**
-	 * Calculate what type a member has, based on the type
-	 * it was set to by parent objects.
-	 * asdf time?
-	 * @returns nullptr if it could not be inferred
-	 */
-	Type *infer_type(const memberid_t &member) const;
 
 	/**
 	 * Return the object state for a given time.

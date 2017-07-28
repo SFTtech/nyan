@@ -13,7 +13,7 @@ FirstPatch<First>():
     member += 3
 
 Second(First):
-    pass
+    member *= 5
 
 NestingBase(First):
 

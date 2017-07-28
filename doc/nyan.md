@@ -109,7 +109,6 @@ Concept:
 * **nyan::Patch**: is a `nyan::Object` and denominates a patch
   * Patches are used to change a target `nyan::Object` at runtime
   * It is created for exactly one `nyan::Object` with `PatchName<TargetObject>`
-  * Internally, the target object is referenced in a member named `__patch__`
   * Can modify **member values** of the target `nyan::Object`
   * Can add **inheritance** parents of the target `nyan::Object`
   * Can *not* add new members or remove them
@@ -188,8 +187,7 @@ ParentObject():
   `__parents__ : orderedset(Object)`
   * Getting this member will provide the inheritance linearization
 
-* It is a patch iff `<Target>` is written in the definition or the object
-  has a member `__patch__ : Object`
+* It is a patch iff `<Target>` is written in the definition
   * The patch will be applied for the specified object only
   * A patch can add a new inheritance parent to the target
     * Done with the `[+AdditionalParent, ...]` syntax, which just creates
@@ -597,9 +595,9 @@ Patching data works as follows:
 * Commit the transaction
   * `bool success = tx.commit();`
   * This triggers, for each patch in the transaction:
-    * Determine the patch target object by evaluating `__patch__`
+    * Determine the patch target object name
       * If a custom patch target was requested,
-        check if it currently is a child the default patch target.
+        check if it was a child of the default patch target at loadtime.
     * Copy the patch target object in a (new) state at `time`
       * Query the view of the transaction at `time` for the target object, this may recursively query parent views
       * If there is no state at `time` in the view of the transaction, create a new state
@@ -715,15 +713,15 @@ auto file_fetcher = [base_path] (const std::string &filename) {
 };
 
 // initialization of API
-nyan::Database db;
-db.load("engine.nyan", file_fetcher);
+auto db = std::make_shared<nyan::Database>();
+db->load("engine.nyan", file_fetcher);
 
 // load the userdata
 ModInfo nfo = read_mod_file("pack.nfo");
-db.load(nfo.load, file_fetcher);
+db->load(nfo.load, file_fetcher);
 
 // modification view: this is the changed database state
-std::shared_ptr<nyan::View> root = db.new_view();
+std::shared_ptr<nyan::View> root = db->new_view();
 
 nyan::Object mod_obj = root->get(nfo.mod);
 if (not mod_obj.extends("engine.Mod", 0)) { error(); }

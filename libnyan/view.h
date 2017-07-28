@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#include "curve/curve.h"
+#include "curve.h"
 #include "object.h"
 #include "transaction.h"
 
@@ -25,7 +25,7 @@ public:
 
 	Object get(fqon_t fqon);
 
-	std::shared_ptr<ObjectState> get_raw(fqon_t fqon, order_t t=DEFAULT_T);
+	const std::shared_ptr<ObjectState> &get_raw(fqon_t fqon, order_t t=DEFAULT_T);
 
 	Transaction new_transaction(order_t t=DEFAULT_T);
 
@@ -35,14 +35,23 @@ public:
 
 	State &new_state(order_t t);
 
-	const std::shared_ptr<State> &get_state(order_t t=DEFAULT_T);
+	const State &get_state(order_t t=DEFAULT_T);
+
+	const Database &get_database() const;
 
 protected:
 	void add_child(const std::shared_ptr<View> &view);
 
+	/**
+	 * Database used if the state curve has no information about
+	 * the queried object at all.
+	 */
+	std::shared_ptr<Database> database;
 
-	// shared-ptr because a state ptrs to its previous state
-	curve::Curve<std::shared_ptr<State>> state;
+	/**
+	 * Storage of states over time.
+	 */
+	Curve<std::shared_ptr<State>> history;
 
 	/**
 	 * Tracking for latest change of an object.
@@ -61,12 +70,6 @@ protected:
 	 *   no need to walk over potentially thousands of state.previous ptrs
 	 */
 	std::unordered_map<fqon_t, std::vector<order_t>> changes;
-
-	/**
-	 * Database used if the state curve has no information about
-	 * the queried object at all.
-	 */
-	std::shared_ptr<Database> database;
 
 	/**
 	 * Child views. Used to propagate down patches.

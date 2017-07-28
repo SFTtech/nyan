@@ -12,7 +12,7 @@
 
 namespace nyan {
 
-State::State(std::shared_ptr<State> &&previous_state)
+State::State(const std::shared_ptr<State> &previous_state)
 	:
 	previous_state{previous_state} {}
 
@@ -22,7 +22,7 @@ State::State()
 	previous_state{nullptr} {}
 
 
-std::shared_ptr<ObjectState> State::get(const fqon_t &fqon) const {
+const std::shared_ptr<ObjectState> &State::get(const fqon_t &fqon) const {
 	auto it = this->objects.find(fqon);
 	if (it != std::end(this->objects)) {
 		return it->second;
@@ -32,7 +32,8 @@ std::shared_ptr<ObjectState> State::get(const fqon_t &fqon) const {
 			throw Error{"unknown object requested"};
 		}
 		else {
-			// search backwards. TODO: optimize away with the last-changed map :)
+			// search backwards.
+			// TODO: optimize away with the last-changed map :)
 			return previous_state->get(fqon);
 		}
 	}
@@ -59,14 +60,17 @@ ObjectState &State::copy_object(const fqon_t &name, order_t t, std::shared_ptr<V
 	std::shared_ptr<ObjectState> source = origin->get_raw(name, t);
 
 	if (not source) {
-		throw Error{"object copy source not found"};
+		throw InternalError{"object copy source not found"};
 	}
 
 	// check if the object already is in this state
 	auto it = this->objects.find(name);
 	if (it == std::end(this->objects)) {
 		// if not, copy the source object
-		this->objects.emplace(name, source->copy());
+		return *this->objects.emplace(
+			name,
+			source->copy()
+		).first->second.get();
 	}
 	else {
 		// if yes, check if they are the same already
@@ -75,10 +79,8 @@ ObjectState &State::copy_object(const fqon_t &name, order_t t, std::shared_ptr<V
 			it->second = source->copy();
 		}
 		// else, no need to copy, the source would be this state anyway.
+		return *it->second.get();
 	}
-
-	// prev-state ptr?
-	throw Error{"TODO state::copy_object"};
 }
 
 

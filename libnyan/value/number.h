@@ -26,6 +26,10 @@ public:
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
 
+	operator T() const {
+		return this->value;
+	}
+
 protected:
 	void apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override;

@@ -9,7 +9,6 @@
 #include "config.h"
 #include "meta_info.h"
 #include "namespace_finder.h"
-#include "state.h"
 
 
 namespace nyan {
@@ -18,6 +17,8 @@ class ASTObject;
 class File;
 class Member;
 class Namespace;
+class ObjectState;
+class State;
 class View;
 
 
@@ -32,9 +33,17 @@ using namespace_lookup_t = std::unordered_map<Namespace, NamespaceFinder>;
 /**
  * Nyan database.
  */
-class Database : std::enable_shared_from_this<Database> {
+class Database : public std::enable_shared_from_this<Database> {
 public:
+	/**
+	 * Create a new nyan database.
+	 */
+	static std::shared_ptr<Database> create();
 
+	/**
+	 * Construct an empty nyan database.
+	 * In order for views to work, the database has to be a std::shared_ptr.
+	 */
 	Database();
 
 	~Database();
@@ -58,11 +67,18 @@ public:
 	std::shared_ptr<View> new_view();
 
 	/**
-	 * Return the database state.
+	 * Return the initial database state.
 	 */
 	const State &get_state() const {
-		return this->state;
+		return *this->state;
 	};
+
+	/**
+	 * Return the type info storage.
+	 */
+	const MetaInfo &get_info() const {
+		return this->meta_info;
+	}
 
 protected:
 
@@ -109,7 +125,7 @@ protected:
 	 * Database start state.
 	 * Used as base for the changes, those are tracked in a View.
 	 */
-	State state;
+	std::shared_ptr<State> state;
 
 	/**
 	 * Tracks type information and locations of the database content etc.

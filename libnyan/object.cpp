@@ -8,7 +8,9 @@
 #include "c3.h"
 #include "database.h"
 #include "error.h"
+#include "object_info.h"
 #include "object_state.h"
+#include "patch_info.h"
 #include "util.h"
 #include "value/object.h"
 #include "view.h"
@@ -35,27 +37,29 @@ const View &Object::get_view() const {
 }
 
 
-const Value &Object::get(const memberid_t &member, order_t t) const {
-	// TODO: don't allow for patches? only possible if there's at least one = for that member
+const Value &Object::get(const memberid_t &member, order_t t) {
+	// TODO: don't allow for patches?
+	// it's impossible as they may have members without =
 
 	// TODO: try the cache lookup. but when is it invalid?
 
-	/*
 	// get references to all parentobject-states
 	std::vector<std::shared_ptr<ObjectState>> parents;
-	for (auto &parent : this->linearize_parents(t)) {
-		parents.push_back(this->origin->get_raw(parent, t));
-	}
+
+	const std::vector<fqon_t> linearization = this->linearize_parents(t);
 
 	// find the last value assigning with =
 	// it sets the base value where we apply the modifications then
 	size_t defined_by = 0;
-	Value *base_value = nullptr;
-	for (auto &obj : parents) {
-		const Member *obj_member = obj->get_member(member);
+	const Value *base_value = nullptr;
+	for (auto &obj : linearization) {
+		parents.push_back(this->origin->get_raw(obj, t));
+		const ObjectState *obj_raw = parents.back().get();
+		const Member *obj_member = obj_raw->get_member(member);
+		// if the object has the member, check if it's the =
 		if (obj_member != nullptr) {
 			if (obj_member->get_operation() == nyan_op::ASSIGN) {
-				base_value = obj_member->get_value_ptr();
+				base_value = &obj_member->get_value();
 				break;
 			}
 		}
@@ -64,9 +68,10 @@ const Value &Object::get(const memberid_t &member, order_t t) const {
 
 	// no operator = was found for this member
 	// -> no parent assigned a value.
-	// TODO: detect this at load time!
+	// This is normally detected at load time, but:
+	// TODO: detect @-overrides that purge a = at load time!
 	if (defined_by >= linearization.size() or base_value == nullptr) {
-		throw Error{"no operator = found for member"};
+		throw InternalError{"no operator = found for member"};
 	}
 
 	// if this object defines the value, no aggregation is needed.
@@ -75,15 +80,13 @@ const Value &Object::get(const memberid_t &member, order_t t) const {
 	}
 
 	// Create a working copy of the value
-	// TODO: store it in the first parent, i.e. this object state
-	std::unique_ptr<Value> result = base_value->copy();
+	ValueHolder result = base_value->copy();
 
 	// walk back and apply the value changes
 	while (true) {
-		// asdf member lookup
-		const Member *change = parents[defined_by]->get_member_ptr(member);
+		const Member *change = parents[defined_by]->get_member(member);
 		if (change != nullptr) {
-			result->apply(change);
+			result->apply(*change);
 		}
 		if (defined_by == 0) {
 			break;
@@ -92,30 +95,30 @@ const Value &Object::get(const memberid_t &member, order_t t) const {
 	}
 
 	// Remember the data ptr.
-	const Value &result_ref = *result.get();
+	const Value &result_ref = *result.get_value();
 
-	// Move result to cache,
-	obj_member->cache_save(std::move(result));
+	// Move result to cache, the reference will stay intact.
+	parents[0]->get_member(member)->cache_save(std::move(result));
 
-	// and return the reference.
+	// And return the reference.
 	return result_ref;
-	*/
-
 }
 
 
 const std::vector<fqon_t> &Object::get_parents(order_t t) {
-	// asdf look in view for parents
+	return this->origin->get_raw(this->get_name(), t)->get_parents();
 }
 
 
-const Type &Object::get_member_type(const std::string &member) const {
-	// asdf contact type system
-}
+bool Object::has(const memberid_t &member, order_t t) {
+	const std::vector<fqon_t> &lin = this->linearize_parents(t);
 
+	for (auto &obj : lin) {
+		if (this->origin->get_raw(obj, t)->get_member(member) != nullptr) {
+			return true;
+		}
+	}
 
-bool Object::has(const memberid_t &member, order_t t) const {
-	// asdf
 	return false;
 }
 
@@ -137,16 +140,28 @@ bool Object::extends(fqon_t other_fqon, order_t t) {
 }
 
 
+const ObjectInfo &Object::get_info() const {
+	const ObjectInfo *ret = this->origin->get_database().get_info().get_object(this->get_name());
+	if (unlikely(ret == nullptr)) {
+		throw InternalError{"object info unavailable for object handle"};
+	}
+	return *ret;
+}
+
+
 
 bool Object::is_patch() const {
 	// must be a patch from the beginning of time!
-	// TODO: typedb knows if patch, no need to process
-	return this->has("__patch__", DEFAULT_T);
+	return this->get_info().is_patch();
 }
 
 
 const fqon_t &Object::get_target() const {
-	return this->get<ObjectValue>("__patch__", DEFAULT_T).get();
+	const PatchInfo *patch_info = this->get_info().get_patch().get();
+	if (unlikely(patch_info == nullptr)) {
+		throw InternalError{"queried target on non-patch"};
+	}
+	return patch_info->get_target();
 }
 
 
@@ -154,7 +169,11 @@ const std::vector<fqon_t> &Object::linearize_parents(order_t t) {
 	return linearize(
 		this->name,
 		[this, &t] (const fqon_t &name) -> ObjectState& {
-			return *this->origin->get_raw(name, t);
+			ObjectState *state = this->origin->get_raw(name, t).get();
+			if (unlikely(state == nullptr)) {
+				throw InternalError{"object state not found for parent"};
+			}
+			return *state;
 		}
 	);
 }

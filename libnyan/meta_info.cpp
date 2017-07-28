@@ -26,11 +26,19 @@ const MetaInfo::obj_info_t &MetaInfo::get_objects() const {
 
 ObjectInfo *MetaInfo::get_object(const fqon_t &name) {
 	auto it = this->object_info.find(name);
-
 	if (it == std::end(this->object_info)) {
 		return nullptr;
 	}
+	return &it->second;
+}
 
+
+// Thanks C++ for the beautiful duplication
+const ObjectInfo *MetaInfo::get_object(const fqon_t &name) const {
+	auto it = this->object_info.find(name);
+	if (it == std::end(this->object_info)) {
+		return nullptr;
+	}
 	return &it->second;
 }
 

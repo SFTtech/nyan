@@ -142,7 +142,7 @@ Number<T>::allowed_operations(const Type &with_type) const {
 
 	// all allowed number types
 	switch (with_type.get_primitive_type()) {
-	case  primitive_t::FLOAT:
+	case primitive_t::FLOAT:
 	case primitive_t::INT:
 		return ops;
 	default:
@@ -170,6 +170,5 @@ const BasicType &Float::get_type() const {
 
 	return type;
 }
-
 
 } // namespace nyan
