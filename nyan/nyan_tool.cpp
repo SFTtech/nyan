@@ -32,12 +32,24 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	std::cout << "First.test == " << first.get<Text>("test") << std::endl;
 
 	Object patch = root->get("test.FirstPatch");
-	Transaction tx = root->new_transaction();
+	Transaction tx = root->new_transaction(1);
 	tx.add(patch);
+	tx.add(root->get("test.Patch"));
 	tx.commit();
 
 	std::cout << "after change: Second.member == "
-	          << second.get<Int>("member") << std::endl;
+	          << second.get<Int>("member", 1)
+	          << std::endl;
+
+	std::cout << "settest = "
+	          << root->get("test.SetTest").get("orderedmember")->str()
+	          << std::endl;
+
+	std::cout << "test.gschicht = " << util::strjoin(", ", root->get("test.Test").get_parents())
+	          << std::endl << "PATCH" << std::endl
+	          << "test.gschicht = " << util::strjoin(", ", root->get("test.Test").get_parents(1))
+	          << std::endl << "newvalue = " << root->get("test.Test").get("new_value", 1)->str()
+	          << std::endl;
 }
 
 

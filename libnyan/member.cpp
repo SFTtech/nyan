@@ -30,7 +30,6 @@ Member::Member(Member &&other) noexcept
 	:
 	override_depth{std::move(other.override_depth)},
 	operation{std::move(other.operation)},
-	cached_value{std::move(other.cached_value)},
 	value{std::move(other.value)} {}
 
 
@@ -43,7 +42,6 @@ Member &Member::operator =(const Member &other) {
 Member &Member::operator =(Member &&other) noexcept {
 	this->override_depth = std::move(other.override_depth);
 	this->operation = std::move(other.operation);
-	this->cached_value = std::move(other.cached_value);
 	this->value = std::move(other.value);
 	return *this;
 }
@@ -68,19 +66,12 @@ void Member::apply(const Member &change) {
 	if (change.override_depth > 0) {
 		this->override_depth = change.override_depth - 1;
 		this->operation = change.get_operation();
-		this->cached_value.clear();
 		this->value = change.get_value().copy();
 	}
 	// else, keep operator as-is and modify the value.
 	else {
-		this->cached_value.clear();
 		this->value->apply(change);
 	}
-}
-
-
-void Member::cache_save(ValueHolder &&value) {
-	this->cached_value = std::move(value);
 }
 
 

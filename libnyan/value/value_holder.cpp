@@ -2,6 +2,8 @@
 
 #include "value_holder.h"
 
+#include "value.h"
+
 
 namespace nyan {
 
@@ -18,9 +20,13 @@ ValueHolder::ValueHolder(const std::shared_ptr<Value> &value)
 	value{value} {}
 
 
-
 Value *ValueHolder::get_value() const {
 	return this->value.get();
+}
+
+
+const std::shared_ptr<Value> &ValueHolder::get_ptr() const {
+	return this->value;
 }
 
 
@@ -33,13 +39,34 @@ bool ValueHolder::exists() const {
 	return this->get_value() != nullptr;
 }
 
+
+Value &ValueHolder::operator *() const {
+	return *this->get_value();
+}
+
+
+Value *ValueHolder::operator ->() const {
+	return this->get_value();
+}
+
+
+bool ValueHolder::operator ==(const ValueHolder &other) const  {
+	return (*this->get_value() == *other.get_value());
+}
+
+
+bool ValueHolder::operator !=(const ValueHolder &other) const {
+	return (*this->get_value() != *other.get_value());
+}
+
+
 } // namespace nyan
 
 
 namespace std {
 
 size_t hash<nyan::ValueHolder>::operator ()(const nyan::ValueHolder &val) const {
-	return hash<nyan::ValueWrapper>{}(static_cast<const nyan::ValueWrapper &>(val));
+	return hash<nyan::Value *>{}(val.get_value());
 }
 
 } // namespace std

@@ -3,24 +3,31 @@
 
 #include <memory>
 
-#include "value_wrapper.h"
-
 
 namespace nyan {
 
+class Value;
+
+
 /**
- * Wrapper class to hold values.
+ * Wrapper class to hold values by shared pointer.
  * Used to redirect the hashing and comparison function inside the ptr.
  */
-class ValueHolder : public ValueWrapper {
+class ValueHolder {
 public:
 	ValueHolder();
 	ValueHolder(std::shared_ptr<Value> &&value);
 	ValueHolder(const std::shared_ptr<Value> &value);
 
-	virtual Value *get_value() const override;
-	void clear() override;
-	bool exists() const override;
+	Value *get_value() const;
+	const std::shared_ptr<Value> &get_ptr() const;
+	void clear();
+	bool exists() const;
+
+	Value &operator *() const;
+	Value *operator ->() const;
+	bool operator ==(const ValueHolder &other) const;
+	bool operator !=(const ValueHolder &other) const;
 
 protected:
 	std::shared_ptr<Value> value;
@@ -31,6 +38,10 @@ protected:
 
 namespace std {
 
+/**
+ * Hashing for ValueHolders.
+ * Relays the hash to the internally stored value.
+ */
 template <>
 struct hash<nyan::ValueHolder> {
 	size_t operator ()(const nyan::ValueHolder &val) const;

@@ -18,7 +18,9 @@ Set::Set(std::vector<ValueHolder> &&values) {
 
 
 ValueHolder Set::copy() const {
-	throw InternalError{"TODO set copy"};
+	return ValueHolder{
+		std::make_shared<Set>(dynamic_cast<const Set &>(*this))
+	};
 }
 
 
@@ -38,10 +40,10 @@ bool Set::remove(const ValueHolder &value) {
 
 
 void Set::apply_value(const Value &value, nyan_op operation) {
+	throw InternalError{"TODO apply_value set"};
+
 	// TODO: may be another type of baseset
 	const Set &change = dynamic_cast<const Set &>(value);
-
-	throw InternalError{"TODO apply_value set"};
 
 	switch (operation) {
 	case nyan_op::ASSIGN:

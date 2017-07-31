@@ -22,13 +22,25 @@ View::View(const std::shared_ptr<Database> &database)
 }
 
 
-Object View::get(fqon_t fqon) {
+Object View::get(const fqon_t &fqon) {
 	return Object{fqon, shared_from_this()};
 }
 
 
-const std::shared_ptr<ObjectState> &View::get_raw(fqon_t fqon, order_t t) {
+const std::shared_ptr<ObjectState> &View::get_raw(const fqon_t &fqon, order_t t) {
 	return this->get_state(t).get(fqon);
+}
+
+
+const ObjectInfo &View::get_info(const fqon_t &fqon) const {
+	using namespace std::string_literals;
+
+	const ObjectInfo *info = this->database->get_info().get_object(fqon);
+	if (unlikely(info == nullptr)) {
+		throw APIError{"info of unknown object requested: "s + fqon};
+	}
+
+	return *info;
 }
 
 

@@ -745,6 +745,9 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 
 	// TODO: check if @-overrides change an = to something else
 	// without a = remaining somewhere in a parent
+
+	// TODO: check if adding parents would be cyclic
+	// TODO: check if adding parents leads to member name clashes
 }
 
 

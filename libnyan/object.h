@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include "error.h"
+#include "value/value_holder.h"
 
 
 namespace nyan {
@@ -44,36 +45,38 @@ public:
 	 * Get a member value of this object.
 	 * This performs tree traversal for value calculations.
 	 */
-	const Value &get(const memberid_t &member, order_t t=DEFAULT_T);
+	ValueHolder get(const memberid_t &member, order_t t=DEFAULT_T) const;
 
 	/**
 	 * Invokes the get function and then does a cast.
+	 * TODO: either return a stored variant or the shared ptr of the holder
 	 */
-	template <typename T>
-	const T &get(memberid_t member, order_t t=DEFAULT_T) {
+	template <typename V>
+	std::shared_ptr<V> get(memberid_t member, order_t t=DEFAULT_T) const {
 		try {
-			return dynamic_cast<const T&>(this->get(member, t));
+			return std::static_pointer_cast<V>(this->get(member, t).get_ptr());
 		}
 		catch (std::bad_cast &) {
-			throw Error{"bad cast"};
+			// TODO: show which it was
+			throw APIError{"bad cast of value"};
 		}
 	}
 
 	/**
 	 * Return the parents of the object.
 	 */
-	const std::vector<fqon_t> &get_parents(order_t t=DEFAULT_T);
+	const std::vector<fqon_t> &get_parents(order_t t=DEFAULT_T) const;
 
 	/**
 	 * Test if this object has a member of given name.
 	 */
-	bool has(const memberid_t &member, order_t t=DEFAULT_T);
+	bool has(const memberid_t &member, order_t t=DEFAULT_T) const;
 
 	/**
 	 * Test if this object is a child of the given parent.
 	 * Returns true if parent equals this object.
 	 */
-	bool extends(fqon_t other_fqon, order_t t=DEFAULT_T);
+	bool extends(fqon_t other_fqon, order_t t=DEFAULT_T) const;
 
 	/**
 	 * Return the object metadata.
@@ -99,14 +102,14 @@ public:
 	// registration of the callback is done in the view!
 	// on_change(member, std::function<void(order_t, ObjectState, memberid_t)>);
 
-	const std::vector<fqon_t> &linearize_parents(order_t t=DEFAULT_T);
+	const std::vector<fqon_t> &get_linearized(order_t t=DEFAULT_T) const;
 
 protected:
 
 	/**
 	 * Return the object state for a given time.
 	 */
-	std::shared_ptr<ObjectState> get_raw(order_t t=DEFAULT_T) const;
+	const std::shared_ptr<ObjectState> &get_raw(order_t t=DEFAULT_T) const;
 
 	/**
 	 * View the object was created from.

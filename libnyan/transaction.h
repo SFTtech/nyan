@@ -29,17 +29,15 @@ public:
 	/**
 	 * Add a patch to the transaction.
 	 * Apply the patch to the target stored in the patch.
-	 * TODO: make it a const Object &, but linearization caching
-	 *       is an issue then.
 	 */
-	bool add(Object &obj);
+	bool add(const Object &obj);
 
 	/**
 	 * Add a patch to the transaction.
 	 * Apply the patch to a custom target, which must be a
 	 * child of the target stored in the patch.
 	 */
-	bool add(Object &obj, Object &target);
+	bool add(const Object &obj, const Object &target);
 
 	bool commit();
 

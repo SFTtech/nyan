@@ -61,7 +61,6 @@ add_library(nyan SHARED
 	value/text.cpp
 	value/value.cpp
 	value/value_holder.cpp
-	value/value_wrapper.cpp
 	view.cpp
 )
 

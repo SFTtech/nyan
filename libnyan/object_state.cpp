@@ -2,8 +2,10 @@
 
 #include "object_state.h"
 
+#include <algorithm>
 #include <sstream>
 
+#include "object_info.h"
 #include "util.h"
 
 
@@ -17,16 +19,54 @@ ObjectState::ObjectState(std::vector<fqon_t> &&parents)
 	parents{std::move(parents)} {}
 
 
-void ObjectState::apply(const std::shared_ptr<ObjectState> &other) {
+bool ObjectState::apply(const std::shared_ptr<ObjectState> &mod,
+                        const ObjectInfo &mod_info) {
+
+	bool parents_changed = false;
+
+	const std::vector<fqon_t> &newparents = mod_info.get_inheritance_add();
+	if (newparents.size() > 0) {
+		for (auto &newparent : newparents) {
+			auto it = std::find(std::begin(this->parents),
+			                    std::end(this->parents),
+			                    newparent);
+
+			// don't add the parent if it's already there.
+			if (it == std::end(this->parents)) {
+				this->parents.push_back(newparent);
+			}
+		}
+
+		// recalculate inheritance hierarchy.
+		parents_changed = true;
+	}
+
 	// change each member in this object by the member of the patch.
 	// other->members: maps memberid_t name => Member
-	for (auto &it : other->members) {
+	for (auto &it : mod->members) {
 		auto search = this->members.find(it.first);
 		if (search == std::end(this->members)) {
-			throw Error{"tried to patch an unknown member"};
+			// copy the member from the modification object,
+			// if it is a patch.
+			// that way a child object without the member
+			// can get the modifications.
+			if (likely(mod_info.is_patch())) {
+				this->members.emplace(it.first, it.second);
+			}
+			else {
+				throw InternalError{
+					"a non-patch tried to change a nonexisting member"
+				};
+			}
 		}
-		search->second.apply(it.second);
+		else {
+			search->second.apply(it.second);
+		}
+
+		// TODO: we could now calculate the resulting value!
 	}
+
+	return parents_changed;
 }
 
 

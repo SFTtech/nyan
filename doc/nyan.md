@@ -190,8 +190,7 @@ ParentObject():
 * It is a patch iff `<Target>` is written in the definition
   * The patch will be applied for the specified object only
   * A patch can add a new inheritance parent to the target
-    * Done with the `[+AdditionalParent, ...]` syntax, which just creates
-      a member `__parents_add__ : orderedset(Object) = <AdditionalParent>`
+    * Done with the `[+AdditionalParent, ...]` syntax
     * The activation of this parent must not induce name clashes, [see below](#Multi inheritance). When the patch is checked, this is verified at load time.
     * This can be used to inject a "middle object" in between two inheriting
       objects, because the multi inheritance linearization resolves the order
@@ -213,7 +212,7 @@ ParentObject():
       operator overrides can be propagated to arbitrarily nested patches.
   * The patch will fail to be loaded if:
     * The patch target is not known
-    * Any of changed members is not present in the patch target
+    * Any of changed members is not known in the patch target
     * Any of the added parents is not known
     * -> Blind patching is not allowed
   * The patch will succeed to load if:

@@ -9,6 +9,9 @@
 
 namespace nyan {
 
+class ObjectInfo;
+
+
 /**
  * Single object state storage.
  */
@@ -22,8 +25,10 @@ public:
 
 	/**
 	 * Patch application.
+	 * Returns if the parents have changed.
 	 */
-	void apply(const std::shared_ptr<ObjectState> &other);
+	bool apply(const std::shared_ptr<ObjectState> &other,
+	           const ObjectInfo &mod_info);
 
 	std::shared_ptr<ObjectState> copy() const;
 
@@ -58,7 +63,7 @@ private:
 
 	/**
 	 * Linearization of parent objects.
-	 * TODO asdf: when is this invalidated?
+	 * This is recalculated when the parents are changed!
 	 */
 	std::vector<fqon_t> linearization;
 

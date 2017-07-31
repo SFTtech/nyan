@@ -18,7 +18,7 @@ template <typename T>
 class OrderedSet {
 public:
 	OrderedSet() {}
-	virtual ~OrderedSet() {}
+	~OrderedSet() {}
 
 	/**
 	 * Type of the list that preserves the element order.

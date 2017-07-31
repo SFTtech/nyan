@@ -18,7 +18,9 @@ OrderedSet::OrderedSet(std::vector<ValueHolder> &&values) {
 
 
 ValueHolder OrderedSet::copy() const {
-	throw InternalError{"TODO ordered set copy"};
+	return ValueHolder{
+		std::make_shared<OrderedSet>(dynamic_cast<const OrderedSet &>(*this))
+	};
 }
 
 
@@ -38,9 +40,10 @@ bool OrderedSet::remove(const ValueHolder &value) {
 
 
 void OrderedSet::apply_value(const Value &value, nyan_op operation) {
-	const OrderedSet &change = dynamic_cast<const OrderedSet &>(value);
-
 	throw InternalError{"TODO orderedset apply value"};
+
+	// the other value may be a generic set
+	const OrderedSet &change = dynamic_cast<const OrderedSet &>(value);
 
 	switch (operation) {
 	case nyan_op::ASSIGN:

@@ -231,6 +231,11 @@ InternalError::InternalError(const std::string &msg)
 	Error{msg} {}
 
 
+APIError::APIError(const std::string &msg)
+	:
+	Error{msg} {}
+
+
 FileError::FileError(const Location &location,
                      const std::string &msg)
 	:

@@ -2,6 +2,7 @@
 
 #include "transaction.h"
 
+#include "c3.h"
 #include "object_state.h"
 #include "state.h"
 #include "view.h"
@@ -17,7 +18,7 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin):
 // TODO: inheritance changes need to be simulated within this transactions
 //       so later-added patches can depend on that.
 
-bool Transaction::add(Object &obj) {
+bool Transaction::add(const Object &obj) {
 	if (not obj.is_patch()) {
 		return false;
 	}
@@ -27,7 +28,7 @@ bool Transaction::add(Object &obj) {
 	patch_group patch;
 	patch.target = obj.get_target();
 
-	for (auto &patch_name : obj.linearize_parents()) {
+	for (auto &patch_name : obj.get_linearized(this->at)) {
 		patch.patches.push_back(patch_name);
 	}
 
@@ -36,7 +37,7 @@ bool Transaction::add(Object &obj) {
 }
 
 
-bool Transaction::add(Object &obj, Object &target) {
+bool Transaction::add(const Object &/*obj*/, const Object &/*target*/) {
 	throw InternalError{"TODO custom patch target"};
 }
 
@@ -58,11 +59,32 @@ bool Transaction::commit_view(std::shared_ptr<View> &target_view) {
 	// apply all patches in the transaction
 	for (auto &patch : this->patches) {
 		// copy the object to be patched so the old one keeps its state
-		nyan::ObjectState &target_obj = state.copy_object(patch.target, this->at, target_view);
+		ObjectState &target_obj = state.copy_object(patch.target, this->at, target_view);
+
+		bool parents_changed = false;
 
 		// apply all patch parents in order (last the patch itself)
 		for (auto &patch_component : patch.patches) {
-			target_obj.apply(target_view->get_raw(patch_component, this->at));
+			parents_changed |= target_obj.apply(
+				target_view->get_raw(patch_component, this->at),
+				target_view->get_info(patch_component)
+			);
+		}
+
+		// the parents of the target object changed
+		// -> we need to recalculate the inheritance hierarchy.
+		if (parents_changed) {
+			linearize(
+				patch.target,
+				[this] (const fqon_t &name) -> ObjectState& {
+					// TODO: make sure no other state is modified somehow.
+					ObjectState *state = this->view->get_raw(name, this->at).get();
+					if (unlikely(state == nullptr)) {
+						throw InternalError{"object state not found for parent"};
+					}
+					return *state;
+				}
+			);
 		}
 	}
 

@@ -52,11 +52,6 @@ public:
 	void apply(const Member &change);
 
 	/**
-	 * Save a value to the cache.
-	 */
-	void cache_save(ValueHolder &&value);
-
-	/**
 	 * String representation of this member.
 	 */
 	std::string str() const;
@@ -73,13 +68,6 @@ protected:
 	 * operation specified for this member.
 	 */
 	nyan_op operation = nyan_op::INVALID;
-
-	/**
-	 * Value to cache the calculation result.
-	 * It stores the result of the application of all operations on
-	 * the inheritance tree.
-	 */
-	ValueHolder cached_value;
 
 	/**
 	 * Value stored in this member.

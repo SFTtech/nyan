@@ -23,9 +23,11 @@ class View : public std::enable_shared_from_this<View> {
 public:
 	View(const std::shared_ptr<Database> &database);
 
-	Object get(fqon_t fqon);
+	Object get(const fqon_t &fqon);
 
-	const std::shared_ptr<ObjectState> &get_raw(fqon_t fqon, order_t t=DEFAULT_T);
+	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t=DEFAULT_T);
+
+	const ObjectInfo &get_info(const fqon_t &fqon) const;
 
 	Transaction new_transaction(order_t t=DEFAULT_T);
 

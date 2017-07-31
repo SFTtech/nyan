@@ -187,6 +187,15 @@ public:
 
 
 /**
+ * Error thrown when the API user most likely did something wrong.
+ */
+class APIError : public Error {
+public:
+	APIError(const std::string &msg);
+};
+
+
+/**
  * Exception class to capture problems with files,
  * for that, it stores line number and line offset.
  */

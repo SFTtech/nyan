@@ -37,20 +37,23 @@ const View &Object::get_view() const {
 }
 
 
-const Value &Object::get(const memberid_t &member, order_t t) {
+ValueHolder Object::get(const memberid_t &member, order_t t) const {
 	// TODO: don't allow for patches?
 	// it's impossible as they may have members without =
 
 	// TODO: try the cache lookup. but when is it invalid?
 
+	using namespace std::string_literals;
+
 	// get references to all parentobject-states
 	std::vector<std::shared_ptr<ObjectState>> parents;
 
-	const std::vector<fqon_t> linearization = this->linearize_parents(t);
+	const std::vector<fqon_t> linearization = this->get_linearized(t);
 
 	// find the last value assigning with =
 	// it sets the base value where we apply the modifications then
 	size_t defined_by = 0;
+
 	const Value *base_value = nullptr;
 	for (auto &obj : linearization) {
 		parents.push_back(this->origin->get_raw(obj, t));
@@ -70,13 +73,13 @@ const Value &Object::get(const memberid_t &member, order_t t) {
 	// -> no parent assigned a value.
 	// This is normally detected at load time, but:
 	// TODO: detect @-overrides that purge a = at load time!
-	if (defined_by >= linearization.size() or base_value == nullptr) {
-		throw InternalError{"no operator = found for member"};
+	if (unlikely(defined_by >= linearization.size() or base_value == nullptr)) {
+		throw APIError{"member not found: "s + member};
 	}
 
 	// if this object defines the value, no aggregation is needed.
 	if (defined_by == 0) {
-		return *base_value;
+		return base_value->copy();
 	}
 
 	// Create a working copy of the value
@@ -94,24 +97,18 @@ const Value &Object::get(const memberid_t &member, order_t t) {
 		defined_by -= 1;
 	}
 
-	// Remember the data ptr.
-	const Value &result_ref = *result.get_value();
-
-	// Move result to cache, the reference will stay intact.
-	parents[0]->get_member(member)->cache_save(std::move(result));
-
 	// And return the reference.
-	return result_ref;
+	return result;
 }
 
 
-const std::vector<fqon_t> &Object::get_parents(order_t t) {
-	return this->origin->get_raw(this->get_name(), t)->get_parents();
+const std::vector<fqon_t> &Object::get_parents(order_t t) const {
+	return this->get_raw(t)->get_parents();
 }
 
 
-bool Object::has(const memberid_t &member, order_t t) {
-	const std::vector<fqon_t> &lin = this->linearize_parents(t);
+bool Object::has(const memberid_t &member, order_t t) const {
+	const std::vector<fqon_t> &lin = this->get_linearized(t);
 
 	for (auto &obj : lin) {
 		if (this->origin->get_raw(obj, t)->get_member(member) != nullptr) {
@@ -123,12 +120,12 @@ bool Object::has(const memberid_t &member, order_t t) {
 }
 
 
-bool Object::extends(fqon_t other_fqon, order_t t) {
+bool Object::extends(fqon_t other_fqon, order_t t) const {
 	if (this->name == other_fqon) {
 		return true;
 	}
 
-	auto &linearization = this->linearize_parents(t);
+	auto &linearization = this->get_linearized(t);
 
 	for (auto &obj : linearization) {
 		if (obj == other_fqon) {
@@ -165,21 +162,12 @@ const fqon_t &Object::get_target() const {
 }
 
 
-const std::vector<fqon_t> &Object::linearize_parents(order_t t) {
-	return linearize(
-		this->name,
-		[this, &t] (const fqon_t &name) -> ObjectState& {
-			ObjectState *state = this->origin->get_raw(name, t).get();
-			if (unlikely(state == nullptr)) {
-				throw InternalError{"object state not found for parent"};
-			}
-			return *state;
-		}
-	);
+const std::vector<fqon_t> &Object::get_linearized(order_t t) const {
+	return this->get_raw(t)->get_linearization();
 }
 
 
-std::shared_ptr<ObjectState> Object::get_raw(order_t t) const {
+const std::shared_ptr<ObjectState> &Object::get_raw(order_t t) const {
 	return this->origin->get_raw(this->name, t);
 }
 

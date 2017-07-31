@@ -84,7 +84,7 @@ void ObjectInfo::add_inheritance_add(fqon_t &&name) {
 }
 
 
-const std::vector<fqon_t> ObjectInfo::get_inheritance_add() const {
+const std::vector<fqon_t> &ObjectInfo::get_inheritance_add() const {
 	return this->inheritance_add;
 }
 
