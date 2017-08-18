@@ -9,7 +9,7 @@
 namespace nyan {
 
 
-const std::vector<fqon_t> &linearize(const fqon_t &name, const objstate_fetch_t &get_obj) {
+std::vector<fqon_t> linearize(const fqon_t &name, const objstate_fetch_t &get_obj) {
 	std::unordered_set<fqon_t> seen;
 	return linearize_recurse(name, get_obj, &seen);
 }
@@ -28,7 +28,7 @@ const std::vector<fqon_t> &linearize(const fqon_t &name, const objstate_fetch_t 
  * if all heads of the lists appear somewhere in a tail,
  * no linearization exists.
  */
-const std::vector<fqon_t> &
+std::vector<fqon_t>
 linearize_recurse(const fqon_t &name,
                   const objstate_fetch_t &get_obj,
                   std::unordered_set<fqon_t> *seen) {
@@ -47,9 +47,7 @@ linearize_recurse(const fqon_t &name,
 	}
 
 	// get raw ObjectState of this object at the requested time
-	ObjectState &obj_state = get_obj(name);
-
-	// TODO optimization: check if value in obj_state is already the correct linearization
+	const ObjectState &obj_state = get_obj(name);
 
 	// calculate a new linearization in this list
 	std::vector<fqon_t> linearization;
@@ -58,11 +56,10 @@ linearize_recurse(const fqon_t &name,
 	linearization.push_back(name);
 
 	// Get parents of object.
-	const std::vector<fqon_t> &parents = obj_state.get_parents();
+	const auto &parents = obj_state.get_parents();
 
 	// Calculate the parent linearization recursively
-	// TODO optimization: use reference wrapper for parent linearizations
-	std::vector<std::reference_wrapper<const std::vector<fqon_t>>> par_linearizations;
+	std::vector<std::vector<fqon_t>> par_linearizations;
 	par_linearizations.reserve(parents.size() + 1);
 
 	for (auto &parent : parents) {
@@ -73,7 +70,9 @@ linearize_recurse(const fqon_t &name,
 	}
 
 	// And at the end, add all parents of this object to the merge-list.
-	par_linearizations.push_back(parents);
+	par_linearizations.push_back(
+		{std::begin(parents), std::end(parents)}
+	);
 
 	// remove current name from the seen set
 	// we only needed it for the recursive call above.
@@ -85,7 +84,7 @@ linearize_recurse(const fqon_t &name,
 	// What the bug was is left as a fun challenge for the reader.
 	std::vector<size_t> sublists_heads(par_linearizations.size(), 0);
 
-	// Perform the merge of all parent linearizations
+	// For each loop, find a candidate to add to the result.
 	while (true) {
 		const fqon_t *candidate;
 		bool candidate_ok = false;
@@ -93,7 +92,7 @@ linearize_recurse(const fqon_t &name,
 
 		// Try to find a head that is not element of any tail
 		for (size_t i = 0; i < par_linearizations.size(); i++) {
-			const auto &par_linearization = par_linearizations[i].get();
+			const auto &par_linearization = par_linearizations[i];
 			const size_t headpos = sublists_heads[i];
 
 			// The head position has reached the end (i.e. the list is "empty")
@@ -114,7 +113,7 @@ linearize_recurse(const fqon_t &name,
 					continue;
 				}
 
-				const auto &tail = par_linearizations[j].get();
+				const auto &tail = par_linearizations[j];
 				const size_t headpos_try = sublists_heads[j];
 
 				// Start one slot after the head
@@ -138,7 +137,8 @@ linearize_recurse(const fqon_t &name,
 			if (candidate_ok) {
 				break;
 			} else {
-				// Try the next candidate
+				// Try the next candidate,
+				// this means to select the next par_lin list.
 				continue;
 			}
 		}
@@ -149,7 +149,7 @@ linearize_recurse(const fqon_t &name,
 
 			// Advance all the lists where the candidate was the head
 			for (size_t i = 0; i < par_linearizations.size(); i++) {
-				const auto &par_linearization = par_linearizations[i].get();
+				const auto &par_linearization = par_linearizations[i];
 				const size_t headpos = sublists_heads[i];
 
 				if (headpos < par_linearization.size()) {
@@ -163,12 +163,19 @@ linearize_recurse(const fqon_t &name,
 		// No more sublists have any entry
 		if (sublists_available == 0) {
 			// linearization is finished!
-			obj_state.set_linearization(std::move(linearization));
-			return obj_state.get_linearization();
+			return linearization;
+		}
+
+		if (not candidate_ok) {
+			throw C3Error{
+				"Can't find consistent C3 resolution order for "s
+				+ name + " for bases " + util::strjoin(", ", parents)
+			};
 		}
 	}
 
-	throw C3Error{"cyclic hierarchy, c3 linearization impossible"};
+	// should not be reached :)
+	throw InternalError{"C3 internal error"};
 }
 
 

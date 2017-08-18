@@ -29,42 +29,13 @@ bool Set::add(const ValueHolder &value) {
 }
 
 
-bool Set::contains(const ValueHolder &value) {
+bool Set::contains(const ValueHolder &value) const {
 	return (this->values.find(value) != std::end(this->values));
 }
 
 
 bool Set::remove(const ValueHolder &value) {
 	return (1 == this->values.erase(value));
-}
-
-
-void Set::apply_value(const Value &value, nyan_op operation) {
-	throw InternalError{"TODO apply_value set"};
-
-	// TODO: may be another type of baseset
-	const Set &change = dynamic_cast<const Set &>(value);
-
-	switch (operation) {
-	case nyan_op::ASSIGN:
-		break;
-
-	case nyan_op::ADD_ASSIGN:
-	case nyan_op::UNION_ASSIGN:
-		break;
-
-	case nyan_op::SUBTRACT_ASSIGN:
-		break;
-
-	case nyan_op::MULTIPLY_ASSIGN:
-		break;
-
-	case nyan_op::INTERSECT_ASSIGN:
-		break;
-
-	default:
-		throw Error{"unknown operation requested"};
-	}
 }
 
 

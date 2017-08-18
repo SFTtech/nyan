@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "basic_type.h"
 #include "config.h"
@@ -91,11 +92,6 @@ public:
 	 * This will of course only suceed if other is a container.
 	 */
 	bool can_be_in(const Type &other) const;
-
-	/**
-	 * Check if this type is a parent of the given object.
-	 */
-	bool is_parent(const fqon_t &child, const State &state) const;
 
 	/**
 	 * Return the object target name.

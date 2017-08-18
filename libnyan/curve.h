@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 
 #include "config.h"
@@ -17,16 +18,45 @@ public:
 
 	using container_t = std::map<order_t, T>;
 
+	using fallback_t = std::function<const T &(const order_t)>;
+
+
 	Curve() {}
+
+#ifdef CURVE_FALLBACK_FUNCTION
+	Curve(const fallback_t &func)
+		:
+		fallback{func} {}
+
+	/**
+	 * Fallback function, used if a time before the first
+	 * entry is used.
+	 */
+	fallback_t fallback;
+#endif
+
+	// TODO: maybe add variants of the functions below
+	//       which also return the time the keyframe belongs to.
 
 	/**
 	 * Get the latest value at given time.
 	 */
-	const T &at(const order_t &time) const {
+	const T &at(const order_t time) const {
 		// search for element which is greater than time
 		auto it = this->container.upper_bound(time);
 		if (it == std::begin(this->container)) {
-			throw InternalError{"requested time lower than first entry"};
+#ifdef CURVE_FALLBACK_FUNCTION
+			if (likely(this->fallback)) {
+				return this->fallback(time);
+			}
+			else {
+#endif
+				throw InternalError{
+					"requested time lower than first curve entry"
+				};
+#ifdef CURVE_FALLBACK_FUNCTION
+			}
+#endif
 		}
 
 		// go one back, so it's less or equal the requested time.
@@ -35,15 +65,42 @@ public:
 	}
 
 	/**
+	 * Like `at`, but returns nullptr if no keyframe was found.
+	 */
+	const T *at_find(const order_t time) const {
+		auto it = this->container.upper_bound(time);
+		if (it == std::begin(this->container)) {
+			return nullptr;
+		}
+		--it;
+		return &it->second;
+	}
+
+	/**
 	 * Get the value at the exact time.
 	 */
-	T *at_exact(const order_t &time) {
+	const T *at_exact(const order_t time) const {
 		auto it = this->container.find(time);
 		if (it == std::end(this->container)) {
 			return nullptr;
 		}
 
 		return &it->second;
+	}
+
+	/**
+	 * Get the value which active earlier than given time.
+	 */
+	const T &before(const order_t time) const {
+		// search for element which is not less than the given time.
+		auto it = this->container.lower_bound(time);
+		if (it == std::begin(this->container)) {
+			throw InternalError{"curve has no previous keyframe"};
+		}
+
+		// go one back, so it's less than the requested time.
+		--it;
+		return it->second;
 	}
 
 	/**
@@ -56,10 +113,10 @@ public:
 	/**
 	 * Add a new value at the given time.
 	 */
-	T &insert_drop(const order_t &time, T &&value) {
-		auto it = this->container.upper_bound(time);
+	T &insert_drop(const order_t time, T &&value) {
+		auto it = this->container.lower_bound(time);
 
-		// remove all elements greater than the requested time
+		// remove all elements greater or equal the requested time
 		for (; it != std::end(this->container); ++it) {
 			this->container.erase(it);
 		}

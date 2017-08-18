@@ -197,80 +197,29 @@ void ASTObject::ast_targets(TokenStream &tokens) {
 
 
 void ASTObject::ast_inheritance_mod(TokenStream &tokens) {
-	bool expect_comma = false;
-	auto token = tokens.next();
-
-	while (token->type != token_type::RBRACKET) {
-		if (token->type == token_type::COMMA) {
-			expect_comma = false;
-			token = tokens.next();
+	comma_list(
+		token_type::RBRACKET,
+		tokens,
+		[this] (const Token &token, TokenStream &stream) {
+			stream.reinsert(&token);
+			this->inheritance_change.push_back(ASTInheritanceChange{stream});
 		}
-		else if (expect_comma == true) {
-			throw ASTError("expected comma, encountered", *token);
-		}
-
-		if (token->type != token_type::OPERATOR) {
-			throw ASTError("expected operator, encountered", *token);
-		}
-
-		auto inheritance_op = token;
-		nyan_op action = op_from_token(*inheritance_op);
-
-		// currently, only inheritance parent adding is supported
-		if (action != nyan_op::ADD) {
-			throw ASTError{
-				"expected + operator,"
-				"instead got: '"s + op_to_string(action) +
-				"' when using",
-				*inheritance_op
-			};
-		}
-
-		token = tokens.next();
-
-		if (token->type != token_type::ID) {
-			throw ASTError("expected identifier, encountered", *token);
-		}
-
-		switch (action) {
-		case nyan_op::ADD:
-			this->inheritance_add.push_back(IDToken{*token, tokens});
-			break;
-		default:
-			std::cout << inheritance_op->str() << std::endl;
-			throw ASTError{
-				"unknown inheritance modification"s + op_to_string(action),
-				*inheritance_op,
-				false
-			};
-		}
-
-		expect_comma = true;
-		token = tokens.next();
-	}
+	);
 }
 
 
 void ASTObject::ast_parents(TokenStream &tokens) {
-	auto token = tokens.next();
-	if (token->type == token_type::RPAREN) {
-		return;
-	}
-
-	if (token->type == token_type::ENDLINE) {
-		token = tokens.next();
-	}
-
-	if (token->type != token_type::ID) {
-		throw ASTError("expected inheritance parent identifier, but there is", *token);
-	}
-
-	tokens.reinsert(token);
-
 	comma_list(
 		token_type::RPAREN,
 		tokens,
 		[this] (const Token &token, TokenStream &stream) {
+
+			if (token.type != token_type::ID) {
+				throw ASTError{
+					"expected inheritance parent identifier, but there is", token
+				};
+			}
+
 			this->parents.push_back(IDToken{token, stream});
 		}
 	);
@@ -348,6 +297,75 @@ const std::vector<ASTObject> &ASTObject::get_objects() const {
 	return this->objects;
 }
 
+
+ASTInheritanceChange::ASTInheritanceChange(TokenStream &tokens) {
+
+	bool had_operator = false;
+	bool had_target = false;
+	auto token = tokens.next();
+
+	if (token->type == token_type::OPERATOR) {
+		had_operator = true;
+		nyan_op action = op_from_token(*token);
+
+		switch (action) {
+		case nyan_op::ADD:
+			this->type = inher_change_t::ADD_BACK;
+			break;
+		default:
+			throw ASTError{"unsupported inheritance change operator", *token};
+		}
+		token = tokens.next();
+	}
+
+	if (token->type == token_type::ID) {
+		this->target = IDToken{*token, tokens};
+		had_target = true;
+
+		token = tokens.next();
+	}
+
+	if (unlikely(not (had_operator or had_target))) {
+		throw ASTError{"expected inheritance operator or identifier, there is", *token};
+	}
+
+	if (token->type == token_type::OPERATOR) {
+		if (unlikely(had_operator)) {
+			throw ASTError{
+				"inheritance modifier already had operator at front", *token, false
+			};
+		}
+
+		had_operator = true;
+		nyan_op action = op_from_token(*token);
+
+		switch (action) {
+		case nyan_op::ADD:
+			this->type = inher_change_t::ADD_FRONT;
+			break;
+		default:
+			throw ASTError{"unsupported inheritance change operator", *token};
+		}
+		token = tokens.next();
+	}
+
+	if (unlikely(not had_operator)) {
+		throw ASTError{"inheritance change is missing operator", *token, false};
+	}
+	else {
+		tokens.reinsert(token);
+	}
+}
+
+
+inher_change_t ASTInheritanceChange::get_type() const {
+	return this->type;
+}
+
+
+const IDToken &ASTInheritanceChange::get_target() const {
+	return this->target;
+}
 
 
 ASTMember::ASTMember(const Token &name,
@@ -491,7 +509,9 @@ ASTMemberValue::ASTMemberValue(container_t type,
 	case container_t::ORDEREDSET:
 		end_token = token_type::RANGLE; break;
 	case container_t::SINGLE:
-		throw Error{"wrong constructor called for single-element container"};
+		throw InternalError{"wrong constructor called for single-element container"};
+	default:
+		throw InternalError{"unknown container type"};
 	}
 
 	comma_list(
@@ -559,10 +579,12 @@ void ASTObject::strb(std::ostringstream &builder, int indentlevel) const {
 	}
 
 
-	if (this->inheritance_add.size() > 0) {
-		builder << "[+"
-		        << util::strjoin(", +", this->inheritance_add, token_str)
-		        << "]";
+	if (this->inheritance_change.size() > 0) {
+		builder << "[";
+		for (auto &change : this->inheritance_change) {
+			change.strb(builder);
+		}
+		builder << "]";
 	}
 
 	builder << "("
@@ -583,6 +605,27 @@ void ASTObject::strb(std::ostringstream &builder, int indentlevel) const {
 	else {
 		indenter(builder, indentlevel + 1);
 		builder << "pass" << std::endl;
+	}
+}
+
+
+void ASTInheritanceChange::strb(std::ostringstream &builder, int /*indentlevel*/) const {
+	switch (this->type) {
+	case inher_change_t::ADD_BACK:
+		builder << "+";
+		break;
+	default:
+		break;
+	}
+
+	builder << this->target.str();
+
+	switch (this->type) {
+	case inher_change_t::ADD_FRONT:
+		builder << "+";
+		break;
+	default:
+		break;
 	}
 }
 

@@ -31,6 +31,16 @@ enum class nyan_op {
 
 
 /**
+ * Inheritance modification operations.
+ */
+enum class inher_change_t {
+	ADD_FRONT,
+	ADD_BACK
+};
+
+
+
+/**
  * Convenience variable to be used whenever no operation is allowed.
  * It comes in handy as the allowance sets are const static function
  * variables normally, and the function returns a reference.

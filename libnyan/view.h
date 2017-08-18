@@ -6,6 +6,7 @@
 
 #include "curve.h"
 #include "object.h"
+#include "state_history.h"
 #include "transaction.h"
 
 
@@ -20,6 +21,7 @@ class State;
  * Database state view.
  */
 class View : public std::enable_shared_from_this<View> {
+	friend class Transaction;
 public:
 	View(const std::shared_ptr<Database> &database);
 
@@ -33,15 +35,31 @@ public:
 
 	std::shared_ptr<View> new_child();
 
-	std::vector<std::weak_ptr<View>> &get_children();
-
-	State &new_state(order_t t);
-
-	const State &get_state(order_t t=DEFAULT_T);
+	const State &get_state(order_t t=DEFAULT_T) const;
 
 	const Database &get_database() const;
 
+	const std::vector<fqon_t> &get_linearization(const fqon_t &fqon, order_t t=DEFAULT_T) const;
+
+	const std::unordered_set<fqon_t> &get_obj_children(const fqon_t &fqon, order_t t=DEFAULT_T) const;
+
+	std::unordered_set<fqon_t> get_obj_children_all(const fqon_t &fqon, order_t t=DEFAULT_T) const;
+
+	/**
+	 * Drop all state later than given time.
+	 */
+	// TODO void reset_from(order_t t=DEFAULT_T);
+
+
 protected:
+	std::vector<std::weak_ptr<View>> &get_children();
+
+	void gather_obj_children(std::unordered_set<fqon_t> &target,
+	                         const fqon_t &obj,
+	                         order_t t) const;
+
+	StateHistory &get_state_history();
+
 	void add_child(const std::shared_ptr<View> &view);
 
 	/**
@@ -51,32 +69,18 @@ protected:
 	std::shared_ptr<Database> database;
 
 	/**
-	 * Storage of states over time.
+	 * Data storage over time.
 	 */
-	Curve<std::shared_ptr<State>> history;
-
-	/**
-	 * Tracking for latest change of an object.
-	 *
-	 * This is an optimization for cut at t in the curve:
-	 * * find changed objects by analyzing the cut branch for names
-	 * * find last change before t for each object (via state.previous ptr)
-	 * * update the change to this time in this map
-	 * * cut off branch
-	 *
-	 * This also optimizes the search for an object state:
-	 * * it's not in this view state if not in this map
-	 *   -> search in the database
-	 * * if it's in this map, the time of the last state
-	 *   in the curve can easily be looked up:
-	 *   no need to walk over potentially thousands of state.previous ptrs
-	 */
-	std::unordered_map<fqon_t, std::vector<order_t>> changes;
+	StateHistory state;
 
 	/**
 	 * Child views. Used to propagate down patches.
 	 */
 	std::vector<std::weak_ptr<View>> children;
+
+	// TODO: track transactions and then use tracking to
+	//       check for transaction modificationconflicts
+	//       beware the child views so that conflicts in them are detected as well
 };
 
 } // namespace nyan

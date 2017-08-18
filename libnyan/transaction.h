@@ -1,17 +1,44 @@
 // Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
+#include <exception>
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "config.h"
+#include "change_tracker.h"
 
 
 namespace nyan {
 
 class Object;
+class State;
 class View;
+
+
+/**
+ * Information to update for a view.
+ */
+struct view_update {
+
+	using linearizations_t = std::vector<std::vector<fqon_t>>;
+
+	using child_map_t = std::unordered_map<fqon_t, std::unordered_set<fqon_t>>;
+
+	/**
+	 * All linearizations to update because of the patches.
+	 */
+	linearizations_t linearizations;
+
+	/**
+	 * Maps objects to their new children.
+	 */
+	child_map_t children;
+};
 
 
 /**
@@ -19,10 +46,6 @@ class View;
  */
 class Transaction {
 public:
-	struct patch_group {
-		fqon_t target;
-		std::vector<fqon_t> patches;
-	};
 
 	Transaction(order_t at, std::shared_ptr<View> &&origin);
 
@@ -39,14 +62,84 @@ public:
 	 */
 	bool add(const Object &obj, const Object &target);
 
+	/**
+	 * Returns true if the transaction was successful.
+	 */
 	bool commit();
 
-private:
-	bool commit_view(std::shared_ptr<View> &target_view);
+	/**
+	 * Return the exception that caused a transaction failure.
+	 */
+	const std::exception_ptr &get_exception() const;
 
+protected:
+	/**
+	 * Merge the new states with an existing one from the view.
+	 */
+	void merge_changed_states();
+
+	/**
+	 * Generate all needed updates.
+	 * The vector indices are mapped to the views of the
+	 * `states` member at the bottom.
+	 */
+	std::vector<view_update> generate_updates();
+
+	/**
+	 * Track which parents need to be notified
+	 * of new childs.
+	 * Also builds up a list of objects to relinearize
+	 * because its parents changed.
+	 */
+	view_update::child_map_t
+	inheritance_updates(const ChangeTracker &tracker,
+	                    const std::shared_ptr<View> &view,
+	                    std::unordered_set<fqon_t> &objs_to_linearize) const;
+
+	/**
+	 * Generate new linearizations for objects that changed.
+	 */
+	view_update::linearizations_t
+	relinearize_objects(const std::unordered_set<fqon_t> &objs_to_linearize,
+	                    const std::shared_ptr<View> &view,
+	                    const std::shared_ptr<State> &new_state);
+
+
+	/**
+	 * Apply the gathered state updates in all views.
+	 * The update list is destroyed.
+	 */
+	void update_views(std::vector<view_update> &&updates);
+
+	/**
+	 * A non-fatal exception occured, so let the transaction fail.
+	 */
+	void set_error(std::exception_ptr &&exc);
+
+	/**
+	 * Exception holder if something failed during the transaction.
+	 */
+	std::exception_ptr error;
+
+	/**
+	 * True if this transaction can be committed.
+	 */
+	bool valid;
+
+	/**
+	 * Time the transaction will take place.
+	 */
 	order_t at;
-	std::shared_ptr<View> view;
-	std::vector<patch_group> patches;
+
+	/**
+	 * The views where the transaction will be applied in.
+	 * For each view, store:
+	 * * The state that we're gonna build with this transaction
+	 * * Changes done in the transaction to invalidate caches.
+	 */
+	std::vector<std::tuple<std::shared_ptr<View>,
+	                       std::shared_ptr<State>,
+	                       ChangeTracker>> states;
 };
 
-} // nyan
+} // namespace nyan

@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "config.h"
 #include "location.h"
 
 namespace nyan {
@@ -192,6 +193,18 @@ public:
 class APIError : public Error {
 public:
 	APIError(const std::string &msg);
+};
+
+
+/**
+ * An object queried over the API is not found.
+ */
+class ObjectNotFoundError : public APIError {
+public:
+	ObjectNotFoundError(const fqon_t &objname);
+
+protected:
+	fqon_t name;
 };
 
 

@@ -40,7 +40,7 @@ bool NamespaceFinder::check_conflict(const std::string &name) const {
 
 fqon_t NamespaceFinder::expand_alias(const IDToken &name) const {
 	if (unlikely(not name.exists())) {
-		throw InternalError{"tried expanding alias on empty name"};
+		throw InternalError{"tried expanding alias on empty id token"};
 	}
 
 	// only the first component can be an alias.
@@ -60,6 +60,10 @@ fqon_t NamespaceFinder::expand_alias(const IDToken &name) const {
 fqon_t NamespaceFinder::find(const Namespace &current,
                              const IDToken &search,
                              const MetaInfo &typedb) const {
+
+	if (unlikely(not search.exists())) {
+		throw InternalError{"tried to find namespace for empty id"};
+	}
 
 	Namespace search_base{current};
 

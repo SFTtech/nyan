@@ -17,20 +17,20 @@ class ObjectState;
 /**
  * Function to fetch an object state.
  */
-using objstate_fetch_t = std::function<ObjectState &(const fqon_t &)>;
+using objstate_fetch_t = std::function<const ObjectState &(const fqon_t &)>;
 
 
 /**
  * Implements the C3 multi inheritance linearization algorithm
  * to bring the parents of an object into the "right" order.
  */
-const std::vector<fqon_t> &linearize(const fqon_t &name, const objstate_fetch_t &get_obj);
+std::vector<fqon_t> linearize(const fqon_t &name, const objstate_fetch_t &get_obj);
 
 
 /**
  * Recursive walk for the c3 linearization implememtation.
  */
-const std::vector<fqon_t> &
+std::vector<fqon_t>
 linearize_recurse(const fqon_t &name,
                   const objstate_fetch_t &get_obj,
                   std::unordered_set<fqon_t> *seen);

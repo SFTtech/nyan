@@ -2,6 +2,7 @@
 #pragma once
 
 
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -56,16 +57,25 @@ std::string demangle(const char *symbol);
 std::string symbol_name(const void *addr, bool require_exact_addr=true, bool no_pure_addrs=false);
 
 
+template <typename T>
+std::string get_container_elem(const T &in) {
+	return in;
+}
+
+
 /**
  * Just like python's "delim".join(container)
  * func is a function to extract the string
  * from each element of the container.
+ *
+ * Now, this function also features a compiler bug:
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59949
  * Fak u C++.
  */
 template <typename T>
 std::string strjoin(const std::string &delim,
                     const T &container,
-                    const std::function<std::string(const typename T::value_type &)> func=[](const typename T::value_type &in) -> std::string {return in;}) {
+                    const std::function<std::string(const typename T::value_type &)> func=&get_container_elem<typename T::value_type>) {
 
 	std::ostringstream builder;
 
@@ -123,7 +133,7 @@ void vector_extend(std::vector<T> &vec, const std::vector<T> &ext) {
 }
 
 
-/*
+/**
  * Extend a vector with elements with move semantics.
  */
 template <typename T>
@@ -135,6 +145,22 @@ void vector_extend(std::vector<T> &vec, std::vector<T> &&ext) {
 		vec.reserve(vec.size() + ext.size());
 		std::move(std::begin(ext), std::end(ext), std::back_inserter(vec));
 		ext.clear();
+	}
+}
+
+
+/**
+ * Membership check for some container.
+ */
+template <typename T, typename V>
+bool contains(const T &container, const V &value) {
+	if (std::find(std::begin(container),
+	              std::end(container),
+	              value) == std::end(container)) {
+		return false;
+	}
+	else {
+		return true;
 	}
 }
 

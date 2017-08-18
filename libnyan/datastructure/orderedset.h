@@ -2,7 +2,7 @@
 #pragma once
 
 
-#include <list>
+#include <deque>
 #include <unordered_map>
 
 
@@ -20,10 +20,33 @@ public:
 	OrderedSet() {}
 	~OrderedSet() {}
 
+	OrderedSet(const OrderedSet &other) {
+		for (auto &value : other) {
+			this->insert(value);
+		}
+	}
+
+	const OrderedSet &operator =(const OrderedSet &other) {
+		for (auto &value : other) {
+			this->insert(value);
+		}
+	}
+
+	// no moves allowed because they invalidate
+	// the ordering iterators.
+	OrderedSet(OrderedSet &&other) = delete;
+	const OrderedSet &operator =(OrderedSet &&other) = delete;
+
+	/**
+	 * Type of value contained in the set.
+	 */
+	using value_type = T;
+
+
 	/**
 	 * Type of the list that preserves the element order.
 	 */
-	using order_list_t = std::list<const T *>;
+	using order_list_t = std::deque<const T *>;
 
 
 	/**
@@ -43,7 +66,9 @@ protected:
 	 * OrderedSet iterator.
 	 *
 	 * Basically relays to the list iterator, but it returns
-	 * a T& because of double-dereferencing.
+	 * a T& because of double-dereferencing the iterator.
+	 * That way, you can iterate over the actual set contents
+	 * in the right order.
 	 *
 	 * Thanks C++ for such a small and readable implementation.
 	 */
@@ -80,6 +105,9 @@ protected:
 
 		/**
 		 * Get the element the inner iterator points to.
+		 * The first iterator is the order-iterator.
+		 * Dereferencing it provides a pointer to the data.
+		 * Dereferencing that pointer gets the data reference.
 		 */
 		elem_type &operator *() const {
 			return *(*this->iter);
@@ -131,7 +159,7 @@ public:
 	 * Add an entry to the orderedset.
 	 * If already in the set, move entry to the end.
 	 */
-	bool add(const T &value) {
+	bool insert(const T &value) {
 		// maybe it is even faster if we check existence with
 		// this->values.find(value) first, although then
 		// we need to hash value twice: once for the find
@@ -171,12 +199,42 @@ public:
 
 	// TODO: add add(T &&value) function
 
+
+	/**
+	 * Remove all entries from the set.
+	 */
+	void clear() {
+		this->values.clear();
+		this->value_order.clear();
+	}
+
+
+	/**
+	 * Erase an element from the set.
+	 */
+	size_t erase(const T &value) {
+		auto it = this->values.find(value);
+		if (it == std::end(this->values)) {
+			return 0;
+		}
+
+		// remove the order entry
+		this->value_order.erase(it->second);
+
+		// and remove the value mapping
+		this->values.erase(it);
+
+		return 1;
+	}
+
+
 	/**
 	 * Is the specified value stored in this set?
 	 */
 	bool contains(const T &value) const {
 		return (this->values.find(value) != std::end(this->values));
 	}
+
 
 	/**
 	 * Return the number of elements stored.
@@ -185,10 +243,12 @@ public:
 		return this->value_order.size();
 	}
 
+
 	/** provide the begin iterator of this set */
 	const_iterator begin() const {
 		return OrderedSetIterator<const T>{*this, true};
 	}
+
 
 	/** provide the end iterator of this set */
 	const_iterator end() const {

@@ -22,20 +22,32 @@ State::State()
 	previous_state{nullptr} {}
 
 
-const std::shared_ptr<ObjectState> &State::get(const fqon_t &fqon) const {
+const std::shared_ptr<ObjectState> &State::get_search(const fqon_t &fqon) const {
 	auto it = this->objects.find(fqon);
 	if (it != std::end(this->objects)) {
 		return it->second;
 	}
 	else {
 		if (previous_state == nullptr) {
-			throw Error{"unknown object requested"};
+			using namespace std::string_literals;
+			throw InternalError{"unknown object requested: "s + fqon};
 		}
 		else {
 			// search backwards.
 			// TODO: optimize away with the last-changed map :)
-			return previous_state->get(fqon);
+			return previous_state->get_search(fqon);
 		}
+	}
+}
+
+
+const std::shared_ptr<ObjectState> *State::get_nosearch(const fqon_t &fqon) const {
+	auto it = this->objects.find(fqon);
+	if (it != std::end(this->objects)) {
+		return &it->second;
+	}
+	else {
+		return nullptr;
 	}
 }
 
@@ -55,9 +67,19 @@ ObjectState &State::add_object(const fqon_t &name, std::shared_ptr<ObjectState> 
 }
 
 
-ObjectState &State::copy_object(const fqon_t &name, order_t t, std::shared_ptr<View> &origin) {
+void State::update(std::shared_ptr<State> &&source_state) {
+	for (auto &it : source_state.get()->objects) {
+		this->objects.insert({std::move(it.first), std::move(it.second)});
+	}
+}
 
-	std::shared_ptr<ObjectState> source = origin->get_raw(name, t);
+
+const std::shared_ptr<ObjectState> &State::copy_object(const fqon_t &name,
+                                                       order_t t,
+                                                       std::shared_ptr<View> &origin) {
+
+	// last known state of the object
+	const std::shared_ptr<ObjectState> &source = origin->get_raw(name, t);
 
 	if (not source) {
 		throw InternalError{"object copy source not found"};
@@ -66,21 +88,26 @@ ObjectState &State::copy_object(const fqon_t &name, order_t t, std::shared_ptr<V
 	// check if the object already is in this state
 	auto it = this->objects.find(name);
 	if (it == std::end(this->objects)) {
-		// if not, copy the source object
-		return *this->objects.emplace(
+		// if not, copy the source object into this state
+		return this->objects.emplace(
 			name,
 			source->copy()
-		).first->second.get();
+		).first->second;
 	}
 	else {
-		// if yes, check if they are the same already
+		// if yes, check if they are not the same already
 		if (it->second != source) {
 			// copy object to this state
 			it->second = source->copy();
 		}
 		// else, no need to copy, the source would be this state anyway.
-		return *it->second.get();
+		return it->second;
 	}
+}
+
+
+const std::shared_ptr<State> &State::get_previous_state() const {
+	return this->previous_state;
 }
 
 

@@ -145,9 +145,6 @@ void Value::apply(const Member &change) {
 	//       stop the patch loop and just use this value.
 	//       BUT this will fail if one is in a diamond?
 
-
-	// TODO: asdf check type of Value again!
-
 	this->apply_value(value, change.get_operation());
 }
 

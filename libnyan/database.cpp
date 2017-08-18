@@ -173,9 +173,14 @@ void Database::load(const std::string &filename,
 	std::vector<fqon_t> new_objects;
 	new_objects.reserve(new_obj_count);
 
+	// map object => new children.
+	std::unordered_map<fqon_t, std::unordered_set<fqon_t>> obj_children;
+
 	// now, all new object infos need to be filled with types
 	ast_obj_walk(imports, std::bind(&Database::create_obj_content,
-	                                this, &new_objects,
+	                                this,
+	                                &new_objects,
+	                                &obj_children,
 	                                _1, _2, _3, _4));
 
 	// linearize the parents of all new objects
@@ -184,7 +189,7 @@ void Database::load(const std::string &filename,
 	// resolve the types of members to their definition
 	this->resolve_types(new_objects);
 
-
+	// these objects were uses as values at some file location.
 	std::vector<std::pair<fqon_t, Location>> objs_in_values;
 
 	// state value creation
@@ -194,6 +199,20 @@ void Database::load(const std::string &filename,
 
 	// verify hierarchy consistency
 	this->check_hierarchy(new_objects, objs_in_values);
+
+	// store the children mapping.
+	for (auto &it : obj_children) {
+		auto &obj = it.first;
+		auto &children = it.second;
+
+		ObjectInfo *info = this->meta_info.get_object(obj);
+		if (unlikely(info == nullptr)) {
+			throw InternalError{"object info could not be retrieved"};
+		}
+
+		info->set_children(std::move(children));
+	}
+
 
 	/*
 	 * The patch will fail to be loaded if:
@@ -244,6 +263,7 @@ void Database::create_obj_info(size_t *counter,
 
 
 void Database::create_obj_content(std::vector<fqon_t> *new_objs,
+                                  std::unordered_map<fqon_t, std::unordered_set<fqon_t>> *child_assignments,
                                   const NamespaceFinder &scope,
                                   const Namespace &ns,
                                   const Namespace &objname,
@@ -265,15 +285,24 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 	}
 
 	// a patch may add inheritance parents
-	for (auto &new_parent : astobj.inheritance_add) {
-		fqon_t new_parent_id = scope.find(ns, new_parent, this->meta_info);
-		info->add_inheritance_add(std::move(new_parent_id));
+	for (auto &change : astobj.inheritance_change) {
+		inher_change_t change_type = change.get_type();
+		fqon_t new_parent_id = scope.find(ns, change.get_target(), this->meta_info);
+		info->add_inheritance_change(InheritanceChange{change_type, std::move(new_parent_id)});
 	}
 
 	// parents are stored in the object data state
-	std::vector<fqon_t> object_parents;
+	std::deque<fqon_t> object_parents;
 	for (auto &parent : astobj.parents) {
 		fqon_t parent_id = scope.find(ns, parent, this->meta_info);
+
+		// this object is therefore a child of the parent one.
+		auto ins = child_assignments->emplace(
+			parent_id,
+			std::unordered_set<fqon_t>{}
+		);
+		ins.first->second.insert(obj_fqon);
+
 		object_parents.push_back(std::move(parent_id));
 	}
 
@@ -316,43 +345,40 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 
 void Database::linearize_new(const std::vector<fqon_t> &new_objects) {
 	// linearize the parents of all newly created objects
-	std::unordered_set<fqon_t> linearized_objects;
 
 	for (auto &obj : new_objects) {
-
-		if (linearized_objects.find(obj) != std::end(linearized_objects)) {
-			continue;
-		}
-
 		std::unordered_set<fqon_t> seen;
 
-		linearize_recurse(
-			obj,
-			[this] (const fqon_t &name) -> ObjectState& {
-				return *this->state->get(name);
-			},
-			&seen
-		);
+		ObjectInfo *obj_info = this->meta_info.get_object(obj);
+		if (unlikely(obj_info == nullptr)) {
+			throw InternalError{"object information not retrieved"};
+		}
 
-#if __cplusplus > 201402L  // c++17
-		linearized_objects.merge(std::move(seen));
-#else
-		linearized_objects.insert(std::begin(seen), std::end(seen));
-#endif
+		obj_info->set_linearization(
+			linearize_recurse(
+				obj,
+				[this] (const fqon_t &name) -> const ObjectState & {
+					return **this->state->get_nosearch(name);
+				},
+				&seen
+			)
+		);
 	}
 }
 
 
 void Database::find_member(bool skip_first,
                            const memberid_t &member_id,
-                           const ObjectState &obj_state,
+                           const std::vector<fqon_t> &search_objs,
                            const ObjectInfo &obj_info,
-                           const std::function<bool(const fqon_t &, const MemberInfo &, const Member *)> &member_found) {
+                           const std::function<bool(const fqon_t &,
+                                                    const MemberInfo &,
+                                                    const Member *)> &member_found) {
 
 	bool finished = false;
 
 	// member doesn't have type yet. find it.
-	for (auto &parent : obj_state.get_linearization()) {
+	for (auto &obj : search_objs) {
 
 		// at the very beginning, we have to skip the object
 		// we want to find the type for. it's the first in the linearization.
@@ -361,24 +387,24 @@ void Database::find_member(bool skip_first,
 			continue;
 		}
 
-		ObjectInfo *parent_info = this->meta_info.get_object(parent);
-		if (unlikely(parent_info == nullptr)) {
+		ObjectInfo *obj_info = this->meta_info.get_object(obj);
+		if (unlikely(obj_info == nullptr)) {
 			throw InternalError{"object information not retrieved"};
 		}
-		const MemberInfo *parent_member_info = parent_info->get_member(member_id);
+		const MemberInfo *obj_member_info = obj_info->get_member(member_id);
 
-		// parent doesn't have this member
-		if (not parent_member_info) {
+		// obj doesn't have this member
+		if (not obj_member_info) {
 			continue;
 		}
 
-		const ObjectState *par_state = this->state->get(parent).get();
+		const ObjectState *par_state = this->state->get_nosearch(obj)->get();
 		if (unlikely(par_state == nullptr)) {
 			throw InternalError{"object state not retrieved"};
 		}
 		const Member *member = par_state->get_member(member_id);
 
-		finished = member_found(parent, *parent_member_info, member);
+		finished = member_found(obj, *obj_member_info, member);
 
 		if (finished) {
 			break;
@@ -389,12 +415,16 @@ void Database::find_member(bool skip_first,
 	if (not finished and obj_info.is_patch()) {
 		const fqon_t &target = obj_info.get_patch()->get_target();
 		const ObjectInfo *obj_info = this->meta_info.get_object(target);
-		const ObjectState *obj_state = this->state->get(target).get();
+		if (unlikely(obj_info == nullptr)) {
+			throw InternalError{"target not found in metainfo"};
+		}
 
 		// recurse into the target.
 		// check if the patch defines the member as well -> error.
 		// otherwise, infer type from patch.
-		this->find_member(false, member_id, *obj_state, *obj_info, member_found);
+		this->find_member(false, member_id,
+		                  obj_info->get_linearization(),
+		                  *obj_info, member_found);
 	}
 }
 
@@ -410,12 +440,18 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 	// and check if there's not multiple patche targets per object hierarchy
 	for (auto &obj : new_objects) {
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
-		ObjectState *obj_state = this->state->get(obj).get();
 
-		const auto &parents = obj_state->get_linearization();
-		auto it = std::begin(parents);
-		++it; // skip first, it's the object itself.
-		for (auto end = std::end(parents); it != end; ++it) {
+		const auto &linearization = obj_info->get_linearization();
+		if (unlikely(linearization.size() < 1)) {
+			throw InternalError{
+				"Linearization doesn't contain obj itself."
+			};
+		}
+
+		auto it = std::begin(linearization);
+		// skip first, it's the object itself.
+		++it;
+		for (auto end = std::end(linearization); it != end; ++it) {
 			ObjectInfo *parent_info = this->meta_info.get_object(*it);
 
 			if (parent_info->is_initial_patch()) {
@@ -441,7 +477,8 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 	// this required that patch targets are linked.
 	for (auto &obj : new_objects) {
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
-		ObjectState *obj_state = this->state->get(obj).get();
+
+		const auto &linearization = obj_info->get_linearization();
 
 		// resolve the type for each member
 		for (auto &it : obj_info->get_members()) {
@@ -456,7 +493,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 			// which includes the recursion into patch targets.
 			this->find_member(
 				true,  // make sure the object we search the type for isn't checked with itself.
-				member_id, *obj_state, *obj_info,
+				member_id, linearization, *obj_info,
 				[&member_info, &type_found, &member_id]
 				(const fqon_t &parent,
 				 const MemberInfo &source_member_info,
@@ -524,7 +561,7 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 		throw InternalError{"object info could not be retrieved"};
 	}
 
-	ObjectState &objstate = *this->state->get(objname.to_fqon());
+	ObjectState &objstate = **this->state->get_nosearch(objname.to_fqon());
 
 	std::unordered_map<memberid_t, Member> members;
 
@@ -572,8 +609,17 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 						// find the desired object in the scope
 						fqon_t obj_id = scope.find(ns, token, this->meta_info);
 
+						ObjectInfo *obj_info = this->meta_info.get_object(obj_id);
+						if (unlikely(obj_info == nullptr)) {
+							throw InternalError{"object info could not be retrieved"};
+						}
+
+						const auto &obj_lin = obj_info->get_linearization();
+
 						// check if the type of the value is okay
-						if (unlikely(not target_type.is_parent(obj_id, this->state))) {
+						// (i.e. it's in the linearization)
+						if (unlikely(not util::contains(obj_lin, target_type.get_target()))) {
+
 							throw TypeError{
 								token,
 								"value (resolved as "s + obj_id
@@ -594,6 +640,7 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(*member_type);
 
 		if (unlikely(allowed_ops.find(operation) == std::end(allowed_ops))) {
+			// TODO: show member type
 			// TODO: show location of operation
 			// TODO: show allowed ones?
 			throw TypeError{astmember.name, "invalid operator for this member type"};
@@ -611,7 +658,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 	for (auto &obj : new_objs) {
 
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
-		ObjectState *obj_state = this->state->get(obj).get();
+		ObjectState *obj_state = this->state->get_nosearch(obj)->get();
 		if (unlikely(obj_info == nullptr)) {
 			throw InternalError{"object info could not be retrieved"};
 		}
@@ -620,7 +667,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 		}
 
 		// check if an object has inher parent adds, it must be a patch.
-		if (obj_info->get_inheritance_add().size() > 0) {
+		if (obj_info->get_inheritance_change().size() > 0) {
 			if (unlikely(not obj_info->is_patch())) {
 				throw FileError{
 					obj_info->get_location(),
@@ -629,6 +676,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			}
 		}
 
+		const auto &linearization = obj_info->get_linearization();
 
 		// check that relative operators can't be performed when the parent has no value.
 		for (auto &it : obj_state->get_members()) {
@@ -636,10 +684,11 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			bool other_op = false;
 
 			this->find_member(
-				false, it.first, *obj_state, *obj_info,
-				[&assign_ok, &other_op] (const fqon_t &,
-				                         const MemberInfo &,
-				                         const Member *member) {
+				false, it.first, linearization, *obj_info,
+				[&assign_ok, &other_op]
+				(const fqon_t &,
+				 const MemberInfo &,
+				 const Member *member) {
 					// member has no value
 					if (member == nullptr) {
 						return false;
@@ -671,7 +720,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 		}
 
 		// TODO: check the @-propagation is type-compatible for each operator
-		//       -> can we even know? yes, as the patch target depth must equal @-count.
+		//       -> can we even know? yes, as the patch target depth must be >= @-count.
 	}
 
 
@@ -685,12 +734,12 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			continue;
 		}
 
-		const ObjectState *test_obj_state = this->state->get(obj_id).get();
-		if (unlikely(test_obj_state == nullptr)) {
-			throw InternalError{"object used in value has no state"};
+		ObjectInfo *obj_info = this->meta_info.get_object(obj_id);
+		if (unlikely(obj_info == nullptr)) {
+			throw InternalError{"object info could not be retrieved"};
 		}
-		const auto &lin = test_obj_state->get_linearization();
 
+		const auto &lin = obj_info->get_linearization();
 		std::unordered_set<fqon_t> pending_members;
 
 		for (auto obj = std::rbegin(lin); obj != std::rend(lin); ++obj) {
@@ -698,7 +747,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			if (unlikely(obj_info == nullptr)) {
 				throw InternalError{"object used as value has no metainfo"};
 			}
-			const ObjectState *obj_state = this->state->get(*obj).get();
+			const ObjectState *obj_state = this->state->get_nosearch(*obj)->get();
 			if (unlikely(obj_state == nullptr)) {
 				throw InternalError{"object in hierarchy has no state"};
 			}
@@ -744,7 +793,8 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 	}
 
 	// TODO: check if @-overrides change an = to something else
-	// without a = remaining somewhere in a parent
+	//       without a = remaining somewhere in a parent
+	// TODO: check if the @-depth is <= the patch depth
 
 	// TODO: check if adding parents would be cyclic
 	// TODO: check if adding parents leads to member name clashes

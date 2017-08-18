@@ -143,6 +143,8 @@ token_type Lexer::Bracket::expected_match() const {
 		expected = token_type::RBRACKET; break;
 	case bracket_type::BRACE:
 		expected = token_type::RBRACE; break;
+	default:
+		throw InternalError{"unknown bracket type"};
 	}
 
 	return expected;

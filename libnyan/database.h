@@ -69,8 +69,8 @@ public:
 	/**
 	 * Return the initial database state.
 	 */
-	const State &get_state() const {
-		return *this->state;
+	const std::shared_ptr<State> &get_state() const {
+		return this->state;
 	};
 
 	/**
@@ -92,6 +92,7 @@ protected:
 
 	void create_obj_content(
 		std::vector<fqon_t> *new_objs,
+		std::unordered_map<fqon_t, std::unordered_set<fqon_t>> *child_assignments,
 		const NamespaceFinder &current_file,
 		const Namespace &ns,
 		const Namespace &objname,
@@ -111,7 +112,7 @@ protected:
 	void find_member(
 		bool skip_first,
 		const memberid_t &member_id,
-		const ObjectState &obj_state,
+		const std::vector<fqon_t> &search_objs,
 		const ObjectInfo &obj_info,
 		const std::function<bool(const fqon_t &, const MemberInfo &, const Member *)> &member_found
 	);
@@ -131,8 +132,6 @@ protected:
 	 * Tracks type information and locations of the database content etc.
 	 */
 	MetaInfo meta_info;
-
-	// namespace tracking?
 };
 
 } // namespace nyan

@@ -47,14 +47,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 string(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" BUILD_TYPE_CXX_FLAGS)
 
-set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_CXX_COMPILER "clang++")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3")
 
 # add search paths to helper modules
 set(BUILDSYSTEM_DIR "${CMAKE_SOURCE_DIR}/buildsystem")

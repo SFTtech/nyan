@@ -9,10 +9,10 @@ namespace nyan {
 constexpr int SPACES_PER_INDENT = 4;
 
 /** ordering type */
-using order_t = double;
+using order_t = uint64_t;
 
 /** starting point of order */
-constexpr const order_t DEFAULT_T = 0.0;
+constexpr const order_t DEFAULT_T = 0;
 
 /** fully-qualified object name */
 using fqon_t = std::string;

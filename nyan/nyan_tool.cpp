@@ -27,27 +27,46 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	std::shared_ptr<View> root = db->new_view();
 
 	Object second = root->get("test.Second");
-	std::cout << "Second.member == " << second.get<Int>("member") << std::endl;
+	std::cout << "Second.member == " << *second.get<Int>("member") << std::endl;
 	Object first = root->get("test.First");
-	std::cout << "First.test == " << first.get<Text>("test") << std::endl;
+	std::cout << "First.test == " << *first.get<Text>("test") << std::endl;
 
 	Object patch = root->get("test.FirstPatch");
 	Transaction tx = root->new_transaction(1);
 	tx.add(patch);
 	tx.add(root->get("test.Patch"));
-	tx.commit();
+	tx.add(root->get("test.SetPatch"));
+	bool success = tx.commit();
+
+	if (success) {
+		std::cout << "Transaction OK" << std::endl;
+	}
+	else {
+		std::cout << "Transaction FAILED" << std::endl;
+	}
 
 	std::cout << "after change: Second.member == "
-	          << second.get<Int>("member", 1)
+	          << *second.get<Int>("member", 1)
 	          << std::endl;
 
-	std::cout << "settest = "
+	std::cout << "SetTest.member = "
+	          << root->get("test.SetTest").get("member")->str()
+	          << std::endl
+	          << "SetTest.orderedmember = "
 	          << root->get("test.SetTest").get("orderedmember")->str()
-	          << std::endl;
+	          << std::endl
+	          << "PATCH"
+	          << std::endl
+	          << "SetTest.member = "
+	          << root->get("test.SetTest").get("member", 1)->str()
+	          << std::endl
+	          << "SetTest.orderedmember = "
+	          << root->get("test.SetTest").get("orderedmember", 1)->str()
+	          << std::endl << std::endl;
 
-	std::cout << "test.gschicht = " << util::strjoin(", ", root->get("test.Test").get_parents())
+	std::cout << "test.gschicht parents = " << util::strjoin(", ", root->get("test.Test").get_parents())
 	          << std::endl << "PATCH" << std::endl
-	          << "test.gschicht = " << util::strjoin(", ", root->get("test.Test").get_parents(1))
+	          << "test.gschicht parents = " << util::strjoin(", ", root->get("test.Test").get_parents(1))
 	          << std::endl << "newvalue = " << root->get("test.Test").get("new_value", 1)->str()
 	          << std::endl;
 }

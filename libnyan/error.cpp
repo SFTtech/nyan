@@ -236,6 +236,12 @@ APIError::APIError(const std::string &msg)
 	Error{msg} {}
 
 
+ObjectNotFoundError::ObjectNotFoundError(const fqon_t &objname)
+	:
+	APIError{"object not found: " + objname},
+	name{objname} {}
+
+
 FileError::FileError(const Location &location,
                      const std::string &msg)
 	:

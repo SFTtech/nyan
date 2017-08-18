@@ -183,21 +183,21 @@ ParentObject():
 * A member can never be defined if it was not declared
 * A `nyan::Object` is "abstract" iff it contains at least one undefined member
 * A `nyan::Object` member **type** can never be changed once declared
-* The parents of a `nyan::Object` are stored in a member
-  `__parents__ : orderedset(Object)`
-  * Getting this member will provide the inheritance linearization
 
 * It is a patch iff `<Target>` is written in the definition
   * The patch will be applied for the specified object only
-  * A patch can add a new inheritance parent to the target
-    * Done with the `[+AdditionalParent, ...]` syntax
-    * The activation of this parent must not induce name clashes, [see below](#Multi inheritance). When the patch is checked, this is verified at load time.
+  * A patch can add a new inheritance parent at the front of the parent list
+    * Done with the `[+AdditionalParent, AnotherParent+, ...]` syntax
+    * `+Parent` adds parent to the end, `Parent+` to the front
+      * Reason: the direction of the `+` indicates the existing list
+      * If target has parents `[A, B]` and we apply `[+C, +D, E+, B+]`, the result is `[E, A, B, C, D]`
+    * The activation of this parent must not induce name clashes of members, [see below](#Multi inheritance). When the patch is loaded, this is checked.
     * This can be used to inject a "middle object" in between two inheriting
       objects, because the multi inheritance linearization resolves the order
       * Imagine something like `TentacleMonster -> Unit`
       * What we now want is `TentacleMonster -> MonsterBase -> Unit`
       * What we do first is create `MonsterBase -> Unit`
-      * After applying a patch with `+MonsterBase` it is `TentacleMonster -> Unit, MonsterBase`
+      * After applying a patch with `+MonsterBase` it is `TentacleMonster -> MonsterBase, Unit`
       * The linearization will result in `TentacleMonster -> MonsterBase -> Unit`
   * A patch modifies the value of the target object only
     * The target object operator will remain the same

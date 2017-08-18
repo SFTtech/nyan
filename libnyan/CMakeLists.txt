@@ -25,6 +25,7 @@ add_library(nyan SHARED
 	ast.cpp
 	basic_type.cpp
 	c3.cpp
+	change_tracker.cpp
 	config.cpp
 	curve.cpp
 	database.cpp
@@ -32,6 +33,7 @@ add_library(nyan SHARED
 	error.cpp
 	file.cpp
 	id_token.cpp
+	inheritance_change.cpp
 	lexer.cpp
 	location.cpp
 	member.cpp
@@ -40,12 +42,14 @@ add_library(nyan SHARED
 	namespace.cpp
 	namespace_finder.cpp
 	object.cpp
+	object_cache.cpp
 	object_info.cpp
 	object_state.cpp
 	ops.cpp
 	parser.cpp
 	patch_info.cpp
 	state.cpp
+	state_history.cpp
 	token.cpp
 	token_stream.cpp
 	transaction.cpp

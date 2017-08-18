@@ -12,59 +12,32 @@ OrderedSet::OrderedSet() {}
 
 OrderedSet::OrderedSet(std::vector<ValueHolder> &&values) {
 	for (auto &value : values) {
-		this->values.add(std::move(value));
+		this->values.insert(std::move(value));
 	}
 }
 
 
 ValueHolder OrderedSet::copy() const {
 	return ValueHolder{
-		std::make_shared<OrderedSet>(dynamic_cast<const OrderedSet &>(*this))
+		std::make_shared<OrderedSet>(
+			dynamic_cast<const OrderedSet &>(*this)
+		)
 	};
 }
 
 
 bool OrderedSet::add(const ValueHolder &value) {
-	return this->values.add(value);
+	return this->values.insert(value);
 }
 
 
-bool OrderedSet::contains(const ValueHolder &value) {
+bool OrderedSet::contains(const ValueHolder &value) const {
 	return this->values.contains(value);
 }
 
 
 bool OrderedSet::remove(const ValueHolder &value) {
-	throw InternalError{"TODO ordered set remove"};
-}
-
-
-void OrderedSet::apply_value(const Value &value, nyan_op operation) {
-	throw InternalError{"TODO orderedset apply value"};
-
-	// the other value may be a generic set
-	const OrderedSet &change = dynamic_cast<const OrderedSet &>(value);
-
-	switch (operation) {
-	case nyan_op::ASSIGN:
-		break;
-
-	case nyan_op::ADD_ASSIGN:
-	case nyan_op::UNION_ASSIGN:
-		break;
-
-	case nyan_op::SUBTRACT_ASSIGN:
-		break;
-
-	case nyan_op::MULTIPLY_ASSIGN:
-		break;
-
-	case nyan_op::INTERSECT_ASSIGN:
-		break;
-
-	default:
-		throw Error{"unknown operation requested"};
-	}
+	return (this->values.erase(value) == 1);
 }
 
 

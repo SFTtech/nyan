@@ -141,6 +141,25 @@ protected:
 
 
 /**
+ * Inheritance chang
+ */
+class ASTInheritanceChange : public ASTBase {
+	friend class Database;
+public:
+	ASTInheritanceChange(TokenStream &tokens);
+
+	inher_change_t get_type() const;
+	const IDToken &get_target() const;
+
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
+
+protected:
+	inher_change_t type;
+	IDToken target;
+};
+
+
+/**
  * The abstract syntax tree representation of a nyan object.
  */
 class ASTObject : public ASTBase {
@@ -161,7 +180,7 @@ public:
 protected:
 	Token name;
 	IDToken target;
-	std::vector<IDToken> inheritance_add;
+	std::vector<ASTInheritanceChange> inheritance_change;
 	std::vector<IDToken> parents;
 	std::vector<ASTMember> members;
 	std::vector<ASTObject> objects;

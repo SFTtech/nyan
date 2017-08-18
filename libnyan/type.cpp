@@ -2,8 +2,6 @@
 
 #include "type.h"
 
-#include <algorithm>
-
 #include "ast.h"
 #include "error.h"
 #include "id_token.h"
@@ -127,29 +125,6 @@ bool Type::is_container(container_t type) const {
 
 bool Type::is_basic_compatible(const BasicType &type) const {
 	return (this->basic_type == type);
-}
-
-
-bool Type::is_parent(const fqon_t &child, const State &state) const {
-	if (unlikely(not this->get_basic_type().is_object())) {
-		throw InternalError{"object parent check for non-object type"};
-	}
-
-	std::shared_ptr<ObjectState> objstate_ptr = state.get(child);
-	if (unlikely(objstate_ptr.get() == nullptr)) {
-		throw InternalError{"type test for object not in state"};
-	}
-
-	const ObjectState &objstate = *objstate_ptr.get();
-	const std::vector<fqon_t> &lin = objstate.get_linearization();
-
-	// the type is in the linearization list -> it's a parent or the same
-	if (std::find(std::begin(lin), std::end(lin), this->target) != std::end(lin)) {
-		return true;
-	}
-	else {
-		return false;
-	}
 }
 
 

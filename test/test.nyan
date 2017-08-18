@@ -45,24 +45,25 @@ Test(Second):
     member += 1337
     gschicht : int = 0
 
-NewParent():
+NewParent(Second):
+    member -= 337
     new_value : int = 0
 
-Patch<Test>[+NewParent]():
-    moarstuff : int = 10
+Patch<Test>[NewParent+]():
     gschicht = 235
     member += 1
-    wtf : float = 13374242.0
-    ie : First = First
 
 PatchPatch<Patch>():
-    member /= 15
-    ie = Third
+    member += 19
 
 SetTest():
     member : set(int) = {1, 1, 2, 3, 1}
     # o{} for orderedset
     orderedmember : orderedset(int) = <1, 2, 3, 1, 2, 3, 2>
+
+SetPatch<SetTest>():
+    member |= {3,4,4}
+    orderedmember += <4>
 
 # importing!
 import imported as imp

@@ -2,6 +2,7 @@
 #pragma once
 
 
+#include <deque>
 #include <memory>
 #include <unordered_set>
 #include <unordered_map>
@@ -25,10 +26,11 @@ class View;
  * Handle for accessing a nyan object independent of time.
  */
 class Object {
+	friend class View;
+protected:
+	Object(const fqon_t &name, const std::shared_ptr<View> &origin);
 
 public:
-	Object();
-	Object(const fqon_t &name, const std::shared_ptr<View> &origin);
 	~Object();
 
 	/**
@@ -39,22 +41,21 @@ public:
 	/**
 	 * Return the view this object was retrieved from.
 	 */
-	const View &get_view() const;
+	const std::shared_ptr<View> &get_view() const;
 
 	/**
-	 * Get a member value of this object.
-	 * This performs tree traversal for value calculations.
+	 * Get a calculated member value.
 	 */
 	ValueHolder get(const memberid_t &member, order_t t=DEFAULT_T) const;
 
 	/**
 	 * Invokes the get function and then does a cast.
-	 * TODO: either return a stored variant or the shared ptr of the holder
+	 * TODO: either return a stored variant reference or the shared ptr of the holder
 	 */
 	template <typename V>
 	std::shared_ptr<V> get(memberid_t member, order_t t=DEFAULT_T) const {
 		try {
-			return std::static_pointer_cast<V>(this->get(member, t).get_ptr());
+			return std::dynamic_pointer_cast<V>(this->get(member, t).get_ptr());
 		}
 		catch (std::bad_cast &) {
 			// TODO: show which it was
@@ -65,7 +66,7 @@ public:
 	/**
 	 * Return the parents of the object.
 	 */
-	const std::vector<fqon_t> &get_parents(order_t t=DEFAULT_T) const;
+	const std::deque<fqon_t> &get_parents(order_t t=DEFAULT_T) const;
 
 	/**
 	 * Test if this object has a member of given name.
@@ -95,6 +96,11 @@ public:
 	 */
 	const fqon_t &get_target() const;
 
+	/**
+	 * Return the linearization of this object and its parent objects.
+	 */
+	const std::vector<fqon_t> &get_linearized(order_t t=DEFAULT_T) const;
+
 	// TODO: event-callback for this object.
 	// invoked whenever the member is updated:
 	// triggered either by patch application or by notification of parent object to all childs
@@ -102,14 +108,18 @@ public:
 	// registration of the callback is done in the view!
 	// on_change(member, std::function<void(order_t, ObjectState, memberid_t)>);
 
-	const std::vector<fqon_t> &get_linearized(order_t t=DEFAULT_T) const;
-
 protected:
 
 	/**
 	 * Return the object state for a given time.
 	 */
 	const std::shared_ptr<ObjectState> &get_raw(order_t t=DEFAULT_T) const;
+
+	/**
+	 * Calculate a member value of this object.
+	 * This performs tree traversal for value calculations.
+	 */
+	ValueHolder calculate_value(const memberid_t &member, order_t t=DEFAULT_T) const;
 
 	/**
 	 * View the object was created from.

@@ -158,7 +158,7 @@ public:
 	/**
 	 * Test if this value is in the container.
 	 */
-	virtual bool contains(const ValueHolder &value) = 0;
+	virtual bool contains(const ValueHolder &value) const = 0;
 
 	/**
 	 * Remove the given value from the container if it is in there.

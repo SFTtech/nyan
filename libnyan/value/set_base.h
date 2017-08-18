@@ -76,6 +76,7 @@ public:
 	using Container::const_iterator;
 
 	using value_storage = T;
+	using element_type = typename value_storage::value_type;
 	using value_const_iterator = typename value_storage::const_iterator;
 
 	SetBase() = default;
@@ -83,12 +84,17 @@ public:
 
 
 	size_t hash() const override {
-		throw Error{"Sets are not hashable."};
+		throw APIError{"Sets are not hashable."};
 	}
 
 
 	size_t size() const override {
 		return this->values.size();
+	}
+
+
+	void clear () {
+		this->values.clear();
 	}
 
 
@@ -137,23 +143,107 @@ public:
 		return const_iterator{std::move(real_iterator)};
 	}
 
+	/**
+	 * Get an iterator to the underlying set storage.
+	 * Contrary to the above, this will allow to get the
+	 * ValueHolders.
+	 */
 	typename value_storage::const_iterator values_begin() const {
 		return this->values.begin();
 	}
 
+	/**
+	 * Iterator to end of the underlying storage.
+	 */
 	typename value_storage::const_iterator values_end() const {
 		return this->values.end();
 	}
 
 protected:
 	/**
+	 * Update this set with another set with the given operation.
+	 */
+
+	void apply_value(const Value &value, nyan_op operation) override {
+		const SetBase &change = dynamic_cast<const SetBase &>(value);
+
+		switch (operation) {
+		case nyan_op::ASSIGN:
+			this->values.clear();
+			// fall through
+
+		case nyan_op::UNION_ASSIGN:
+		case nyan_op::ADD_ASSIGN: {
+			auto it = change.values_begin();
+			for (auto end = change.values_end(); it != end; ++it) {
+				this->values.insert(*it);
+			}
+			break;
+		}
+
+		case nyan_op::SUBTRACT_ASSIGN: {
+			auto it = change.values_begin();
+			for (auto end = change.values_end(); it != end; ++it) {
+				this->values.erase(*it);
+			}
+			break;
+		}
+
+		case nyan_op::INTERSECT_ASSIGN: {
+			// only keep the values that are in both.
+
+			std::vector<element_type> keep;
+			keep.reserve(this->values.size());
+
+			auto it = change.values_begin();
+			for (auto end = change.values_end(); it != end; ++it) {
+				if (this->contains(*it)) {
+					keep.push_back(*it);
+				}
+			}
+
+			this->values.clear();
+
+			for (auto &value : keep) {
+				this->values.insert(value);
+			}
+
+			break;
+		}
+
+		default:
+			throw InternalError{"unknown set value application"};
+		}
+	}
+
+
+	/**
 	 * test if the same values are in those sets
 	 */
 	bool equals(const Value &other) const override {
 		auto &other_val = dynamic_cast<const SetBase &>(other);
-		throw InternalError{"TODO set equality test"};
+
+		// TODO: this only compares for set values,
+		//       but for the orderedset, the order might matter!
+
+		if (this->size() != other_val.size()) {
+			return false;
+		}
+
+		auto it = this->values_begin();
+		for (auto end = this->values_end(); it != end; ++it) {
+			if (not other_val.contains(*it)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
+	/**
+	 * Set value storage.
+	 * Type is determined by the set specialization.
+	 */
 	value_storage values;
 };
 

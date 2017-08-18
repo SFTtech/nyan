@@ -32,18 +32,21 @@ const fqon_t &Object::get_name() const {
 }
 
 
-const View &Object::get_view() const {
-	return *this->origin;
+const std::shared_ptr<View> &Object::get_view() const {
+	return this->origin;
 }
 
 
 ValueHolder Object::get(const memberid_t &member, order_t t) const {
+	return this->calculate_value(member, t);
+}
+
+
+ValueHolder Object::calculate_value(const memberid_t &member, order_t t) const {
+	using namespace std::string_literals;
+
 	// TODO: don't allow for patches?
 	// it's impossible as they may have members without =
-
-	// TODO: try the cache lookup. but when is it invalid?
-
-	using namespace std::string_literals;
 
 	// get references to all parentobject-states
 	std::vector<std::shared_ptr<ObjectState>> parents;
@@ -71,10 +74,9 @@ ValueHolder Object::get(const memberid_t &member, order_t t) const {
 
 	// no operator = was found for this member
 	// -> no parent assigned a value.
-	// This is normally detected at load time, but:
-	// TODO: detect @-overrides that purge a = at load time!
+	// errors in the data files are detected at load time already.
 	if (unlikely(defined_by >= linearization.size() or base_value == nullptr)) {
-		throw APIError{"member not found: "s + member};
+		throw APIError{"member not found: "s + this->name + "." + member};
 	}
 
 	// if this object defines the value, no aggregation is needed.
@@ -82,7 +84,7 @@ ValueHolder Object::get(const memberid_t &member, order_t t) const {
 		return base_value->copy();
 	}
 
-	// Create a working copy of the value
+	// create a working copy of the value
 	ValueHolder result = base_value->copy();
 
 	// walk back and apply the value changes
@@ -97,17 +99,18 @@ ValueHolder Object::get(const memberid_t &member, order_t t) const {
 		defined_by -= 1;
 	}
 
-	// And return the reference.
 	return result;
 }
 
 
-const std::vector<fqon_t> &Object::get_parents(order_t t) const {
+const std::deque<fqon_t> &Object::get_parents(order_t t) const {
 	return this->get_raw(t)->get_parents();
 }
 
 
 bool Object::has(const memberid_t &member, order_t t) const {
+	// TODO: cache?
+
 	const std::vector<fqon_t> &lin = this->get_linearized(t);
 
 	for (auto &obj : lin) {
@@ -124,6 +127,8 @@ bool Object::extends(fqon_t other_fqon, order_t t) const {
 	if (this->name == other_fqon) {
 		return true;
 	}
+
+	// TODO cache?
 
 	auto &linearization = this->get_linearized(t);
 
@@ -146,7 +151,6 @@ const ObjectInfo &Object::get_info() const {
 }
 
 
-
 bool Object::is_patch() const {
 	// must be a patch from the beginning of time!
 	return this->get_info().is_patch();
@@ -163,7 +167,7 @@ const fqon_t &Object::get_target() const {
 
 
 const std::vector<fqon_t> &Object::get_linearized(order_t t) const {
-	return this->get_raw(t)->get_linearization();
+	return this->origin->get_linearization(this->name, t);
 }
 
 

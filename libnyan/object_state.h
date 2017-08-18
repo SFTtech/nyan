@@ -1,14 +1,16 @@
 // Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
-#include <string>
+#include <deque>
 #include <memory>
+#include <string>
 
 #include "member.h"
 
 
 namespace nyan {
 
+class ObjectChanges;
 class ObjectInfo;
 
 
@@ -21,26 +23,23 @@ public:
 	/**
 	 * Creation of an initial object state.
 	 */
-	ObjectState(std::vector<fqon_t> &&parents);
+	ObjectState(std::deque<fqon_t> &&parents);
 
 	/**
 	 * Patch application.
-	 * Returns if the parents have changed.
 	 */
-	bool apply(const std::shared_ptr<ObjectState> &other,
-	           const ObjectInfo &mod_info);
+	void apply(const std::shared_ptr<ObjectState> &other,
+	           const ObjectInfo &mod_info,
+	           ObjectChanges &tracker);
 
 	std::shared_ptr<ObjectState> copy() const;
 
-	const std::vector<fqon_t> &get_parents() const;
+	const std::deque<fqon_t> &get_parents() const;
 
 	bool has_member(const memberid_t &name) const;
 	Member *get_member(const memberid_t &name);
 	const Member *get_member(const memberid_t &name) const;
 	const std::unordered_map<memberid_t, Member> &get_members() const;
-
-	void set_linearization(std::vector<fqon_t> &&lin);
-	const std::vector<fqon_t> &get_linearization() const;
 
 	std::string str() const;
 
@@ -54,26 +53,12 @@ private:
 	/**
 	 * Parent objects.
 	 */
-	std::vector<fqon_t> parents;
+	std::deque<fqon_t> parents;
 
 	/**
 	 * Member storage.
 	 */
 	std::unordered_map<memberid_t, Member> members;
-
-	/**
-	 * Linearization of parent objects.
-	 * This is recalculated when the parents are changed!
-	 */
-	std::vector<fqon_t> linearization;
-
-	/**
-	 * Tracking of childs of this object.
-	 * Used for event-based triggering,
-	 * i.e. firing callbacks when a member value changed.
-	 * TODO: implement object child tracking :)
-	 */
-	std::vector<fqon_t> children;
 
 	// The object location is stored in the metainfo-database.
 };

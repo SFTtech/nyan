@@ -25,6 +25,8 @@ bool BasicType::is_fundamental() const {
 	case primitive_t::OBJECT:
 		return false;
 	}
+
+	throw InternalError{"unknown primitive type"};
 }
 
 

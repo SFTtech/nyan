@@ -39,14 +39,11 @@ public:
 	ValueHolder copy() const override;
 
 	bool add(const ValueHolder &value) override;
-	bool contains(const ValueHolder &value) override;
+	bool contains(const ValueHolder &value) const override;
 	bool remove(const ValueHolder &value) override;
 
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
-
-protected:
-	void apply_value(const Value &value, nyan_op operation) override;
 };
 
 } // namespace nyan

@@ -5,40 +5,52 @@
 #include <algorithm>
 #include <sstream>
 
+#include "change_tracker.h"
 #include "object_info.h"
 #include "util.h"
 
 
 namespace nyan {
 
-// TODO: asdf copy-constructor to copy all members
-//       to the new object state. Member already has the right constructors.
 
-ObjectState::ObjectState(std::vector<fqon_t> &&parents)
+ObjectState::ObjectState(std::deque<fqon_t> &&parents)
 	:
 	parents{std::move(parents)} {}
 
 
-bool ObjectState::apply(const std::shared_ptr<ObjectState> &mod,
-                        const ObjectInfo &mod_info) {
+void ObjectState::apply(const std::shared_ptr<ObjectState> &mod,
+                        const ObjectInfo &mod_info,
+                        ObjectChanges &tracker) {
 
-	bool parents_changed = false;
+	const auto &inher_changes = mod_info.get_inheritance_change();
+	if (inher_changes.size() > 0) {
+		for (auto &change : inher_changes) {
 
-	const std::vector<fqon_t> &newparents = mod_info.get_inheritance_add();
-	if (newparents.size() > 0) {
-		for (auto &newparent : newparents) {
-			auto it = std::find(std::begin(this->parents),
-			                    std::end(this->parents),
-			                    newparent);
+			bool parent_exists = (
+				std::find(
+					std::begin(this->parents),
+					std::end(this->parents),
+					change.get_target()
+				) != std::end(this->parents)
+			);
 
-			// don't add the parent if it's already there.
-			if (it == std::end(this->parents)) {
-				this->parents.push_back(newparent);
+			// only add the parent if it does not exist.
+			// maybe we may want to relocate it in the future?
+			if (not parent_exists) {
+				switch (change.get_type()) {
+				case inher_change_t::ADD_FRONT:
+					this->parents.push_front(change.get_target());
+					tracker.add_parent(change.get_target());
+					break;
+				case inher_change_t::ADD_BACK:
+					this->parents.push_back(change.get_target());
+					tracker.add_parent(change.get_target());
+					break;
+				default:
+					throw InternalError{"unsupported inheritance change type"};
+				}
 			}
 		}
-
-		// recalculate inheritance hierarchy.
-		parents_changed = true;
 	}
 
 	// change each member in this object by the member of the patch.
@@ -63,10 +75,9 @@ bool ObjectState::apply(const std::shared_ptr<ObjectState> &mod,
 			search->second.apply(it.second);
 		}
 
-		// TODO: we could now calculate the resulting value!
+		// TODO optimization: we could now calculate the resulting value!
+		// TODO: invalidate value cache with the change tracker
 	}
-
-	return parents_changed;
 }
 
 
@@ -75,7 +86,7 @@ std::shared_ptr<ObjectState> ObjectState::copy() const {
 }
 
 
-const std::vector<fqon_t> &ObjectState::get_parents() const {
+const std::deque<fqon_t> &ObjectState::get_parents() const {
 	return this->parents;
 }
 
@@ -109,24 +120,12 @@ const std::unordered_map<memberid_t, Member> &ObjectState::get_members() const {
 }
 
 
-const std::vector<fqon_t> &ObjectState::get_linearization() const {
-	return this->linearization;
-}
-
-
-void ObjectState::set_linearization(std::vector<fqon_t> &&lin) {
-	this->linearization = std::move(lin);
-}
-
-
 std::string ObjectState::str() const {
 	std::ostringstream builder;
 
 	builder << "ObjectState("
 	        << util::strjoin(", ", this->parents)
-	        << ")["
-	        << util::strjoin(", ", this->linearization)
-	        << "]:"
+	        << ")"
 	        << std::endl;
 
 	if (this->members.size() == 0) {
