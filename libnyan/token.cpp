@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+#include "error.h"
 #include "file.h"
 
 
@@ -52,6 +53,38 @@ std::string Token::str() const {
 
 bool Token::exists() const {
 	return this->get().size() > 0;
+}
+
+
+bool Token::is_endmarker() const {
+	switch (this->type) {
+	case token_type::ENDFILE:
+	case token_type::ENDLINE:
+		return true;
+
+	case token_type::INVALID:
+		throw InternalError{"invalid token used"};
+
+	default:
+		return false;
+	}
+}
+
+
+bool Token::is_content() const {
+	switch (this->type) {
+	case token_type::FLOAT:
+	case token_type::ID:
+	case token_type::INT:
+	case token_type::STRING:
+		return true;
+
+	case token_type::INVALID:
+		throw InternalError{"invalid token used"};
+
+	default:
+		return false;
+	}
 }
 
 } // namespace nyan

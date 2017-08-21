@@ -59,11 +59,11 @@ PatchPatch<Patch>():
 SetTest():
     member : set(int) = {1, 1, 2, 3, 1}
     # o{} for orderedset
-    orderedmember : orderedset(int) = <1, 2, 3, 1, 2, 3, 2>
+    orderedmember : orderedset(int) = o{1, 2, 3, 1, 2, 3, 2}
 
 SetPatch<SetTest>():
-    member |= {3,4,4}
-    orderedmember += <4>
+    member |= o{3,4,4}
+    orderedmember += o{4}
 
 # importing!
 import imported as imp

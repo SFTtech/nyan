@@ -27,6 +27,13 @@ report problems at https://github.com/SFTtech/nyan
 Contact: #sfttech:matrix.org
 ")
 
+if($ENV{CXX})
+	set(CMAKE_CXX_COMPILER "$ENV{CXX}")
+else()
+	set(CMAKE_CXX_COMPILER "clang++")
+endif()
+
+
 # cmake < 3.4.0 has problems with projects that use C++ but not C,
 # especially in the FindThreads module (when header files are checked).
 if(CMAKE_VERSION VERSION_LESS "3.4.0")
@@ -46,8 +53,6 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
 string(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" BUILD_TYPE_CXX_FLAGS)
-
-set(CMAKE_CXX_COMPILER "clang++")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

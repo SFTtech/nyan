@@ -21,11 +21,11 @@ namespace nyan {
  * The begin() and end() functions of the container class
  * instanciate this by wrapping it in the ContainerIterator below.
  */
-template<typename iter_type>
-class ContainerIterBase : public std::iterator<std::forward_iterator_tag, iter_type> {
+template<typename elem_type>
+class ContainerIterBase : public std::iterator<std::forward_iterator_tag,
+                                               elem_type> {
 public:
-	using this_type = ContainerIterBase<iter_type>;
-	using elem_type = iter_type;
+	using this_type = ContainerIterBase<elem_type>;
 
 	ContainerIterBase() = default;
 	virtual ~ContainerIterBase() = default;
@@ -38,7 +38,7 @@ public:
 	/**
 	 * Get the element the iterator is currently pointing to.
 	 */
-	virtual iter_type &operator *() const = 0;
+	virtual elem_type &operator *() const = 0;
 
 	/**
 	 * Compare if both iterators are pointing
@@ -60,6 +60,8 @@ protected:
 /**
  * Nyan container iterator wrapper class.
  * Wraps the ContainerIterBase so we can have virtual calls.
+ *
+ * Just relays the calls to the wrapped actual container.
  */
 template<typename T>
 class ContainerIterator : public std::iterator<std::forward_iterator_tag, T> {
@@ -69,7 +71,7 @@ public:
 
 
 	ContainerIterator() = default;
-	ContainerIterator(std::unique_ptr<real_iterator> &&real) noexcept
+	ContainerIterator(std::unique_ptr<ContainerIterBase<elem_type>> &&real) noexcept
 		:
 		iter{std::move(real)} {}
 
@@ -127,7 +129,51 @@ protected:
 	 * The real iterator.
 	 * Just wrapped here to enable virtual function calls.
 	 */
-	std::unique_ptr<real_iterator> iter;
+	std::unique_ptr<ContainerIterBase<elem_type>> iter;
+};
+
+
+/**
+ * Implementation for wrapping standard STL container forward iterators.
+ */
+template <typename iter_type, typename elem_type>
+class DefaultIterator : public ContainerIterBase<elem_type> {
+public:
+	using this_type = DefaultIterator<iter_type, elem_type>;
+	using base_type = ContainerIterBase<elem_type>;
+
+	explicit DefaultIterator(iter_type &&iter)
+		:
+		iterator{std::move(iter)} {}
+
+	/**
+	 * Advance the iterator to the next element in the set.
+	 */
+	base_type &operator ++() override {
+		++this->iterator;
+		return *this;
+	}
+
+	/**
+	 * Return the iterator value.
+	 */
+	elem_type &operator *() const override {
+		return *this->iterator;
+	}
+
+protected:
+	/**
+	 * Compare two iterators for pointing at the same element.
+	 */
+	bool equals(const base_type &other) const override {
+		auto other_me = dynamic_cast<const this_type &>(other);
+		return (this->iterator == other_me.iterator);
+	}
+
+	/**
+	 * The wrapped std::iterator.
+	 */
+	iter_type iterator;
 };
 
 
@@ -139,6 +185,9 @@ class Container : public Value {
 public:
 	using iterator = ContainerIterator<Value>;
 	using const_iterator = ContainerIterator<const Value>;
+
+	using holder_iterator = ContainerIterator<ValueHolder>;
+	using holder_const_iterator = ContainerIterator<const ValueHolder>;
 
 	Container();
 	virtual ~Container() = default;
@@ -196,6 +245,38 @@ public:
 	 * Guarantee a const_iterator end.
 	 */
 	const_iterator cend() const { return this->end(); };
+
+	/**
+	 * Get an iterator to the first value holder in that container.
+	 */
+	virtual holder_iterator values_begin() = 0;
+
+	/**
+	 * Get an iterator to the slot beyond the last value holder
+	 * in the container.
+	 */
+	virtual holder_iterator values_end() = 0;
+
+	/**
+	 * Get a constant iterator to the first value holder in the container.
+	 */
+	virtual holder_const_iterator values_begin() const = 0;
+
+	/**
+	 * Get a constant iterator to the slot beyond the last value holder
+	 * in the container.
+	 */
+	virtual holder_const_iterator values_end() const = 0;
+
+	/**
+	 * Guarantee a const_iterator to the value iterator beginning.
+	 */
+	holder_const_iterator values_cbegin() const { return this->values_begin(); };
+
+	/**
+	 * Guarantee a const_iterator to the value iterator end.
+	 */
+	holder_const_iterator values_cend() const { return this->values_end(); };
 };
 
 } // namespace nyan

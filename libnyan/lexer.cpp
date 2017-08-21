@@ -126,7 +126,7 @@ bracket_type Lexer::Bracket::to_type(token_type token) {
 	case token_type::RBRACE:
 		return bracket_type::BRACE;
 	default:
-		throw Error{"tried to convert non-bracket token to bracket"};
+		throw InternalError{"tried to convert non-bracket token to bracket"};
 	}
 }
 
@@ -381,7 +381,7 @@ void Lexer::handle_indent(const char *line) {
 		}
 	}
 	else {
-		throw Error{"indentation stack ran empty!?!?"};
+		throw InternalError{"indentation stack ran empty!?!?"};
 	}
 }
 

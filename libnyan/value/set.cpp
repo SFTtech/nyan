@@ -2,7 +2,8 @@
 
 #include "set.h"
 
-#include "error.h"
+#include "../error.h"
+#include "../util.h"
 
 
 namespace nyan {
@@ -44,17 +45,14 @@ std::string Set::str() const {
 
 	std::ostringstream builder;
 	builder << "{";
-
-	size_t cnt = 0;
-	for (auto &value : this->values) {
-		if (cnt > 0) {
-			builder << ", ";
+	builder << util::strjoin(
+		", ", this->values,
+		[] (const auto &val) {
+			return val->str();
 		}
-		builder << value->str();
-		cnt += 1;
-	}
-
+	);
 	builder << "}";
+
 	return builder.str();
 }
 
@@ -64,16 +62,12 @@ std::string Set::repr() const {
 
 	std::ostringstream builder;
 	builder << "{";
-
-	size_t cnt = 0;
-	for (auto &value : this->values) {
-		if (cnt > 0) {
-			builder << ", ";
+	builder << util::strjoin(
+		", ", this->values,
+		[] (const auto &val) {
+			return val->repr();
 		}
-		builder << value->repr();
-		cnt += 1;
-	}
-
+	);
 	builder << "}";
 	return builder.str();
 }
@@ -85,7 +79,7 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type
 		return no_nyan_ops;
 	}
 
-	const static std::unordered_set<nyan_op> ops{
+	const static std::unordered_set<nyan_op> set_ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
 		nyan_op::UNION_ASSIGN,
@@ -93,9 +87,17 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
+	const static std::unordered_set<nyan_op> orderedset_ops{
+		nyan_op::SUBTRACT_ASSIGN,
+		nyan_op::INTERSECT_ASSIGN,
+	};
+
 	switch (with_type.get_container_type()) {
 	case container_t::SET:
-		return ops;
+		return set_ops;
+
+	case container_t::ORDEREDSET:
+		return orderedset_ops;
 
 	default:
 		return no_nyan_ops;

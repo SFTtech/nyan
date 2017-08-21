@@ -84,14 +84,14 @@ std::string Namespace::to_filename() const {
 
 Namespace Namespace::from_filename(const std::string &filename) {
 	if (not util::ends_with(filename, extension)) {
-		throw Error{"invalid file extension"};
+		throw APIError{"invalid file extension"};
 	}
 
 	size_t n = std::count(filename.begin(), filename.end(), '.');
 
 	// only the .nyan dot is allowed
 	if (n > 1) {
-		throw Error{"there's too many dots in the path"};
+		throw APIError{"there's too many dots in the path"};
 	}
 
 	// strip off the file extension

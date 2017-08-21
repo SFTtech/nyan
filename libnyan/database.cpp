@@ -636,14 +636,38 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 			}
 		).first->second;
 
+		// let the value determine if it can work together
+		// with the member type.
 		const Value &new_value = new_member.get_value();
 		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(*member_type);
 
 		if (unlikely(allowed_ops.find(operation) == std::end(allowed_ops))) {
-			// TODO: show member type
-			// TODO: show location of operation
-			// TODO: show allowed ones?
-			throw TypeError{astmember.name, "invalid operator for this member type"};
+			// TODO: show location of operation, not the member name
+
+			// I'm really sorry for this flower meadow of an error message.
+			throw TypeError{
+				astmember.name,
+				"invalid operator "s
+				+ op_to_string(operation)
+				+ ": member type "s
+				+ member_type->str()
+				+
+				(allowed_ops.size() > 0
+				 ?
+				 " only allows operations '"s
+				 + util::strjoin(
+					 ", ", allowed_ops,
+					 [] (const nyan_op &op) {
+						 return op_to_string(op);
+					 }
+				 )
+				 + "' "
+				 :
+				 " allows no operations "
+				)
+				+ "for value "
+				+ new_value.str()
+			};
 		}
 	}
 

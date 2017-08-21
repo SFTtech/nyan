@@ -87,7 +87,7 @@ AST::AST(TokenStream &tokens) {
 				return;
 			}
 			else {
-				throw Error{"some token came after EOF."};
+				throw InternalError{"some token came after EOF."};
 			}
 		}
 		else {
@@ -279,10 +279,6 @@ void ASTObject::ast_members(TokenStream &tokens) {
 			               "instead got", *token);
 		}
 
-		if (tokens.empty()) {
-			throw Error{"reached end of file!"};
-		}
-
 		token = tokens.next();
 	}
 }
@@ -399,26 +395,38 @@ ASTMember::ASTMember(const Token &name,
 		}
 
 		token = tokens.next();
+		auto next_token = tokens.next();
 
-		if (token->type == token_type::LANGLE or
-		    token->type == token_type::LBRACE) {
+		// look ahead if this is a set type configuration
+		if (not token->is_endmarker() and
+		    next_token->type == token_type::LBRACE) {
 
-			// multi-value container
 			container_t ctype;
-			switch (token->type) {
-			case token_type::LANGLE:
-				ctype = container_t::ORDEREDSET; break;
-			case token_type::LBRACE:
-				ctype = container_t::SET; break;
-			default:
-				throw Error{"unhandled multi value container type"};
+			if (token->get() == "o") {
+				ctype = container_t::ORDEREDSET;
+			}
+			else {
+				throw ASTError{"unhandled set type", *token};
 			}
 
 			this->value = ASTMemberValue{ctype, tokens};
 		}
 		else {
-			// single-value
-			this->value = ASTMemberValue{IDToken{*token, tokens}};
+			tokens.reinsert(next_token);
+
+			if (token->type == token_type::LBRACE) {
+				// no set type defined => it's a standard set
+				this->value = ASTMemberValue{container_t::SET, tokens};
+			}
+			else {
+				// single-value
+
+				if (unlikely(not token->is_content())) {
+					throw ASTError{"expected value, have", *token};
+				}
+
+				this->value = ASTMemberValue{IDToken{*token, tokens}};
+			}
 		}
 
 		had_def_or_decl = true;
@@ -431,8 +439,7 @@ ASTMember::ASTMember(const Token &name,
 		               *token);
 	}
 
-	if (token->type != token_type::ENDLINE and
-	    token->type != token_type::ENDFILE) {
+	if (not token->is_endmarker()) {
 		throw ASTError("expected newline after member entry, but got",
 		               *token);
 	}
@@ -505,13 +512,11 @@ ASTMemberValue::ASTMemberValue(container_t type,
 
 	switch (this->container_type) {
 	case container_t::SET:
-		end_token = token_type::RBRACE; break;
 	case container_t::ORDEREDSET:
-		end_token = token_type::RANGLE; break;
-	case container_t::SINGLE:
-		throw InternalError{"wrong constructor called for single-element container"};
+		end_token = token_type::RBRACE; break;
+
 	default:
-		throw InternalError{"unknown container type"};
+		throw InternalError{"unknown container value type"};
 	}
 
 	comma_list(
@@ -670,10 +675,10 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 		builder << "{"; break;
 
 	case container_t::ORDEREDSET:
-		builder << "<"; break;
+		builder << "o{"; break;
 
 	default:
-		throw Error{"unhandled container type"};
+		throw InternalError{"unhandled container type"};
 	}
 
 	bool comma_active = false;
@@ -687,13 +692,11 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 
 	switch (this->container_type) {
 	case container_t::SET:
+	case container_t::ORDEREDSET:
 		builder << "}"; break;
 
-	case container_t::ORDEREDSET:
-		builder << ">"; break;
-
 	default:
-		throw Error{"unhandled container type"};
+		throw InternalError{"unhandled container type"};
 	}
 }
 

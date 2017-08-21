@@ -118,8 +118,7 @@ protected:
 		 * as the other iterator.
 		 */
 		bool operator ==(const OrderedSetIterator& other) const {
-			return ((this->iter == other.iter) or
-			        (*this->iter == *other.iter));
+			return (this->iter == other.iter);
 		}
 
 		/**

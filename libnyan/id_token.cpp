@@ -18,7 +18,7 @@ IDToken::IDToken(const Token &first,
 	auto token = tokens.next();
 	while (token->type == token_type::DOT) {
 		token = tokens.next();
-		if (token->type != token_type::ID) {
+		if (unlikely(token->type != token_type::ID)) {
 			throw ASTError{"expected identifier after a dot, encountered", *token};
 		}
 		this->ids.push_back(*token);

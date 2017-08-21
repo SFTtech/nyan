@@ -136,6 +136,8 @@ public:
 
 	std::string str() const;
 	bool exists() const;
+	bool is_endmarker() const;
+	bool is_content() const;
 
 	const std::string &get() const;
 

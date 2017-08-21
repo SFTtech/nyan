@@ -379,11 +379,11 @@ the calculation is done like this:
     * subtract: `-= {..}` -> remove those objects
     * intersection: `&= {..}` -> keep only objects element of both
   * `orderedset(type)`:
-    * assignment: `= <value, value, ...>`
-    * append: `+= <..>` -> add objects to the end if not existing
-    * subtract: `-= <..>`, `-= {..}` -> remove those objects
-    * intersection: `&= <..>`, `&= {..}` -> keep only objects element of both
-  * `dict(keytype, valuetype)`:
+    * assignment: `= o{value, value, ...}`
+    * append: `+= o{..}` -> add objects to the end if not existing
+    * subtract: `-= o{..}`, `-= {..}` -> remove those objects
+    * intersection: `&= o{..}`, `&= {..}` -> keep only objects element of both
+  * TODO: `dict(keytype, valuetype)`:
     * assignment: `= {key: value, k: v, ...}`
     * insertion of data: `+= {k: v, ...}`, `|= {..}`
     * deletion of keys: `-= {k, k, ...}`, `-= {k: v, ..}`

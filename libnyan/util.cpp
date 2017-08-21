@@ -28,7 +28,7 @@ size_t file_size(const std::string &filename) {
 		builder << "failed getting size of file '"
 		        << filename << "': "
 		        << strerror(errno);
-		throw Error{builder.str()};
+		throw FileReadError{builder.str()};
 	}
 }
 
