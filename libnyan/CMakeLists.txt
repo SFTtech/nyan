@@ -42,7 +42,7 @@ add_library(nyan SHARED
 	namespace.cpp
 	namespace_finder.cpp
 	object.cpp
-	object_cache.cpp
+	object_history.cpp
 	object_info.cpp
 	object_state.cpp
 	ops.cpp

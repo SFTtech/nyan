@@ -16,7 +16,7 @@ namespace nyan {
  * Cached information about an object.
  * Speeds up information retrieval.
  */
-class ObjectCache {
+class ObjectHistory {
 public:
 	// TODO: curve for value cache: memberid_t => curve<valueholder>
 

@@ -9,13 +9,11 @@
 
 namespace nyan {
 
-StateHistory::StateHistory(const std::shared_ptr<Database> &base)
-	:
-	database{base} {
+StateHistory::StateHistory(const std::shared_ptr<Database> &base) {
 
 	// create new empty state to work on at the beginning.
 	this->insert(
-		std::make_shared<State>(this->database->get_state()),
+		std::make_shared<State>(base->get_state()),
 		DEFAULT_T
 	);
 }
@@ -55,7 +53,7 @@ void StateHistory::insert(std::shared_ptr<State> &&new_state, order_t t) {
 void StateHistory::insert_linearization(std::vector<fqon_t> &&ins, order_t t) {
 	const auto &obj = ins.at(0);
 
-	this->get_create_cache(obj).linearizations.insert_drop(t, std::move(ins));
+	this->get_create_obj_history(obj).linearizations.insert_drop(t, std::move(ins));
 }
 
 
@@ -63,10 +61,10 @@ const std::vector<fqon_t> &
 StateHistory::get_linearization(const fqon_t &obj, order_t t,
                                 const MetaInfo &meta_info) const {
 
-	const ObjectCache *cache = this->get_cache(obj);
-	if (cache != nullptr) {
-		if (not cache->linearizations.empty()) {
-			auto ret = cache->linearizations.at_find(t);
+	const ObjectHistory *obj_hist = this->get_obj_history(obj);
+	if (obj_hist != nullptr) {
+		if (not obj_hist->linearizations.empty()) {
+			auto ret = obj_hist->linearizations.at_find(t);
 
 			if (ret != nullptr) {
 				return *ret;
@@ -88,7 +86,7 @@ void StateHistory::insert_children(const fqon_t &obj,
                                    std::unordered_set<fqon_t> &&ins,
                                    order_t t) {
 
-	this->get_create_cache(obj).children.insert_drop(t, std::move(ins));
+	this->get_create_obj_history(obj).children.insert_drop(t, std::move(ins));
 }
 
 
@@ -96,11 +94,11 @@ const std::unordered_set<fqon_t> &
 StateHistory::get_children(const fqon_t &obj, order_t t,
                            const MetaInfo &meta_info) const {
 
-	// first try the cache
-	const ObjectCache *cache = this->get_cache(obj);
-	if (cache != nullptr) {
-		if (not cache->children.empty()) {
-			auto ret = cache->children.at_find(t);
+	// first try the obj_history
+	const ObjectHistory *obj_hist = this->get_obj_history(obj);
+	if (obj_hist != nullptr) {
+		if (not obj_hist->children.empty()) {
+			auto ret = obj_hist->children.at_find(t);
 
 			if (ret != nullptr) {
 				return *ret;
@@ -118,9 +116,9 @@ StateHistory::get_children(const fqon_t &obj, order_t t,
 }
 
 
-ObjectCache *StateHistory::get_cache(const fqon_t &obj) {
-	auto it = this->object_caches.find(obj);
-	if (it != std::end(this->object_caches)) {
+ObjectHistory *StateHistory::get_obj_history(const fqon_t &obj) {
+	auto it = this->object_obj_hists.find(obj);
+	if (it != std::end(this->object_obj_hists)) {
 		return &it->second;
 	}
 	else {
@@ -129,9 +127,9 @@ ObjectCache *StateHistory::get_cache(const fqon_t &obj) {
 }
 
 
-const ObjectCache *StateHistory::get_cache(const fqon_t &obj) const {
-	auto it = this->object_caches.find(obj);
-	if (it != std::end(this->object_caches)) {
+const ObjectHistory *StateHistory::get_obj_history(const fqon_t &obj) const {
+	auto it = this->object_obj_hists.find(obj);
+	if (it != std::end(this->object_obj_hists)) {
 		return &it->second;
 	}
 	else {
@@ -140,15 +138,15 @@ const ObjectCache *StateHistory::get_cache(const fqon_t &obj) const {
 }
 
 
-ObjectCache &StateHistory::get_create_cache(const fqon_t &obj) {
-	auto it = this->object_caches.find(obj);
-	if (it != std::end(this->object_caches)) {
+ObjectHistory &StateHistory::get_create_obj_history(const fqon_t &obj) {
+	auto it = this->object_obj_hists.find(obj);
+	if (it != std::end(this->object_obj_hists)) {
 		return it->second;
 	}
 	else {
-		// create new cache entry.
-		return this->object_caches.emplace(
-			obj, ObjectCache{}
+		// create new obj_history entry.
+		return this->object_obj_hists.emplace(
+			obj, ObjectHistory{}
 		).first->second;
 	}
 }

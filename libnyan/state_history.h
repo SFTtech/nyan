@@ -6,7 +6,7 @@
 #include <unordered_set>
 
 #include "config.h"
-#include "object_cache.h"
+#include "object_history.h"
 
 
 namespace nyan {
@@ -41,11 +41,9 @@ public:
 	                                               const MetaInfo &meta_info) const;
 
 protected:
-	ObjectCache *get_cache(const fqon_t &obj);
-	const ObjectCache *get_cache(const fqon_t &obj) const;
-	ObjectCache &get_create_cache(const fqon_t &obj);
-
-	std::shared_ptr<Database> database;
+	ObjectHistory *get_obj_history(const fqon_t &obj);
+	const ObjectHistory *get_obj_history(const fqon_t &obj) const;
+	ObjectHistory &get_create_obj_history(const fqon_t &obj);
 
 	/**
 	 * Storage of states over time.
@@ -53,10 +51,10 @@ protected:
 	Curve<std::shared_ptr<State>> history;
 
 	/**
-	 * Information cache for each object.
+	 * Information history for each object.
 	 * Optimizes searches in the history.
 	 */
-	std::unordered_map<fqon_t, ObjectCache> object_caches;
+	std::unordered_map<fqon_t, ObjectHistory> object_obj_hists;
 };
 
 
