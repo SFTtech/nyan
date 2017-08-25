@@ -27,10 +27,11 @@ report problems at https://github.com/SFTtech/nyan
 Contact: #sfttech:matrix.org
 ")
 
-if($ENV{CXX})
-	set(CMAKE_CXX_COMPILER "$ENV{CXX}")
-else()
+
+if("$ENV{CXX}" STREQUAL "")
 	set(CMAKE_CXX_COMPILER "clang++")
+else()
+	set(CMAKE_CXX_COMPILER "$ENV{CXX}" CACHE STRING "compiler" FORCE)
 endif()
 
 

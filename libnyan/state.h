@@ -26,15 +26,9 @@ public:
 	State();
 
 	/**
-	 * Get the object with the given name from this state,
-	 * or any of the parent states.
-	 */
-	const std::shared_ptr<ObjectState> &get_search(const fqon_t &fqon) const;
-
-	/**
 	 * Get the object with given name in this state only.
 	 */
-	const std::shared_ptr<ObjectState> *get_nosearch(const fqon_t &fqon) const;
+	const std::shared_ptr<ObjectState> *get(const fqon_t &fqon) const;
 
 	/**
 	 * Add an object to the state.
@@ -60,6 +54,12 @@ public:
 	 * The ptr contains nullptr if this is an initial state.
 	 */
 	const std::shared_ptr<State> &get_previous_state() const;
+
+	/**
+	 * Return the objects stored in this state.
+	 */
+	const std::unordered_map<fqon_t, std::shared_ptr<ObjectState>> &
+	get_objects() const;
 
 	/**
 	 * String representation of this state.

@@ -117,9 +117,7 @@ public:
 		auto it = this->container.lower_bound(time);
 
 		// remove all elements greater or equal the requested time
-		for (; it != std::end(this->container); ++it) {
-			this->container.erase(it);
-		}
+		this->container.erase(it, std::end(this->container));
 
 		// insert the new keyframe
 		auto ret = this->container.insert({time, std::move(value)});

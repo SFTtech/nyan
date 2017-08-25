@@ -13,6 +13,7 @@ namespace nyan {
 
 class Database;
 class MetaInfo;
+class ObjectState;
 class State;
 
 
@@ -25,10 +26,10 @@ class StateHistory {
 public:
 	StateHistory(const std::shared_ptr<Database> &base);
 
-	const State &get_state(order_t t) const;
-	const std::shared_ptr<State> &get_state_ptr(order_t t) const;
 	const std::shared_ptr<State> &get_state_before(order_t t) const;
 	const std::shared_ptr<State> *get_state_exact(order_t t) const;
+
+	const std::shared_ptr<ObjectState> *get_obj_state(const fqon_t &fqon, order_t t) const;
 
 	void insert(std::shared_ptr<State> &&new_state, order_t t);
 

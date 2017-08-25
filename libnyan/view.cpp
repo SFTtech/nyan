@@ -21,13 +21,25 @@ Object View::get(const fqon_t &fqon) {
 	// test for object existence
 	this->get_info(fqon);
 
+	// TODO: store info in object to avoid further lookups.
 	return Object{fqon, shared_from_this()};
 }
 
 
-const std::shared_ptr<ObjectState> &View::get_raw(const fqon_t &fqon, order_t t) {
-	// TODO optimize: speed up the backtrack search!
-	return this->get_state(t).get_search(fqon);
+const std::shared_ptr<ObjectState> &View::get_raw(const fqon_t &fqon, order_t t) const {
+	auto state = this->state.get_obj_state(fqon, t);
+	if (state == nullptr) {
+		auto &dbstate = this->database->get_state();
+		auto db_obj_state = dbstate->get(fqon);
+		if (db_obj_state == nullptr) {
+			throw ObjectNotFoundError{fqon};
+		}
+
+		return *db_obj_state;
+	}
+	else {
+		return *state;
+	}
 }
 
 
@@ -55,11 +67,6 @@ std::shared_ptr<View> View::new_child() {
 
 std::vector<std::weak_ptr<View>> &View::get_children() {
 	return this->children;
-}
-
-
-const State &View::get_state(order_t t) const {
-	return this->state.get_state(t);
 }
 
 

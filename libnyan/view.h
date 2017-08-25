@@ -27,15 +27,13 @@ public:
 
 	Object get(const fqon_t &fqon);
 
-	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t=DEFAULT_T);
+	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t=DEFAULT_T) const;
 
 	const ObjectInfo &get_info(const fqon_t &fqon) const;
 
 	Transaction new_transaction(order_t t=DEFAULT_T);
 
 	std::shared_ptr<View> new_child();
-
-	const State &get_state(order_t t=DEFAULT_T) const;
 
 	const Database &get_database() const;
 
@@ -47,6 +45,8 @@ public:
 
 	/**
 	 * Drop all state later than given time.
+	 * This drops child tracking, value caches, linearizations.
+	 * Also deletes then-unchanged objects histories.
 	 */
 	// TODO void reset_from(order_t t=DEFAULT_T);
 

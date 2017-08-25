@@ -1,8 +1,9 @@
 // Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
-#include <memory>
+#include <set>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "config.h"
@@ -18,6 +19,24 @@ namespace nyan {
  */
 class ObjectHistory {
 public:
+	/**
+	 * Insert a new change record for this object.
+	 * This only updates the change history,
+	 * not the linearizations or the child tracking.
+	 */
+	void insert_change(const order_t t);
+
+	/**
+	 * Return (in_history, exact_order) for a given order.
+	 * in_history:  true if the timestamp can be used to query change
+	 *              curves at exact points of order
+	 * exact_order: the ordering timestamp for the last matching change.
+	 *              will be 0, but invalid, if in_history is false.
+	 *
+	 * TODO: use std::optional...
+	 */
+	std::pair<bool, order_t> last_change_before(order_t t) const;
+
 	// TODO: curve for value cache: memberid_t => curve<valueholder>
 
 	/**
@@ -30,26 +49,13 @@ public:
 	 */
 	Curve<std::unordered_set<fqon_t>> children;
 
+protected:
 	/**
-	 * TODO rethink this (currently unused)
-	 *      it could just be a set!.
-	 *
-	 * Tracking for latest change of an object.
-	 *
-	 * This is an optimization for cut at t in the curve:
-	 * * find changed objects by analyzing the cut branch for names
-	 * * find last change before t for each object (via state.previous ptr)
-	 * * update the change to this time in this map
-	 * * cut off branch
-	 *
-	 * This also optimizes the search for an object state:
-	 * * it's not in this view state if not in this map
-	 *   -> search in the database
-	 * * if it's in this map, the time of the last state
-	 *   in the curve can easily be looked up:
-	 *   no need to walk over potentially thousands of state.previous ptrs
+	 * History of order points where this object was modified.
+	 * This is used to quickly find the matching order for an
+	 * object state in the state history.
 	 */
-	std::vector<order_t> changes;
+	std::set<order_t> changes;
 };
 
 

@@ -358,7 +358,7 @@ void Database::linearize_new(const std::vector<fqon_t> &new_objects) {
 			linearize_recurse(
 				obj,
 				[this] (const fqon_t &name) -> const ObjectState & {
-					return **this->state->get_nosearch(name);
+					return **this->state->get(name);
 				},
 				&seen
 			)
@@ -398,7 +398,7 @@ void Database::find_member(bool skip_first,
 			continue;
 		}
 
-		const ObjectState *par_state = this->state->get_nosearch(obj)->get();
+		const ObjectState *par_state = this->state->get(obj)->get();
 		if (unlikely(par_state == nullptr)) {
 			throw InternalError{"object state not retrieved"};
 		}
@@ -561,7 +561,7 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 		throw InternalError{"object info could not be retrieved"};
 	}
 
-	ObjectState &objstate = **this->state->get_nosearch(objname.to_fqon());
+	ObjectState &objstate = **this->state->get(objname.to_fqon());
 
 	std::unordered_map<memberid_t, Member> members;
 
@@ -682,7 +682,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 	for (auto &obj : new_objs) {
 
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
-		ObjectState *obj_state = this->state->get_nosearch(obj)->get();
+		ObjectState *obj_state = this->state->get(obj)->get();
 		if (unlikely(obj_info == nullptr)) {
 			throw InternalError{"object info could not be retrieved"};
 		}
@@ -771,7 +771,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			if (unlikely(obj_info == nullptr)) {
 				throw InternalError{"object used as value has no metainfo"};
 			}
-			const ObjectState *obj_state = this->state->get_nosearch(*obj)->get();
+			const ObjectState *obj_state = this->state->get(*obj)->get();
 			if (unlikely(obj_state == nullptr)) {
 				throw InternalError{"object in hierarchy has no state"};
 			}

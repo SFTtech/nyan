@@ -25,7 +25,7 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 
 		// use this as parent state
 		// might return the database initial state.
-		std::shared_ptr<State> base_view_state = view_history.get_state_before(this->at);
+		const std::shared_ptr<State> &base_view_state = view_history.get_state_before(this->at);
 
 		if (unlikely(base_view_state.get() == nullptr)) {
 			throw InternalError{"transaction base state is nullptr"};
@@ -135,9 +135,6 @@ bool Transaction::commit() {
 	this->update_views(std::move(updates));
 
 	// TODO mark value caches dirty
-
-
-	// TODO: update the object-changed pointer/time in the cache
 
 	bool ret = this->valid;
 	this->valid = false;
@@ -282,7 +279,7 @@ Transaction::relinearize_objects(const std::unordered_set<fqon_t> &objs_to_linea
 			(const fqon_t &name) -> const ObjectState & {
 
 				// try to use the object in the new state if it's in there
-				const auto &new_obj_state = new_state->get_nosearch(name);
+				const auto &new_obj_state = new_state->get(name);
 				if (new_obj_state != nullptr) {
 					return *new_obj_state->get();
 				}

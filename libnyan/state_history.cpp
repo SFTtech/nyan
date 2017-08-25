@@ -19,21 +19,6 @@ StateHistory::StateHistory(const std::shared_ptr<Database> &base) {
 }
 
 
-const State &StateHistory::get_state(order_t t) const {
-	const State *state = this->history.at(t).get();
-	if (unlikely(state == nullptr)) {
-		throw InternalError{"curve returned nullptr state"};
-	}
-
-	return *state;
-}
-
-
-const std::shared_ptr<State> &StateHistory::get_state_ptr(order_t t) const {
-	return this->history.at(t);
-}
-
-
 const std::shared_ptr<State> &StateHistory::get_state_before(order_t t) const {
 	return this->history.at(t)->get_previous_state();
 }
@@ -44,8 +29,46 @@ const std::shared_ptr<State> *StateHistory::get_state_exact(order_t t) const {
 }
 
 
+const std::shared_ptr<ObjectState> *StateHistory::get_obj_state(const fqon_t &fqon, order_t t) const {
+	// get the object history
+	const ObjectHistory *obj_history = this->get_obj_history(fqon);
+
+	// object isn't recorded in this state history
+	if (obj_history == nullptr) {
+		return nullptr;
+	}
+
+	std::pair<bool, order_t> order = obj_history->last_change_before(t);
+
+	if (not order.first) {
+		// the change is earlier than what is recorded in this history.
+		return nullptr;
+	}
+
+	// now we know the time in history the object was changed
+	const std::shared_ptr<State> *state = this->history.at_exact(order.second);
+	if (unlikely(state == nullptr)) {
+		throw InternalError{"no history record at change point"};
+	}
+
+	const std::shared_ptr<ObjectState> *obj_state = (*state)->get(fqon);
+	if (unlikely(state == nullptr)) {
+		throw InternalError{"object state not found at change point"};
+	}
+
+	return obj_state;
+}
+
+
 void StateHistory::insert(std::shared_ptr<State> &&new_state, order_t t) {
-	// drop all later states
+
+	// record the changes.
+	for (const auto &it : new_state->get_objects()) {
+		ObjectHistory &obj_history = this->get_create_obj_history(it.first);
+		obj_history.insert_change(t);
+	}
+
+	// drop all later changes
 	this->history.insert_drop(t, std::move(new_state));
 }
 

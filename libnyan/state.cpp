@@ -22,26 +22,7 @@ State::State()
 	previous_state{nullptr} {}
 
 
-const std::shared_ptr<ObjectState> &State::get_search(const fqon_t &fqon) const {
-	auto it = this->objects.find(fqon);
-	if (it != std::end(this->objects)) {
-		return it->second;
-	}
-	else {
-		if (previous_state == nullptr) {
-			using namespace std::string_literals;
-			throw InternalError{"unknown object requested: "s + fqon};
-		}
-		else {
-			// search backwards.
-			// TODO: optimize away with the last-changed map :)
-			return previous_state->get_search(fqon);
-		}
-	}
-}
-
-
-const std::shared_ptr<ObjectState> *State::get_nosearch(const fqon_t &fqon) const {
+const std::shared_ptr<ObjectState> *State::get(const fqon_t &fqon) const {
 	auto it = this->objects.find(fqon);
 	if (it != std::end(this->objects)) {
 		return &it->second;
@@ -108,6 +89,12 @@ const std::shared_ptr<ObjectState> &State::copy_object(const fqon_t &name,
 
 const std::shared_ptr<State> &State::get_previous_state() const {
 	return this->previous_state;
+}
+
+
+const std::unordered_map<fqon_t, std::shared_ptr<ObjectState>> &
+State::get_objects() const {
+	return this->objects;
 }
 
 
