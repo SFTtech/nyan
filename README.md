@@ -23,7 +23,7 @@ Technology             | Component
 -----------------------|----------
 **C++14**              | nyan core
 **Flex**               | Tokenizer generator
-**GNU Autocancer**     | Build "system"
+**CMake**              | Build "system"
 **Humans**             | Doing it wrong all the time
 
 
@@ -64,7 +64,6 @@ CombineCitadel(Building):
     hp = 9001
     creates = {OverwatchSoldier, Strider}
     model = "./assets/lambda_hq.mdl"
-
 
 Citizen(Unit):
     hp = 60
@@ -113,14 +112,24 @@ The fun begins if you now create a mod that mods the mod.
 Which is totally possible with **nyan**.
 
 
+Specification
+-------------
+
+Read the [specification](doc/nyan.md).
+
+
 Current State of the Project
 ----------------------------
 
-Components
+`nyan` is fully functional and can be used in your project.
 
-* [X] The [specification](doc/nyan.md) is complete but being fine-tuned
-* [X] The parser and typechecker is fully functional
-* [ ] Database queries and the C++ API
+There's some features left to implement, but those only
+cover special use cases:
+
+* [ ] Inverse patch generation
+* [ ] Subobject set specializations
+* [ ] Callback trigger when a value changes
+* [ ] Member name qualifications for name conflict resolving
 
 
 Dependencies, Building and Running
