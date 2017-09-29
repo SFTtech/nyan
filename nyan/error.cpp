@@ -2,9 +2,16 @@
 
 #include "error.h"
 
-#include <execinfo.h>
 #include <memory>
 #include <sstream>
+#ifndef _MSC_VER
+#include <execinfo.h>
+#else
+#include <windows.h>
+// TODO - RtlCaptureStackBackTrace doesn't report number of frames available
+// need to implement increase buffer size
+#define backtrace(buffer, buf_size) RtlCaptureStackBackTrace(0, buf_size, buffer, NULL)
+#endif
 
 #include "compiler.h"
 #include "util.h"
@@ -19,7 +26,7 @@ void Backtrace::analyze() {
 	// increase buffer size until it's enough
 	while (true) {
 		int elements = backtrace(buffer.data(), buffer.size());
-		if (elements < (ssize_t) buffer.size()) {
+		if (elements < static_cast<decltype(elements)>(buffer.size())) {
 			buffer.resize(elements);
 			break;
 		}
