@@ -375,14 +375,14 @@ the calculation is done like this:
   * `file`:`= "./delicious_cake.png"`
   * `set(type)`:
     * assignment: `= {value, value, ...}`
-    * union: ` += {..}`, `|= {..}` -> add objects to set
-    * subtract: `-= {..}` -> remove those objects
-    * intersection: `&= {..}` -> keep only objects element of both
+    * union: ` += {..}`, `|= {..}` -> add values to set
+    * subtract: `-= {..}` -> remove those values
+    * intersection: `&= {..}` -> keep only values element of both
   * `orderedset(type)`:
     * assignment: `= o{value, value, ...}`
-    * append: `+= o{..}` -> add objects to the end if not existing
-    * subtract: `-= o{..}`, `-= {..}` -> remove those objects
-    * intersection: `&= o{..}`, `&= {..}` -> keep only objects element of both
+    * append: `+= o{..}` -> add values to the end
+    * subtract: `-= o{..}`, `-= {..}` -> remove those values
+    * intersection: `&= o{..}`, `&= {..}` -> keep only values element of both
   * TODO: `dict(keytype, valuetype)`:
     * assignment: `= {key: value, k: v, ...}`
     * insertion of data: `+= {k: v, ...}`, `|= {..}`
