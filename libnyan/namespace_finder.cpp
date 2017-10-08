@@ -76,8 +76,6 @@ fqon_t NamespaceFinder::find(const Namespace &current,
 			return result;
 		}
 
-		search_base.pop_last();
-
 		// if the search base is exhausted, do alias expansion.
 		if (search_base.empty()) {
 			result = this->expand_alias(search);
@@ -88,6 +86,8 @@ fqon_t NamespaceFinder::find(const Namespace &current,
 
 			return result;
 		}
+
+		search_base.pop_last();
 	}
 }
 
