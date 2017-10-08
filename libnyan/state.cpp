@@ -76,12 +76,7 @@ const std::shared_ptr<ObjectState> &State::copy_object(const fqon_t &name,
 		).first->second;
 	}
 	else {
-		// if yes, check if they are not the same already
-		if (it->second != source) {
-			// copy object to this state
-			it->second = source->copy();
-		}
-		// else, no need to copy, the source would be this state anyway.
+		// else, no need to copy, the object is already in this state
 		return it->second;
 	}
 }

@@ -84,6 +84,7 @@ bool Transaction::add(const Object &patch) {
 
 		// TODO: speed up the state backtracking for finding the object
 
+		// This does not copy the object if the new state already has it.
 		auto &target_obj = new_state->copy_object(target, this->at, view);
 
 		// apply each patch component
