@@ -217,6 +217,7 @@ std::vector<view_update> Transaction::generate_updates() {
 		catch (C3Error &) {
 			// this error is non-fatal but aborts the transaction
 			this->set_error(std::current_exception());
+			break;
 		}
 
 		updates.push_back(std::move(update));
