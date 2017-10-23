@@ -12,7 +12,11 @@ namespace nyan {
 ObjectInfo &MetaInfo::add_object(const fqon_t &name, ObjectInfo &&obj) {
 	auto ret = this->object_info.insert({name, std::move(obj)});
 	if (ret.second == false) {
-		throw InternalError{name + ": object already in metainfo store"};
+		throw ReasonError{
+			obj.get_location(),
+			"object already defined",
+			{{ret.first->second.get_location(), "first defined here"}}
+		};
 	}
 
 	return ret.first->second;
