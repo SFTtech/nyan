@@ -46,7 +46,7 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 
 	// also apply the transaction in all childs of the view.
 	for (auto &target_child_view_weakptr :
-	     std::get<0>(this->states.at(0))->get_children()) {
+	     this->states.at(0).view->get_children()) {
 
 		auto target_child_view = target_child_view_weakptr.lock();
 		if (not target_child_view) {
@@ -76,11 +76,11 @@ bool Transaction::add(const Object &patch) {
 	const auto &target = patch.get_target();
 
 	// apply the patch in each view's state
-	for (auto &state : this->states) {
+	for (auto &view_change : this->states) {
 
-		auto &view = std::get<0>(state);
-		auto &new_state = std::get<1>(state);
-		auto &tracker = std::get<2>(state);
+		auto &view = view_change.view;
+		auto &new_state = view_change.state;
+		auto &tracker = view_change.changes;
 
 		// TODO: speed up the state backtracking for finding the object
 
@@ -143,12 +143,9 @@ bool Transaction::commit() {
 }
 
 
-
-
 void Transaction::merge_changed_states() {
-	for (auto &state : this->states) {
-		auto &view = std::get<0>(state);
-		auto &new_state = std::get<1>(state);
+	for (auto &view_change : this->states) {
+		auto &view = view_change.view;
 
 		StateHistory &view_history = view->get_state_history();
 
@@ -168,10 +165,10 @@ void Transaction::merge_changed_states() {
 			auto merge_base = std::make_shared<State>(*existing->get());
 
 			// replace all objects of the old state with objects from the new state
-			merge_base->update(std::move(new_state));
+			merge_base->update(std::move(view_change.state));
 
 			// so we now have a combined new state
-			new_state = std::move(merge_base);
+			view_change.state = std::move(merge_base);
 		}
 	}
 }
@@ -184,10 +181,10 @@ std::vector<view_update> Transaction::generate_updates() {
 
 	// try linearizing objects which have changed parents
 	// and their children
-	for (auto &state : this->states) {
-		auto &view = std::get<0>(state);
-		auto &new_state = std::get<1>(state);
-		auto &tracker = std::get<2>(state);
+	for (auto &view_change : this->states) {
+		auto &view = view_change.view;
+		auto &new_state = view_change.state;
+		auto &tracker = view_change.changes;
 
 		// update to perform for this view.
 		view_update update;
@@ -205,7 +202,6 @@ std::vector<view_update> Transaction::generate_updates() {
 			view,
 			objs_to_linearize
 		);
-
 
 		try {
 			update.linearizations = this->relinearize_objects(
@@ -304,9 +300,9 @@ Transaction::relinearize_objects(const std::unordered_set<fqon_t> &objs_to_linea
 
 void Transaction::update_views(std::vector<view_update> &&updates) {
 	size_t idx = 0;
-	for (auto &state : this->states) {
-		auto &view = std::get<0>(state);
-		auto &new_state = std::get<1>(state);
+	for (auto &view_change : this->states) {
+		auto &view = view_change.view;
+		auto &new_state = view_change.state;
 
 		StateHistory &view_history = view->get_state_history();
 

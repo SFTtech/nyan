@@ -132,14 +132,20 @@ protected:
 	order_t at;
 
 	/**
-	 * The views where the transaction will be applied in.
-	 * For each view, store:
+	 * New information for a view.
 	 * * The state that we're gonna build with this transaction
 	 * * Changes done in the transaction to invalidate caches.
 	 */
-	std::vector<std::tuple<std::shared_ptr<View>,
-	                       std::shared_ptr<State>,
-	                       ChangeTracker>> states;
+	struct view_change {
+		std::shared_ptr<View> view;
+		std::shared_ptr<State> state;
+		ChangeTracker changes;
+	};
+
+	/**
+	 * The views where the transaction will be applied in.
+	 */
+	std::vector<view_change> states;
 };
 
 } // namespace nyan

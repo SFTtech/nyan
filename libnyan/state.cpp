@@ -49,8 +49,18 @@ ObjectState &State::add_object(const fqon_t &name, std::shared_ptr<ObjectState> 
 
 
 void State::update(std::shared_ptr<State> &&source_state) {
+	// update this state with all objects from the source state
+	// -> move all objects from the sourcestate into this one.
 	for (auto &it : source_state.get()->objects) {
-		this->objects.insert({std::move(it.first), std::move(it.second)});
+		auto search = this->objects.find(it.first);
+		if (search != std::end(this->objects)) {
+			search->second = std::move(it.second);
+		}
+		else {
+			this->objects.insert(
+				{std::move(it.first), std::move(it.second)}
+			);
+		}
 	}
 }
 
