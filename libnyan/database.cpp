@@ -545,7 +545,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 
 void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_in_values,
                                 const NamespaceFinder &scope,
-                                const Namespace &ns,
+                                const Namespace &,
                                 const Namespace &objname,
                                 const ASTObject &astobj) {
 
@@ -602,12 +602,12 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 				Value::from_ast(
 					*member_type, astmember.value,
 					// function to determine object names used in values:
-					[&scope, &ns, this, &objs_in_values]
+					[&scope, &objname, this, &objs_in_values]
 					(const Type &target_type,
 					 const IDToken &token) -> fqon_t {
 
-						// find the desired object in the scope
-						fqon_t obj_id = scope.find(ns, token, this->meta_info);
+						// find the desired object in the scope of the object
+						fqon_t obj_id = scope.find(objname, token, this->meta_info);
 
 						ObjectInfo *obj_info = this->meta_info.get_object(obj_id);
 						if (unlikely(obj_info == nullptr)) {
