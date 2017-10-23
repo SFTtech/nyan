@@ -491,9 +491,12 @@ Unit():
     abilities : set(Ability)
     hp : int
 
-ResourceSpot():
-    resource_type : Resource
+ResourceAmount():
+    type : Resource
     amount : float
+
+ResourceSpot():
+    resources : set(ResourceAmount)
 
 IntelligentFlee(Behaviour):
     ...
