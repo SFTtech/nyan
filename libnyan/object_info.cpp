@@ -31,7 +31,11 @@ MemberInfo &ObjectInfo::add_member(const memberid_t &name,
 
 	auto ret = this->member_info.insert({name, std::move(member)});
 	if (ret.second == false) {
-		throw FileError{loc, "member already in this object"};
+		throw ReasonError{
+			loc,
+			"member already in this object",
+			{{ret.first->second.get_location(), "first defined here"}}
+		};
 	}
 
 	return ret.first->second;

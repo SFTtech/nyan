@@ -10,10 +10,13 @@
 namespace nyan {
 
 ObjectInfo &MetaInfo::add_object(const fqon_t &name, ObjectInfo &&obj) {
+	// copy location so we can use it after obj was moved.
+	Location loc = obj.get_location();
+
 	auto ret = this->object_info.insert({name, std::move(obj)});
 	if (ret.second == false) {
 		throw ReasonError{
-			obj.get_location(),
+			loc,
 			"object already defined",
 			{{ret.first->second.get_location(), "first defined here"}}
 		};
