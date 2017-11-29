@@ -5,6 +5,7 @@
 #include <string>
 #include <typeinfo>
 
+#include "../compiler.h"
 #include "../error.h"
 #include "../ops.h"
 #include "../token.h"

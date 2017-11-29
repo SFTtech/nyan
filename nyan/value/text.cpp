@@ -4,6 +4,7 @@
 
 #include <typeinfo>
 
+#include "../compiler.h"
 #include "../error.h"
 #include "../util.h"
 #include "../token.h"

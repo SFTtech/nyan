@@ -2,6 +2,7 @@
 
 #include "state_history.h"
 
+#include "compiler.h"
 #include "database.h"
 #include "meta_info.h"
 #include "state.h"

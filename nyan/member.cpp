@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include "compiler.h"
 #include "util.h"
 
 

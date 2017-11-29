@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+#include "compiler.h"
 #include "error.h"
 #include "object_state.h"
 #include "view.h"

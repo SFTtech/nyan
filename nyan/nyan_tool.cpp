@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "../libnyan/nyan.h"
+#include "nyan.h"
+
 
 namespace nyan {
 
@@ -27,16 +28,42 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	std::shared_ptr<View> root = db->new_view();
 
 	Object second = root->get("test.Second");
-	std::cout << "Second.member == " << *second.get<Int>("member") << std::endl;
+	//std::cout << "Second.member == " << *second.get<Int>("member") << std::endl;
 	Object first = root->get("test.First");
-	std::cout << "First.test == " << *first.get<Text>("test") << std::endl;
+	//std::cout << "First.test == " << *first.get<Text>("test") << std::endl;
+
+	std::cout << "after change: First.member == "
+	          << *root->get("test.First").get<Int>("member")
+	          << std::endl;
 
 	Object patch = root->get("test.FirstPatch");
+
+	for (int i = 0; i < 3; i++) {
+		Transaction tx = root->new_transaction();
+		tx.add(patch);
+		if (not tx.commit()) {
+			std::cout << "fail @ " << i << std::endl;
+		}
+	}
+
+	int value = *root->get("test.First").get<Int>("member");
+
+	std::cout << "after change: First.member == "
+	          << value
+	          << std::endl;
+
+	if (value != 30) {
+		throw std::runtime_error{"patch fail"};
+	}
+
+	return;
+
+	bool success;
 	Transaction tx = root->new_transaction(1);
 	tx.add(patch);
 	tx.add(root->get("test.Patch"));
 	tx.add(root->get("test.SetPatch"));
-	bool success = tx.commit();
+	success = tx.commit();
 
 	if (success) {
 		std::cout << "Transaction OK" << std::endl;

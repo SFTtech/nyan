@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "c3.h"
+#include "compiler.h"
 #include "database.h"
 #include "error.h"
 #include "object_info.h"

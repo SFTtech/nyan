@@ -2,6 +2,7 @@
 
 #include "c3.h"
 
+#include "compiler.h"
 #include "object_state.h"
 #include "util.h"
 

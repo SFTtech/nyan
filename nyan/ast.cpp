@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "compiler.h"
 #include "config.h"
 #include "ops.h"
 

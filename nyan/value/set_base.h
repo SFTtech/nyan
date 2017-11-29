@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "../compiler.h"
 #include "../util.h"
 #include "container.h"
 

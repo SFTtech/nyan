@@ -3,6 +3,7 @@
 #include "parser.h"
 
 #include "ast.h"
+#include "compiler.h"
 #include "database.h"
 #include "file.h"
 #include "flex_lexer.h"

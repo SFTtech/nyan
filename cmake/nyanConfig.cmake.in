@@ -1,0 +1,33 @@
+# Copyright 2017-2017 the nyan authors. See copying.md for legal info.
+###############################################################################
+# cmake configuration file for nyan.
+# to be found by find_package(nyan).
+#
+###############################################################################
+# this module provides:
+#    nyan_VERSION      -- nyan library version number
+#
+# options:
+#    nyan_FIND_QUIETLY -- if true, don't emit the "found nyan" message
+#
+# nyan automatically provides all paths and includedirs through cmake.
+# this is done by the PUBLIC include_dir specification.
+# usage:
+#    find_package(nyan REQUIRED CONFIG)
+#    target_link_libraries(your_target nyan::nyan)
+###############################################################################
+
+
+set(nyan_VERSION @PROJECT_VERSION@)
+
+
+@PACKAGE_INIT@
+
+
+# include the target and library definitions
+include("${CMAKE_CURRENT_LIST_DIR}/@nyan_exports_name@.cmake")
+check_required_components(nyan)
+
+if(NOT nyan_FIND_QUIETLY)
+	message(STATUS "Found nyan ${nyan_VERSION}")
+endif()

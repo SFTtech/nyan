@@ -4,6 +4,7 @@
 #include <string>
 
 #include "ast.h"
+#include "compiler.h"
 #include "error.h"
 #include "location.h"
 

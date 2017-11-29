@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "change_tracker.h"
+#include "compiler.h"
 #include "object_info.h"
 #include "util.h"
 

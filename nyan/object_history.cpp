@@ -2,6 +2,8 @@
 
 #include "object_history.h"
 
+#include "compiler.h"
+
 
 namespace nyan {
 

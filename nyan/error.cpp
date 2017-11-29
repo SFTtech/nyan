@@ -6,6 +6,7 @@
 #include <memory>
 #include <sstream>
 
+#include "compiler.h"
 #include "util.h"
 
 

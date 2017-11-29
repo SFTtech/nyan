@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+#include "compiler.h"
 #include "meta_info.h"
 
 

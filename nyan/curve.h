@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 
+#include "compiler.h"
 #include "config.h"
 #include "error.h"
 #include "util.h"

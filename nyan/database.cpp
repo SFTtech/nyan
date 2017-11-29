@@ -7,6 +7,7 @@
 #include <queue>
 
 #include "c3.h"
+#include "compiler.h"
 #include "error.h"
 #include "file.h"
 #include "namespace.h"
