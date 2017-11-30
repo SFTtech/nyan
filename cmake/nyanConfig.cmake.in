@@ -6,6 +6,7 @@
 ###############################################################################
 # this module provides:
 #    nyan_VERSION      -- nyan library version number
+#    nyan::nyan        -- target library to link to
 #
 # options:
 #    nyan_FIND_QUIETLY -- if true, don't emit the "found nyan" message

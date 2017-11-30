@@ -127,6 +127,7 @@ write_basic_package_version_file(
 )
 
 install(FILES
+	"${CMAKE_CURRENT_BINARY_DIR}/nyanConfig.cmake"
 	"${CMAKE_CURRENT_BINARY_DIR}/nyanConfigVersion.cmake"
 	DESTINATION ${config_package_location}
 	COMPONENT Devel

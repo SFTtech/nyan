@@ -88,14 +88,12 @@ install(
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-# headers
-generate_export_header(nyan)
-install(FILES
-	config.h
-	nyan.h
-	"${CMAKE_CURRENT_BINARY_DIR}/nyan_export.h"
+# install headers
+install(DIRECTORY
+	./
 	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nyan"
 	COMPONENT Devel
+	FILES_MATCHING PATTERN "*.h"
 )
 
 
