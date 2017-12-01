@@ -1,7 +1,7 @@
 // Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
-#include "config.h"
+#include "../config.h"
 #include "value.h"
 
 
