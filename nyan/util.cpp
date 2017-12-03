@@ -3,8 +3,10 @@
 #include "util.h"
 
 #include <cstring>
+#ifndef _MSC_VER
 #include <cxxabi.h>
 #include <dlfcn.h>
+#endif
 #include <errno.h>
 #include <string>
 #include <sstream>
@@ -63,6 +65,11 @@ std::string read_file(const std::string &filename, bool binary) {
 
 
 std::string demangle(const char *symbol) {
+#ifdef _MSC_VER
+	// TODO: demangle names for MSVC; Possibly using UnDecorateSymbolName
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms681400(v=vs.85).aspx
+	return symbol;
+#else
 	int status;
 	char *buf = abi::__cxa_demangle(symbol, nullptr, nullptr, &status);
 
@@ -73,6 +80,7 @@ std::string demangle(const char *symbol) {
 		free(buf);
 		return result;
 	}
+#endif
 }
 
 
@@ -85,6 +93,11 @@ std::string addr_to_string(const void *addr) {
 
 std::string symbol_name(const void *addr,
                         bool require_exact_addr, bool no_pure_addrs) {
+#ifdef _MSC_VER
+	// TODO: implement symbol_name for MSVC; Possibly using SymFromAddr
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms681323(v=vs.85).aspx
+	return no_pure_addrs ? "" : addr_to_string(addr);
+#else
 	Dl_info addr_info;
 
 	if (dladdr(addr, &addr_info) == 0) {
@@ -111,6 +124,7 @@ std::string symbol_name(const void *addr,
 			return out.str();
 		}
 	}
+#endif
 }
 
 

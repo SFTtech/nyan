@@ -16,10 +16,6 @@ add_custom_command(OUTPUT ${nyanl_cpp} ${nyanl_h}
 	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-include_directories(
-	${FLEX_INCLUDE_DIRS}
-)
-
 add_library(nyan SHARED
 	flex_lexer.cpp
 	ast.cpp
@@ -68,13 +64,20 @@ add_library(nyan SHARED
 	view.cpp
 )
 
-target_link_libraries(nyan
-	dl
+target_compile_definitions(nyan
+	PUBLIC
+		YY_NO_UNISTD_H=1
 )
 
+if(UNIX)
+	target_link_libraries(nyan
+		dl
+	)
+
+	set_target_properties(nyan PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
+endif()
 
 set_target_properties(nyan PROPERTIES
-	LINK_FLAGS "-Wl,--no-undefined"
 	VERSION ${nyan_VERSION}
 	SOVERSION 1
 	INTERFACE_nyan_MAJOR_VERSION 1
@@ -86,6 +89,7 @@ install(
 	TARGETS nyan
 	EXPORT ${nyan_exports_name}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # install headers
@@ -104,6 +108,7 @@ target_include_directories(nyan
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/>
 		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>
+		${FLEX_INCLUDE_DIRS}
 )
 
 
