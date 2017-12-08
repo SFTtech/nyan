@@ -6,8 +6,7 @@
 #include <unordered_map>
 
 
-namespace nyan {
-namespace datastructure {
+namespace nyan::datastructure {
 
 
 /**
@@ -17,8 +16,8 @@ namespace datastructure {
 template <typename T>
 class OrderedSet {
 public:
-	OrderedSet() {}
-	~OrderedSet() {}
+	OrderedSet() = default;
+	~OrderedSet() = default;
 
 	OrderedSet(const OrderedSet &other) {
 		for (auto &value : other) {
@@ -168,11 +167,8 @@ public:
 
 		// try new insert, get the iterator to the insertion place
 		// as list position, use a dummy which gets replaced below
-		list_iter list_pos{};
-		auto ins = this->values.insert(
-			std::make_pair(value, list_pos));
-		auto value_pos = std::get<0>(ins);
-		bool new_insert = std::get<1>(ins);
+		auto [value_pos, new_insert] = this->values.emplace(
+			value, list_iter{});
 
 		if (not new_insert) {
 			// inserted again -> move it to the back in the order list
@@ -255,4 +251,4 @@ public:
 	}
 };
 
-}} // namespace nyan::datastructure
+} // namespace nyan::datastructure
