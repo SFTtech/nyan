@@ -2,8 +2,7 @@
 
 #include "orderedset.h"
 
-namespace nyan {
-namespace datastructure {
+namespace nyan::datastructure {
 
 
-}} // namespace nyan::datastructure
+} // namespace nyan::datastructure

@@ -10,8 +10,6 @@
 #include "ops.h"
 
 
-using namespace std::string_literals;
-
 namespace nyan {
 
 
