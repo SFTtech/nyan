@@ -76,6 +76,9 @@ if(UNIX)
 
 	set_target_properties(nyan PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
 endif()
+if(WIN32)
+	set_target_properties(nyan PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
 set_target_properties(nyan PROPERTIES
 	VERSION ${nyan_VERSION}

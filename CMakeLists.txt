@@ -44,6 +44,10 @@ endif()
 # cmake < 3.4.0 has problems with projects that use C++ but not C,
 # especially in the FindThreads module (when header files are checked).
 if(CMAKE_VERSION VERSION_LESS "3.4.0")
+	if(WIN32)
+		# Need cmake >= 3.4.0 to enable WINDOWS_EXPORT_ALL_SYMBOLS for nyan
+		message(FATAL_ERROR "Cannot build with cmake ${CMAKE_VERSION} < 3.4.0 for MSVC.")
+	endif()
 	message(WARNING "using cmake ${CMAKE_VERSION} < 3.4.0, falling back and setting CC=CXX.")
 	project(nyan VERSION ${nyan_VERSION} LANGUAGES C CXX)
 
