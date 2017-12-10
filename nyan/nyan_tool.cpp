@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <getopt.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -165,54 +164,34 @@ std::pair<flags_t, params_t> argparse(int argc, char** argv) {
 		{option_param::FILE, ""}
 	};
 
-	int option_index = 0;
-
-	while (true) {
-		static struct option long_options[] = {
-			{"help", no_argument, 0, 'h'},
-			{"file", required_argument, 0, 'f'},
-			{"break", no_argument, 0, 'b'},
-			{"echo", no_argument, 0, 0},
-			{"test-parser", no_argument, 0, 0},
-			{0, 0, 0, 0}
-		};
-
-		int c = getopt_long(argc, argv,
-		                    "hf:b",
-		                    long_options, &option_index);
-		if (c == -1)
-			break;
-
-		switch (c) {
-		case 0: {
-			const char *op_name = long_options[option_index].name;
-			if (strcmp("test-parser", op_name) == 0) {
-				flags[option_flag::TEST_PARSER] = true;
+	for (int option_index = 1; option_index < argc; ++option_index) {
+		std::string arg = argv[option_index];
+		if (arg == "-h" or arg == "--help") {
+			help();
+			exit(0);
+		}
+		else if (arg == "-f" or arg == "--file") {
+			++option_index;
+			if (option_index == argc) {
+				std::cerr << "Filename not specified" << std::endl;
+				help();
+				exit(-1);
 			}
-
-			break;
+			params[option_param::FILE] = argv[option_index];
 		}
-		case 'f':
-			params[option_param::FILE] = optarg;
-			break;
-
-		case 'h': help(); exit(0); break;
-		case 'b': Error::enable_break(true); break;
-		case '?': break;
-
-		default: printf("error in getopt config: "
-		                "returned character code 0%o\n", c);
+		else if (arg == "-b" or arg == "--break") {
+			Error::enable_break(true);
 		}
-	}
-
-	// required positional args
-	if (option_index < argc) {
-		while (optind < argc) {
-			std::cout << argv[option_index] << std::endl;
-			option_index += 1;
+		else if (arg == "--echo") {
+			flags[option_flag::ECHO] = true;
+		}
+		else if (arg == "--test-parser") {
+			flags[option_flag::TEST_PARSER] = true;
+		}
+		else {
+			std::cerr << "Unused argument: " << arg << std::endl;
 		}
 	}
-
 
 	return std::make_pair(flags, params);
 }
