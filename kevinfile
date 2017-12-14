@@ -1,0 +1,12 @@
+# nyan kevin control file
+#
+# kevin CI source code: https://github.com/SFTtech/kevin
+#
+
+configure:
+	mkdir build
+	cd build && cmake ..
+
+build: configure
+	- cwd: build/
+	make -j$(nproc)
