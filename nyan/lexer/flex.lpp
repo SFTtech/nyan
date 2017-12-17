@@ -30,8 +30,7 @@ using namespace std::string_literals;
 
 digit          [0-9]
 id             [A-Za-z_][A-Za-z0-9_]*
-punct          [-+*/|%&]
-assignpunct    {punct}=
+operator       [-+*/|%&]=?|=
 int            (-|0[xX])?{digit}+
 float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 
@@ -77,7 +76,7 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 "import"                { impl->token(nyan::token_type::IMPORT); yyterminate(); }
 "from"                  { impl->token(nyan::token_type::FROM); yyterminate(); }
 "as"                    { impl->token(nyan::token_type::AS); yyterminate(); }
-{punct}|{assignpunct}|[=] { impl->token(nyan::token_type::OPERATOR); yyterminate(); }
+{operator}              { impl->token(nyan::token_type::OPERATOR); yyterminate(); }
 {int}                   { impl->token(nyan::token_type::INT); yyterminate(); }
 {float}                 { impl->token(nyan::token_type::FLOAT); yyterminate(); }
 {id}                    { impl->token(nyan::token_type::ID); yyterminate(); }
