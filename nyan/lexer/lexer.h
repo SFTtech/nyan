@@ -16,9 +16,9 @@
 #  include "flex_lexer.h"
 #endif
 
-#include "config.h"
-#include "error.h"
-#include "token.h"
+#include "../config.h"
+#include "../error.h"
+#include "../token.h"
 
 
 namespace nyan {

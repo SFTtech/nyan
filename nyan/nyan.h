@@ -14,7 +14,7 @@
 #include "database.h"
 #include "error.h"
 #include "file.h"
-#include "lexer.h"
+#include "lexer/lexer.h"
 #include "member.h"
 #include "namespace.h"
 #include "object.h"

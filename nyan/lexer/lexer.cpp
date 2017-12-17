@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-#include "file.h"
+#include "../file.h"
 
 namespace nyan {
 

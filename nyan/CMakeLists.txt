@@ -4,20 +4,18 @@
 
 find_package(FLEX REQUIRED)
 
-set(nyanl_cpp "${CMAKE_CURRENT_SOURCE_DIR}/flex_lexer.cpp")
-set(nyanl_h "${CMAKE_CURRENT_SOURCE_DIR}/flex_lexer.h")
-set(nyanl_lpp "flex_lexer.lpp")
+set(nyanl_cpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex_lexer.cpp")
+set(nyanl_h "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex_lexer.h")
+set(nyanl_lpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.lpp")
 
 add_custom_command(OUTPUT ${nyanl_cpp} ${nyanl_h}
 	COMMAND ${FLEX_EXECUTABLE} -Ca --header-file=${nyanl_h} -o ${nyanl_cpp} ${nyanl_lpp}
 	VERBATIM
 	DEPENDS ${nyanl_lpp}
 	COMMENT "[flex] Generating scanner with flex ${FLEX_VERSION}"
-	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 add_library(nyan SHARED
-	flex_lexer.cpp
 	ast.cpp
 	basic_type.cpp
 	c3.cpp
@@ -30,7 +28,8 @@ add_library(nyan SHARED
 	file.cpp
 	id_token.cpp
 	inheritance_change.cpp
-	lexer.cpp
+	${nyanl_cpp}
+	lexer/lexer.cpp
 	location.cpp
 	member.cpp
 	member_info.cpp
