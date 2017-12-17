@@ -2,25 +2,23 @@
 
 #include "lexer.h"
 
-#include <sstream>
-
 #include "../file.h"
+#include "impl.h"
+
 
 namespace nyan {
 
 Lexer::Lexer(const std::shared_ptr<File> &file)
 	:
-	NyanFlexLexer{},
 	file{file},
-	input{file->get_content()} {
-
-	// set the input stream in the flex class
-	this->switch_streams(&this->input, nullptr);
+	input{file->get_content()},
+	impl{std::make_unique<lexer::Impl>(this)} {
 
 	// The base indentation is zero of course.
 	this->indent_stack.push_back(0);
 }
 
+Lexer::~Lexer() = default;
 
 /*
  * Generate tokens until the queue has on available to return.
@@ -28,11 +26,11 @@ Lexer::Lexer(const std::shared_ptr<File> &file)
  */
 Token Lexer::get_next_token() {
 	if (this->finished) {
-		throw this->error("requested token but at EOF");
+		throw this->impl->error("requested token but at EOF");
 	}
 
 	if (this->tokens.empty()) {
-		this->generate_token();
+		this->impl->generate_token();
 	}
 
 	while (not this->tokens.empty()) {
@@ -42,7 +40,7 @@ Token Lexer::get_next_token() {
 	}
 
 	// if generate_token did not generate a token:
-	throw this->error("internal error.");
+	throw this->impl->error("internal error.");
 }
 
 
@@ -150,74 +148,6 @@ token_type Lexer::Bracket::expected_match() const {
 	return expected;
 }
 
-
-void Lexer::endline() {
-	this->yylineno--;
-	this->token(token_type::ENDLINE);
-	this->yylineno++;
-	this->reset_linepos();
-}
-
-
-/*
- * Fetch the current lexer state variables and create a token.
- */
-void Lexer::token(token_type type) {
-
-	int token_start = this->linepos - this->yyleng;
-
-	// to register open and close parenthesis
-	// for correct line-wrap-indentation.
-	this->track_brackets(type, token_start);
-
-	if (token_needs_payload(type)) {
-		this->tokens.push(Token{
-			this->file,
-			this->yylineno,
-			token_start,
-			this->yyleng,
-			type,
-			this->yytext
-		});
-	}
-	else {
-		this->tokens.push(Token{
-			this->file,
-			this->yylineno,
-			token_start,
-			this->yyleng,
-			type
-		});
-	}
-}
-
-
-/*
- * Fetch the current lexer state and throw an error.
- */
-TokenizeError Lexer::error(const std::string &msg) {
-	return TokenizeError{
-		Location{
-			this->file,
-			this->yylineno,
-			this->linepos - this->yyleng,
-			this->yyleng
-		},
-		msg
-	};
-}
-
-
-void Lexer::advance_linepos() {
-	this->linepos += this->yyleng;
-}
-
-
-void Lexer::reset_linepos() {
-	this->linepos = this->linepos_start;
-}
-
-
 /*
  * Remember where the current open bracket is
  * so that the indentation can check if the depth is correct.
@@ -250,7 +180,7 @@ void Lexer::track_brackets(token_type type, int token_start) {
 	         type == token_type::RBRACE) {
 
 		if (this->bracket_stack.empty()) {
-			throw this->error("unexpected closing bracket, "
+			throw this->impl->error("unexpected closing bracket, "
 			                  "as no opening one is known");
 		}
 
@@ -262,7 +192,7 @@ void Lexer::track_brackets(token_type type, int token_start) {
 			builder << "non-matching bracket: expected '"
 			        << matching_open_bracket.matching_type_str()
 			        << "' but got '" << token_type_str(type) << "'";
-			throw this->error(builder.str());
+			throw this->impl->error(builder.str());
 		}
 
 		if (not matching_open_bracket.closing_indent_ok(token_start)) {
@@ -271,7 +201,7 @@ void Lexer::track_brackets(token_type type, int token_start) {
 			        << matching_open_bracket.get_closing_indent()
 			        << " indentation spaces (it is currently at "
 			        << token_start << " spaces)";
-			throw this->error(builder.str());
+			throw this->impl->error(builder.str());
 		}
 
 		this->bracketcloseindent_expected = false;
@@ -297,12 +227,11 @@ void Lexer::track_brackets(token_type type, int token_start) {
 		            "at indentation with ")
 		        << this->bracket_stack.back().get_content_indent()
 		        << " spaces (you start at " << token_start << " spaces)";
-		throw this->error(builder.str());
+		throw this->impl->error(builder.str());
 	}
 
 	this->possibly_hanging = false;
 }
-
 
 /*
  * measure the indentation of a line
@@ -326,7 +255,7 @@ void Lexer::handle_indent(const char *line) {
 			builder << "indentation requires exactly "
 					<< SPACES_PER_INDENT
 					<< " spaces per level";
-			throw this->error(builder.str());
+			throw this->impl->error(builder.str());
 		}
 	}
 	// we're in a pair of brackets,
@@ -363,7 +292,7 @@ void Lexer::handle_indent(const char *line) {
 				int delta = previous_depth - depth;
 				while (delta > 0) {
 					delta -= SPACES_PER_INDENT;
-					this->token(token_type::DEDENT);
+					this->impl->token(token_type::DEDENT);
 				}
 
 				this->indent_stack.pop_back();
@@ -376,7 +305,7 @@ void Lexer::handle_indent(const char *line) {
 			int delta = depth - last_depth;
 			while (delta > 0) {
 				delta -= SPACES_PER_INDENT;
-				this->token(token_type::INDENT);
+				this->impl->token(token_type::INDENT);
 			}
 		}
 	}

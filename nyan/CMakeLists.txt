@@ -4,8 +4,8 @@
 
 find_package(FLEX REQUIRED)
 
-set(nyanl_cpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex_lexer.cpp")
-set(nyanl_h "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex_lexer.h")
+set(nyanl_cpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.gen.cpp")
+set(nyanl_h "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.gen.h")
 set(nyanl_lpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.lpp")
 
 add_custom_command(OUTPUT ${nyanl_cpp} ${nyanl_h}
@@ -29,6 +29,7 @@ add_library(nyan SHARED
 	id_token.cpp
 	inheritance_change.cpp
 	${nyanl_cpp}
+	lexer/impl.cpp
 	lexer/lexer.cpp
 	location.cpp
 	member.cpp
@@ -61,11 +62,6 @@ add_library(nyan SHARED
 	value/value.cpp
 	value/value_holder.cpp
 	view.cpp
-)
-
-target_compile_definitions(nyan
-	PUBLIC
-		YY_NO_UNISTD_H=1
 )
 
 if(UNIX)
@@ -110,6 +106,7 @@ target_include_directories(nyan
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/>
 		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>
+	PRIVATE
 		${FLEX_INCLUDE_DIRS}
 )
 

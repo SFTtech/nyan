@@ -1,3 +1,2 @@
 # generated files
-flex_lexer.cpp
-flex_lexer.h
+flex.gen.*

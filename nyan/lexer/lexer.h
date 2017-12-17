@@ -2,21 +2,11 @@
 #pragma once
 
 
-#include <iostream>
+#include <queue>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <queue>
 
-// We can't include the flex header if this file is included
-// from the flex cpp file.
-// This is because flex can't include its own generated header
-// in its generated cpp file.
-#ifndef NYAN_LEXER_FUCK_YOU_FLEX
-#  include "flex_lexer.h"
-#endif
-
-#include "../config.h"
 #include "../error.h"
 #include "../token.h"
 
@@ -25,13 +15,18 @@ namespace nyan {
 
 class File;
 
-class Lexer : public NyanFlexLexer {
+namespace lexer {
+class Impl;
+} // namespace lexer
+
+
+class Lexer {
 public:
 	/**
 	 * Create a lexer for the given file.
 	 */
 	Lexer(const std::shared_ptr<File> &file);
-	virtual ~Lexer() = default;
+	virtual ~Lexer();
 
 	// no moves and copies
 	Lexer(Lexer &&other) = delete;
@@ -99,37 +94,9 @@ protected:
 	};
 
 	/**
-	 * Defined by the flex lexer generator.
-	 * Produces a token by reading the input.
-	 * Place the token in the queue.
+	 * Internal implementation of the lexer: incomplete type here.
 	 */
-	void generate_token();
-
-	/**
-	 * Emit line ending token for current position.
-	 */
-	void endline();
-
-	/**
-	 * Create a token with correct text position and value.
-	 * Add the token to the queue.
-	 */
-	void token(token_type type);
-
-	/**
-	 * Tokenize error was encountered.
-	 */
-	TokenizeError error(const std::string &msg);
-
-	/**
-	 * Advance the line position by the length of the current token.
-	 */
-	void advance_linepos();
-
-	/**
-	 * Reset the line position to the beginning.
-	 */
-	void reset_linepos();
+	friend lexer::Impl;
 
 	/**
 	 * Indentation enforcement in parens requires to track
@@ -143,11 +110,6 @@ protected:
 	 * Return the difference to the previous indent.
 	 */
 	void handle_indent(const char *line);
-
-	/**
-	 * The default line positon at the very beginning of one line.
-	 */
-	static constexpr int linepos_start = 0;
 
 	/**
 	 * The indentation stack remembers the levels of indent.
@@ -186,11 +148,6 @@ protected:
 	std::istringstream input;
 
 	/**
-	 * Current position in a line.
-	 */
-	int linepos = linepos_start;
-
-	/**
 	 * Available tokens.
 	 */
 	std::queue<Token> tokens;
@@ -199,6 +156,9 @@ protected:
 	 * Indicates whether the tokenization has reached the end.
 	 */
 	bool finished = false;
+
+	/** Lexer internal implementation */
+	std::unique_ptr<lexer::Impl> impl;
 };
 
 
