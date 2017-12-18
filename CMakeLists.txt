@@ -34,13 +34,6 @@ set(nyan_VERSION 1.0)
 set(nyan_exports_name "nyanTargets")
 
 
-if("$ENV{CXX}" STREQUAL "")
-	set(CMAKE_CXX_COMPILER "clang++")
-else()
-	set(CMAKE_CXX_COMPILER "$ENV{CXX}" CACHE STRING "compiler" FORCE)
-endif()
-
-
 # cmake < 3.4.0 has problems with projects that use C++ but not C,
 # especially in the FindThreads module (when header files are checked).
 if(CMAKE_VERSION VERSION_LESS "3.4.0")
@@ -139,13 +132,21 @@ install(FILES
 	COMPONENT Devel
 )
 
-# register the package in cmake's registry
-# this may for example be ~/.cmake/packages
-message(STATUS
-	"registering nyan in the cmake user package registry "
-	"(~/.cmake/package/nyan)..."
+option(
+	REGISTER_USERPACKAGE
+	"whether to register nyan in the cmake user package registry"
+	ON
 )
-export(PACKAGE nyan)
+
+if(REGISTER_USERPACKAGE)
+	# register the package in cmake's registry
+	# this may for example be ~/.cmake/packages
+	message(STATUS
+		"registering nyan in the cmake user package registry "
+		"(~/.cmake/package/nyan)..."
+	)
+	export(PACKAGE nyan)
+endif()
 
 # that's it, the package setup is done.
 ###############################################################################
