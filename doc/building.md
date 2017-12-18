@@ -1,6 +1,6 @@
 # Building nyan
 
-This project requires a C++14 compiler (e.g gcc >= 5.1 or clang >= 3.4) and
+This project requires a C++17 compiler (e.g gcc >= 7 or clang >= 4) and
 uses `flex` and `cmake`.
 
 
