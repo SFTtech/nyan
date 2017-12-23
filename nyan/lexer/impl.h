@@ -6,7 +6,10 @@
 #include "flex.gen.h"
 #endif
 
-#include "lexer.h"
+#include <queue>
+#include <vector>
+
+#include "bracket.h"
 
 namespace nyan::lexer {
 
@@ -16,43 +19,68 @@ class Impl : yyFlexLexer {
 	friend yyFlexLexer;
 public:
 
-	explicit Impl(Lexer *outer);
+	explicit Impl(const std::shared_ptr<File> &file);
 
-	/**
-	 * Produce a token by reading the input.
-	 * Place the token in the owner's queue.
-	 */
-	void generate_token() {
-		this->yylex();
-	}
+	/** Produce a token by reading the input. */
+	Token generate_token();
+
+protected:
 
 	/**
 	 * Create a token with correct text position and value.
-	 * Add the token to the owner's queue.
+	 * Add the token to the queue.
 	 */
 	void token(token_type type);
 
 	/** Tokenize error was encountered. */
 	TokenizeError error(const std::string &msg);
 
-protected:
-
 	/** Emit line ending token for current position. */
 	void endline();
 
-	/** Forward to `this->owner`. */
-	void handle_indent(const char *line) {
-		this->owner->handle_indent(line);
-	}
+	/**
+	 * Indentation enforcement in parens requires to track
+	 * the open and closing parens `(<[{}]>)`.
+	 */
+	void track_brackets(token_type type, int token_start);
 
-	/** Reset the line position to the beginning. */
-	void reset_linepos();
+	/**
+	 * Measure the indentation of a line,
+	 * Generate indentation tokens.
+	 */
+	void handle_indent();
+
+	/** Input file used for tokenization. */
+	std::shared_ptr<File> file;
+
+	/** String stream which is fed into the lexer. */
+	std::istringstream input;
+
+	/** Available tokens. */
+	std::queue<Token> tokens;
+
+	/** The indentation stack remembers the levels of indent. */
+	std::vector<int> indent_stack;
+
+	/** The bracket stack remembers current open positions of `(<[{}]>)`. */
+	std::vector<Bracket> bracket_stack;
+
+	/**
+	 * Set to true when a opening bracket was encountered.
+	 * If it is true and the next token is a newline, the bracket is hanging.
+	 * It will be set to false when the token after a opening
+	 * bracket was processed.
+	 */
+	bool possibly_hanging = false;
+
+	/**
+	 * True when the indentation in brackets doesn't match.
+	 * This is only the case when for a closing bracket.
+	 */
+	bool bracketcloseindent_expected = false;
 
 	/** The default line positon at the very beginning of one line. */
 	static constexpr int linepos_start = 0;
-
-	/** *non-owning* pointer to the owning Lexer object */
-	Lexer *owner;
 
 	/** Current position in a line. */
 	int linepos = linepos_start;

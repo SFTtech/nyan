@@ -36,18 +36,16 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 
 %%
 
-^[ ]*#[^\n]*\n    { /* comments in empty lines */ impl->reset_linepos(); }
-"#"[^\n]*\n       { /* trailing comments */ impl->endline(); }
+[ ]*#.*                 { /* ignore trailing comments */ }
+[ \r]                   { /* ignore single space characters */ }
+"\f"                    { yylineno -= 1; }
+"\n"                    { impl->endline(); }
 
-"\t"              { throw impl->error("tab character"); }
-
-^[ ]*\n           { /* ignore blank lines. */ impl->reset_linepos(); }
-
-^[ ]*[^ \n]+      { /* indent */
-    int last = this->yyleng - 1;
-    impl->handle_indent(this->yytext);
+^[ ]*[^ \n]+            { /* indent */
+    impl->handle_indent();
 
     // walk from right to left until the indent begin is found
+    int last = this->yyleng - 1;
     while ((last >= 0) && (this->yytext[last] != ' ')) {
         unput(this->yytext[last]);
         last--;
@@ -55,40 +53,35 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
     }
 }
 
-\"(\\.|[^\\"])*\"       { impl->token(nyan::token_type::STRING); yyterminate(); }
-\'(\\.|[^\\'])*\'       { impl->token(nyan::token_type::STRING); yyterminate(); }
+\"(\\.|[^\\"])*\"       { impl->token(nyan::token_type::STRING); }
+\'(\\.|[^\\'])*\'       { impl->token(nyan::token_type::STRING); }
 
-"\n"                    { /* don't assign the `\n` for the next line */
-                          impl->endline(); yyterminate(); }
+"("                     { impl->token(nyan::token_type::LPAREN); }
+")"                     { impl->token(nyan::token_type::RPAREN); }
+"<"                     { impl->token(nyan::token_type::LANGLE); }
+">"                     { impl->token(nyan::token_type::RANGLE); }
+"["                     { impl->token(nyan::token_type::LBRACKET); }
+"]"                     { impl->token(nyan::token_type::RBRACKET); }
+"{"                     { impl->token(nyan::token_type::LBRACE); }
+"}"                     { impl->token(nyan::token_type::RBRACE); }
+"@"                     { impl->token(nyan::token_type::AT); }
 
-"("                     { impl->token(nyan::token_type::LPAREN); yyterminate(); }
-")"                     { impl->token(nyan::token_type::RPAREN); yyterminate(); }
-"<"                     { impl->token(nyan::token_type::LANGLE); yyterminate(); }
-">"                     { impl->token(nyan::token_type::RANGLE); yyterminate(); }
-"["                     { impl->token(nyan::token_type::LBRACKET); yyterminate(); }
-"]"                     { impl->token(nyan::token_type::RBRACKET); yyterminate(); }
-"{"                     { impl->token(nyan::token_type::LBRACE); yyterminate(); }
-"}"                     { impl->token(nyan::token_type::RBRACE); yyterminate(); }
-"@"                     { impl->token(nyan::token_type::AT); yyterminate(); }
-
-"pass"                  { impl->token(nyan::token_type::PASS); yyterminate(); }
-"..."                   { impl->token(nyan::token_type::ELLIPSIS); yyterminate(); }
-"import"                { impl->token(nyan::token_type::IMPORT); yyterminate(); }
-"from"                  { impl->token(nyan::token_type::FROM); yyterminate(); }
-"as"                    { impl->token(nyan::token_type::AS); yyterminate(); }
-{operator}              { impl->token(nyan::token_type::OPERATOR); yyterminate(); }
-{int}                   { impl->token(nyan::token_type::INT); yyterminate(); }
-{float}                 { impl->token(nyan::token_type::FLOAT); yyterminate(); }
-{id}                    { impl->token(nyan::token_type::ID); yyterminate(); }
-":"                     { impl->token(nyan::token_type::COLON); yyterminate(); }
-","                     { impl->token(nyan::token_type::COMMA); yyterminate(); }
-"."                     { impl->token(nyan::token_type::DOT); yyterminate(); }
-
-[ \r]                   { /* ignore space */ }
-"\f"                    { yylineno -= 1; }
+"pass"                  { impl->token(nyan::token_type::PASS); }
+"..."                   { impl->token(nyan::token_type::ELLIPSIS); }
+"import"                { impl->token(nyan::token_type::IMPORT); }
+"from"                  { impl->token(nyan::token_type::FROM); }
+"as"                    { impl->token(nyan::token_type::AS); }
+{operator}              { impl->token(nyan::token_type::OPERATOR); }
+{int}                   { impl->token(nyan::token_type::INT); }
+{float}                 { impl->token(nyan::token_type::FLOAT); }
+{id}                    { impl->token(nyan::token_type::ID); }
+":"                     { impl->token(nyan::token_type::COLON); }
+","                     { impl->token(nyan::token_type::COMMA); }
+"."                     { impl->token(nyan::token_type::DOT); }
 
 <<EOF>>                 { impl->token(nyan::token_type::ENDFILE); yyterminate(); }
 
+"\t"                    { throw impl->error("tab character"); }
 .                       { throw impl->error("invalid char: "s + yytext); }
 
 %%

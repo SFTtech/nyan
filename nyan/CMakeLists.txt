@@ -29,6 +29,7 @@ add_library(nyan SHARED
 	id_token.cpp
 	inheritance_change.cpp
 	${nyanl_cpp}
+	lexer/bracket.cpp
 	lexer/impl.cpp
 	lexer/lexer.cpp
 	location.cpp
