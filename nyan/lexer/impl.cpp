@@ -14,9 +14,6 @@ Impl::Impl(const std::shared_ptr<File> &file)
 
 	// set the input stream in the flex base class
 	this->switch_streams(&this->input);
-
-	// The base indentation is zero of course.
-	this->indents.push(0);
 }
 
 /*
@@ -166,7 +163,7 @@ void Impl::track_brackets(token_type type, int token_start) {
 		// the bracket is followed by a newline directly,
 		// thus is not hanging.
 		this->brackets.top().doesnt_hang(
-			this->indents.top()
+			this->previous_indent
 		);
 	}
 	else if (not this->brackets.empty() and
@@ -226,40 +223,27 @@ void Impl::handle_indent() {
 		throw this->error(builder.str());
 	}
 
-	if (this->indents.empty()) {
-		throw InternalError{"indentation stack ran empty!?!?"};
+	if (depth == this->previous_indent) {
+		// same indent level, ignore
+		return;
 	}
-
-	// Indentation depth of the last line
-	int previous_depth = this->indents.top();
-
-	if (depth == previous_depth) {
-		// same indent level
-	}
-	else if (depth < previous_depth) {
+	else if (depth < this->previous_indent) {
 		// current line is further left than the previous one
-
-		// pop indent stack until current level is reached
-		while (previous_depth > depth) {
-			int delta = previous_depth - depth;
-			while (delta > 0) {
-				delta -= SPACES_PER_INDENT;
-				this->token(token_type::DEDENT);
-			}
-
-			this->indents.pop();
-			previous_depth = this->indents.top();
+		int delta = this->previous_indent - depth;
+		while (delta > 0) {
+			delta -= SPACES_PER_INDENT;
+			this->token(token_type::DEDENT);
 		}
 	}
 	else {
-		// new indent level
-		this->indents.push(depth);
-		int delta = depth - previous_depth;
+		// current line has more depth than the previous one
+		int delta = depth - this->previous_indent;
 		while (delta > 0) {
 			delta -= SPACES_PER_INDENT;
 			this->token(token_type::INDENT);
 		}
 	}
+	this->previous_indent = depth;
 }
 
 } // namespace nyan::lexer

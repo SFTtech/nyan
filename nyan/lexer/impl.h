@@ -59,8 +59,8 @@ protected:
 	/** Available tokens. */
 	std::queue<Token> tokens;
 
-	/** The indentation stack remembers the levels of indent. */
-	std::stack<int> indents;
+	/** The indentation level of the previous line. */
+	int previous_indent = 0;
 
 	/** The bracket stack remembers current open positions of `(<[{}]>)`. */
 	std::stack<Bracket> brackets;
