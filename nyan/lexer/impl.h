@@ -7,7 +7,7 @@
 #endif
 
 #include <queue>
-#include <vector>
+#include <stack>
 
 #include "bracket.h"
 
@@ -60,10 +60,10 @@ protected:
 	std::queue<Token> tokens;
 
 	/** The indentation stack remembers the levels of indent. */
-	std::vector<int> indent_stack;
+	std::stack<int> indents;
 
 	/** The bracket stack remembers current open positions of `(<[{}]>)`. */
-	std::vector<Bracket> bracket_stack;
+	std::stack<Bracket> brackets;
 
 	/**
 	 * Set to true when a opening bracket was encountered.
