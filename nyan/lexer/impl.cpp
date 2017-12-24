@@ -13,7 +13,7 @@ Impl::Impl(const std::shared_ptr<File> &file)
 	input{file->get_content()} {
 
 	// set the input stream in the flex base class
-	this->switch_streams(&this->input, nullptr);
+	this->switch_streams(&this->input);
 
 	// The base indentation is zero of course.
 	this->indent_stack.push_back(0);
@@ -188,16 +188,16 @@ void Impl::track_brackets(token_type type, int token_start) {
  * measure the indentation of a line
  */
 void Impl::handle_indent() {
-	const char *line = this->yytext;
 	// measure current indent
-	int depth = 0;
-	while (*line == ' ') {
-		depth++;
-		line++;
+	// walk from right to left until the indent begin is found
+	int depth = this->yyleng - 1;
+	while ((depth >= 0) && (this->yytext[depth] != ' ')) {
+		// return the unused characters to flex lexer
+		this->yyunput(this->yytext[depth], this->yytext);
+		--depth;
+		--this->linepos;
 	}
-
-	// Indentation depth of the last line
-	int last_depth = 0;
+	++depth; // One-off for iteration
 
 	// regular indent is enforced when not in a bracket pair
 	if (this->bracket_stack.empty()) {
@@ -229,39 +229,39 @@ void Impl::handle_indent() {
 		return;
 	}
 
-	if (not this->indent_stack.empty()) {
-		int previous_depth = last_depth = this->indent_stack.back();
+	if (this->indent_stack.empty()) {
+		throw InternalError{"indentation stack ran empty!?!?"};
+	}
 
-		if (depth == previous_depth) {
-			// same indent level
-		}
-		else if (depth < previous_depth) {
-			// current line is further left than the previous one
+	// Indentation depth of the last line
+	int previous_depth = this->indent_stack.back();
 
-			// pop indent stack until current level is reached
-			while (previous_depth > depth) {
-				int delta = previous_depth - depth;
-				while (delta > 0) {
-					delta -= SPACES_PER_INDENT;
-					this->token(token_type::DEDENT);
-				}
+	if (depth == previous_depth) {
+		// same indent level
+	}
+	else if (depth < previous_depth) {
+		// current line is further left than the previous one
 
-				this->indent_stack.pop_back();
-				previous_depth = this->indent_stack.back();
-			}
-		}
-		else {
-			// new indent level
-			this->indent_stack.push_back(depth);
-			int delta = depth - last_depth;
+		// pop indent stack until current level is reached
+		while (previous_depth > depth) {
+			int delta = previous_depth - depth;
 			while (delta > 0) {
 				delta -= SPACES_PER_INDENT;
-				this->token(token_type::INDENT);
+				this->token(token_type::DEDENT);
 			}
+
+			this->indent_stack.pop_back();
+			previous_depth = this->indent_stack.back();
 		}
 	}
 	else {
-		throw InternalError{"indentation stack ran empty!?!?"};
+		// new indent level
+		this->indent_stack.push_back(depth);
+		int delta = depth - previous_depth;
+		while (delta > 0) {
+			delta -= SPACES_PER_INDENT;
+			this->token(token_type::INDENT);
+		}
 	}
 }
 

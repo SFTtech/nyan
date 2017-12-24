@@ -43,14 +43,6 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 
 ^[ ]*[^ \n]+            { /* indent */
     impl->handle_indent();
-
-    // walk from right to left until the indent begin is found
-    int last = this->yyleng - 1;
-    while ((last >= 0) && (this->yytext[last] != ' ')) {
-        unput(this->yytext[last]);
-        last--;
-        --impl->linepos;
-    }
 }
 
 \"(\\.|[^\\"])*\"       { impl->token(nyan::token_type::STRING); }
