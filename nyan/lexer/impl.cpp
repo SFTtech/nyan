@@ -197,19 +197,9 @@ void Impl::handle_indent() {
 	}
 	++depth; // One-off for iteration
 
-	// regular indent is enforced when not in a bracket pair
-	if (this->brackets.empty()) {
-		if ((depth % SPACES_PER_INDENT) > 0) {
-			std::ostringstream builder;
-			builder << "indentation requires exactly "
-					<< SPACES_PER_INDENT
-					<< " spaces per level";
-			throw this->error(builder.str());
-		}
-	}
-	// we're in a pair of brackets,
-	// there the indentation is way funnier.
-	else {
+	if (not this->brackets.empty()) {
+		// we're in a pair of brackets,
+		// there the indentation is way funnier.
 
 		// check if the content indentation is correct.
 		int expected = this->brackets.top().get_content_indent();
@@ -225,6 +215,15 @@ void Impl::handle_indent() {
 		// don't need to track the indent stack,
 		// this is done in the bracket tracking now.
 		return;
+	}
+
+	// regular indent is enforced when not in a bracket pair
+	if ((depth % SPACES_PER_INDENT) > 0) {
+		std::ostringstream builder;
+		builder << "indentation requires exactly "
+		        << SPACES_PER_INDENT
+		        << " spaces per level";
+		throw this->error(builder.str());
 	}
 
 	if (this->indents.empty()) {
