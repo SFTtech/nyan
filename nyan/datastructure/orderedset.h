@@ -2,7 +2,7 @@
 #pragma once
 
 
-#include <deque>
+#include <list>
 #include <unordered_map>
 
 
@@ -45,7 +45,7 @@ public:
 	/**
 	 * Type of the list that preserves the element order.
 	 */
-	using order_list_t = std::deque<const T *>;
+	using order_list_t = std::list<const T *>;
 
 
 	/**

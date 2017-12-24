@@ -1,0 +1,87 @@
+%{
+// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+
+/**
+ * @file
+ * nyan language lexer
+ */
+
+#include <string>
+
+#include "impl.h"
+
+using namespace std::string_literals;
+
+// Downcast `this` into our custom implementation
+#define impl static_cast<nyan::lexer::Impl *>(this)
+
+// before matching a rule, advance the line position by length of current token
+#define YY_USER_ACTION impl->linepos += this->yyleng;
+
+%}
+
+
+%option c++
+%option warn nodefault
+%option yylineno
+%option nounistd
+%option never-interactive
+
+
+digit          [0-9]
+id             [A-Za-z_][A-Za-z0-9_]*
+operator       [-+*/|%&]=?|=
+int            (-|0[xX])?{digit}+
+float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
+
+%%
+
+[ ]*#.*                 { /* ignore trailing comments */ }
+[ \r]                   { /* ignore single space characters */ }
+"\f"                    { yylineno -= 1; }
+"\n"                    { impl->endline(); }
+
+^[ ]*[^ \n]+            { /* indent */
+    impl->handle_indent();
+}
+
+\"(\\.|[^\\"])*\"       { impl->token(nyan::token_type::STRING); }
+\'(\\.|[^\\'])*\'       { impl->token(nyan::token_type::STRING); }
+
+"("                     { impl->token(nyan::token_type::LPAREN); }
+")"                     { impl->token(nyan::token_type::RPAREN); }
+"<"                     { impl->token(nyan::token_type::LANGLE); }
+">"                     { impl->token(nyan::token_type::RANGLE); }
+"["                     { impl->token(nyan::token_type::LBRACKET); }
+"]"                     { impl->token(nyan::token_type::RBRACKET); }
+"{"                     { impl->token(nyan::token_type::LBRACE); }
+"}"                     { impl->token(nyan::token_type::RBRACE); }
+"@"                     { impl->token(nyan::token_type::AT); }
+
+"pass"                  { impl->token(nyan::token_type::PASS); }
+"..."                   { impl->token(nyan::token_type::ELLIPSIS); }
+"import"                { impl->token(nyan::token_type::IMPORT); }
+"from"                  { impl->token(nyan::token_type::FROM); }
+"as"                    { impl->token(nyan::token_type::AS); }
+{operator}              { impl->token(nyan::token_type::OPERATOR); }
+{int}                   { impl->token(nyan::token_type::INT); }
+{float}                 { impl->token(nyan::token_type::FLOAT); }
+{id}                    { impl->token(nyan::token_type::ID); }
+":"                     { impl->token(nyan::token_type::COLON); }
+","                     { impl->token(nyan::token_type::COMMA); }
+"."                     { impl->token(nyan::token_type::DOT); }
+
+<<EOF>>                 { impl->token(nyan::token_type::ENDFILE); yyterminate(); }
+
+"\t"                    { throw impl->error("tab character"); }
+.                       { throw impl->error("invalid char: "s + yytext); }
+
+%%
+
+
+// No file wrapper needed for now.
+// And of course the noyywrap option is broken and generates
+// this snippet in both the header and cpp file.
+int yyFlexLexer::yywrap() {
+	return 1;
+}
