@@ -79,7 +79,14 @@ include(doxygen)
 include(GNUInstallDirs)
 
 # documentation
-doxygen_configure(nyan/ doc/ README.md)
+option(
+	DOXYGEN_ENABLE
+	"whether to create a `doc` target that invokes doxygen"
+	ON
+)
+if(DOXYGEN_ENABLE)
+	doxygen_configure(nyan/ doc/ README.md)
+endif()
 
 # register sources
 add_subdirectory(nyan/)
@@ -137,7 +144,6 @@ option(
 	"whether to register nyan in the cmake user package registry"
 	ON
 )
-
 if(REGISTER_USERPACKAGE)
 	# register the package in cmake's registry
 	# this may for example be ~/.cmake/packages
