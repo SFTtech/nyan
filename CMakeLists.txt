@@ -64,6 +64,9 @@ if(NOT MSVC)
 	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3")
 endif()
 
+# enhanced ide support
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # add search paths to helper modules
 set(BUILDSYSTEM_DIR "${nyan_SOURCE_DIR}/buildsystem")
 set(CMAKE_MODULE_PATH "${BUILDSYSTEM_DIR}")
@@ -75,12 +78,15 @@ include(GenerateExportHeader)
 include(doxygen)
 include(GNUInstallDirs)
 
-# documentation
-option(
-	DOXYGEN_ENABLE
-	"whether to create a `doc` target that invokes doxygen"
-	ON
-)
+# allow to disable the documentation generation.
+# set the variable to off if you encounter a target name conflict.
+if(NOT DEFINED DOXYGEN_ENABLE)
+	option(
+		DOXYGEN_ENABLE
+		"whether to create a `doc` target that invokes doxygen"
+		ON
+	)
+endif()
 if(DOXYGEN_ENABLE)
 	doxygen_configure(nyan/ doc/ README.md)
 endif()
@@ -136,11 +142,16 @@ install(FILES
 	COMPONENT Devel
 )
 
-option(
-	REGISTER_USERPACKAGE
-	"whether to register nyan in the cmake user package registry"
-	ON
-)
+
+# allow to disable the userpackage registration
+# set the variable to off if you include nyan as a submodule!
+if(NOT DEFINED REGISTER_USERPACKAGE)
+	option(
+		REGISTER_USERPACKAGE
+		"whether to register nyan in the cmake user package registry"
+		ON
+	)
+endif()
 if(REGISTER_USERPACKAGE)
 	# register the package in cmake's registry
 	# this may for example be ~/.cmake/packages
