@@ -64,6 +64,7 @@ add_library(nyan SHARED
 	value/value_holder.cpp
 	view.cpp
 )
+add_library(nyan::nyan ALIAS nyan)
 
 if(UNIX)
 	target_link_libraries(nyan
