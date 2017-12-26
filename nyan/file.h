@@ -13,22 +13,13 @@ namespace nyan {
  * Represents a nyan data file.
  */
 class File {
-	/**
-	 * Line information struct.
-	 * Stores the offset in the file and the line length.
-	 */
-	struct line_info {
-		size_t offset;
-		size_t len;
-	};
-
 public:
 	File(const std::string &path);
 	File(const std::string &virtual_name, std::string &&data);
 
 	// moving allowed
-	File(File &&other) noexcept;
-	File& operator =(File &&other) noexcept;
+	File(File &&other) noexcept = default;
+	File& operator =(File &&other) noexcept = default;
 
 	// no copies
 	File(const File &other) = delete;
@@ -71,14 +62,17 @@ public:
 
 protected:
 	/**
-	 * Create line_info entries from the file content.
+	 * Create line_ends entries from the file content.
 	 */
 	void extract_lines();
 
 	std::string name;
 	std::string data;
 
-	std::vector<line_info> lines;
+	/**
+	 * Stores the offsets of line endings in the file content.
+	 */
+	std::vector<size_t> line_ends;
 };
 
 } // namespace std
