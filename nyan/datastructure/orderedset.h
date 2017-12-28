@@ -51,7 +51,7 @@ public:
 	/**
 	 * Iterator for list elements.
 	 */
-	using list_iter = typename order_list_t::iterator;
+	using list_iter = typename order_list_t::const_iterator;
 
 
 	/**
@@ -62,7 +62,7 @@ public:
 
 protected:
 	/**
-	 * OrderedSet iterator.
+	 * OrderedSet const_iterator.
 	 *
 	 * Basically relays to the list iterator, but it returns
 	 * a T& because of double-dereferencing the iterator.
@@ -71,33 +71,20 @@ protected:
 	 *
 	 * Thanks C++ for such a small and readable implementation.
 	 */
-	template<typename elem_type>
-	class OrderedSetIterator
-		: public std::iterator<std::forward_iterator_tag, elem_type> {
+	class ConstIterator
+		: public std::iterator<std::forward_iterator_tag, const T> {
 	public:
-		using iter_type = typename std::conditional<
-			std::is_const<elem_type>::value,
-			typename order_list_t::const_iterator,
-			typename order_list_t::iterator>::type;
 
-		using set_type = typename std::conditional<
-			std::is_const<elem_type>::value,
-			const OrderedSet,
-			OrderedSet>::type;
-
-		OrderedSetIterator(set_type &set, bool use_start)
+		ConstIterator(list_iter iter)
 			:
-			iter{use_start ?
-			     set.value_order.begin()
-			     :
-			     set.value_order.end()} {}
+			iter{iter} {}
 
-		virtual ~OrderedSetIterator() = default;
+		virtual ~ConstIterator() = default;
 
 		/**
 		 * Advance the inner iterator to the next element.
 		 */
-		OrderedSetIterator &operator ++() {
+		ConstIterator &operator ++() {
 			++this->iter;
 			return *this;
 		}
@@ -108,7 +95,7 @@ protected:
 		 * Dereferencing it provides a pointer to the data.
 		 * Dereferencing that pointer gets the data reference.
 		 */
-		elem_type &operator *() const {
+		const T &operator *() const {
 			return *(*this->iter);
 		}
 
@@ -116,7 +103,7 @@ protected:
 		 * Check if this iterator points to the same element
 		 * as the other iterator.
 		 */
-		bool operator ==(const OrderedSetIterator& other) const {
+		bool operator ==(const ConstIterator& other) const {
 			return (this->iter == other.iter);
 		}
 
@@ -124,19 +111,19 @@ protected:
 		 * Check if the iterator does not point to the same
 		 * element as the other iterator.
 		 */
-		bool operator !=(const OrderedSetIterator& other) const {
+		bool operator !=(const ConstIterator& other) const {
 			return not (*this == other);
 		}
 
 	protected:
-		iter_type iter;
+		list_iter iter;
 	};
 
 
 public:
 	// just have a const_iterator, because sets don't support
 	// changing values in them!
-	using const_iterator = OrderedSetIterator<const T>;
+	using const_iterator = ConstIterator;
 
 
 protected:
@@ -241,13 +228,13 @@ public:
 
 	/** provide the begin iterator of this set */
 	const_iterator begin() const {
-		return OrderedSetIterator<const T>{*this, true};
+		return {this->value_order.begin()};
 	}
 
 
 	/** provide the end iterator of this set */
 	const_iterator end() const {
-		return OrderedSetIterator<const T>{*this, false};
+		return {this->value_order.end()};
 	}
 };
 
