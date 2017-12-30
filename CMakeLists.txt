@@ -2,8 +2,8 @@
 
 # main nyan build configuration file
 
-cmake_minimum_required(VERSION 3.1.0)
-# required for CMAKE_CXX_STANDARD
+cmake_minimum_required(VERSION 3.8.0)
+# required for CMAKE_CXX_STANDARD 17
 
 message("
 
@@ -31,26 +31,13 @@ Contact: #sfttech:matrix.org
 # nyan library version
 set(nyan_VERSION 1.0)
 
+project(nyan VERSION ${nyan_VERSION} LANGUAGES CXX)
+
 set(nyan_exports_name "nyanTargets")
 
-
-# cmake < 3.4.0 has problems with projects that use C++ but not C,
-# especially in the FindThreads module (when header files are checked).
-if(CMAKE_VERSION VERSION_LESS "3.4.0")
-	if(WIN32)
-		# Need cmake >= 3.4.0 to enable WINDOWS_EXPORT_ALL_SYMBOLS for nyan
-		message(FATAL_ERROR "Cannot build with cmake ${CMAKE_VERSION} < 3.4.0 for MSVC.")
-	endif()
-	message(WARNING "using cmake ${CMAKE_VERSION} < 3.4.0, falling back and setting CC=CXX.")
-	project(nyan VERSION ${nyan_VERSION} LANGUAGES C CXX)
-
-	# simple hack to set CC=CXX because
-	# older cmake requires CC for some header tests
-	set(CMAKE_C_COMPILER "${CMAKE_CXX_COMPILER}")
-	set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS}")
-else()
-	project(nyan VERSION ${nyan_VERSION} LANGUAGES CXX)
-endif()
+# C++ standard requirement
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Ensure CMAKE_BUILD_TYPE is set correctly.
 if(NOT CMAKE_BUILD_TYPE)
