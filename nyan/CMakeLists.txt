@@ -4,12 +4,11 @@
 
 find_package(FLEX REQUIRED)
 
-set(nyanl_cpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.gen.cpp")
-set(nyanl_h "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.gen.h")
+set(nyanl_cpp "${CMAKE_CURRENT_BINARY_DIR}/flex.gen.cpp")
 set(nyanl_lpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.lpp")
 
-add_custom_command(OUTPUT ${nyanl_cpp} ${nyanl_h}
-	COMMAND ${FLEX_EXECUTABLE} -Ca --header-file=${nyanl_h} -o ${nyanl_cpp} ${nyanl_lpp}
+add_custom_command(OUTPUT ${nyanl_cpp}
+	COMMAND ${FLEX_EXECUTABLE} -Ca -o ${nyanl_cpp} ${nyanl_lpp}
 	VERBATIM
 	DEPENDS ${nyanl_lpp}
 	COMMENT "[flex] Generating scanner with flex ${FLEX_VERSION}"
@@ -109,6 +108,7 @@ target_include_directories(nyan
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
 		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>
 	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/lexer
 		${FLEX_INCLUDE_DIRS}
 )
 

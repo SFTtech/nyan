@@ -2,8 +2,7 @@
 #pragma once
 
 #ifndef yyFlexLexer
-#define YY_NO_UNISTD_H
-#include "flex.gen.h"
+#include <FlexLexer.h>
 #endif
 
 #include <queue>
