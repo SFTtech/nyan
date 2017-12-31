@@ -82,8 +82,6 @@ set_target_properties(nyan PROPERTIES
 	SOVERSION 1
 	INTERFACE_nyan_MAJOR_VERSION 1
 	COMPATIBLE_INTERFACE_STRING nyan_MAJOR_VERSION
-	CXX_STANDARD 17
-	CXX_STANDARD_REQUIRED ON
 )
 
 # binaries
@@ -120,10 +118,6 @@ add_executable(nyancat
 	nyan_tool.cpp
 )
 target_link_libraries(nyancat nyan)
-set_target_properties(nyancat PROPERTIES
-	CXX_STANDARD 17
-	CXX_STANDARD_REQUIRED ON
-)
 install(
 	TARGETS nyancat
 	EXPORT ${nyan_exports_name}
