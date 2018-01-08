@@ -25,6 +25,7 @@ using namespace std::string_literals;
 %option warn nodefault
 %option yylineno
 %option nounistd
+%option noyywrap
 %option never-interactive
 
 
@@ -77,11 +78,3 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 .                       { throw impl->error("invalid char: "s + yytext); }
 
 %%
-
-
-// No file wrapper needed for now.
-// And of course the noyywrap option is broken and generates
-// this snippet in both the header and cpp file.
-int yyFlexLexer::yywrap() {
-	return 1;
-}
