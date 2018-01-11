@@ -10,3 +10,7 @@ configure:
 build: configure
 	- cwd: build/
 	make -j$(nproc)
+
+test: build
+	- cwd: build
+	./nyan/nyancat --test-parser -f ../test/test.nyan
