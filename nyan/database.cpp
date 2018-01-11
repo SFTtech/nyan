@@ -214,24 +214,6 @@ void Database::load(const std::string &filename,
 		info->set_children(std::move(children));
 	}
 
-
-	/*
-	 * The patch will fail to be loaded if:
-	 * The patch target is not known
-	 * Any of changed members is not present in the patch target
-	 * Any of the added parents is not known
-	 * -> Blind patching is not allowed
-	 * The patch will succeed to load if:
-	 * The patch target already inherits from a parent to be added
-	 * -> Inheritance patching doesn't conflict with other patches
-	 */
-
-	std::cout << std::endl << "METAINFO:" << std::endl
-	          << this->meta_info.str() << std::endl;
-
-	std::cout << std::endl << "INITIAL STATE:" << std::endl
-	          << this->state->str() << std::endl;
-
 	// TODO: check pending objectvalues (probably not needed as they're all loaded)
 }
 

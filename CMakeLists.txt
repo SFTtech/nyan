@@ -105,7 +105,7 @@ install(
 
 
 # create the main find_package entry file.
-configure_package_config_file("cmake/nyanConfig.cmake.in"
+configure_package_config_file("buildsystem/templates/nyanConfig.cmake.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/nyanConfig.cmake"
 	INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}"
 	INSTALL_DESTINATION "${config_package_location}"

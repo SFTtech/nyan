@@ -27,16 +27,13 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	std::shared_ptr<View> root = db->new_view();
 
 	Object second = root->get("test.Second");
-	//std::cout << "Second.member == " << *second.get<Int>("member") << std::endl;
 	Object first = root->get("test.First");
-	//std::cout << "First.test == " << *first.get<Text>("test") << std::endl;
 
 	std::cout << "after change: First.member == "
 	          << *root->get("test.First").get<Int>("member")
 	          << std::endl;
 
 	Object patch = root->get("test.FirstPatch");
-
 	for (int i = 0; i < 3; i++) {
 		Transaction tx = root->new_transaction();
 		tx.add(patch);
@@ -51,11 +48,9 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	          << value
 	          << std::endl;
 
-	if (value != 30) {
-		throw std::runtime_error{"patch fail"};
+	if (value != 24) {
+		throw std::runtime_error{"patch result wrong"};
 	}
-
-	return;
 
 	bool success;
 	Transaction tx = root->new_transaction(1);
