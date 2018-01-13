@@ -2,7 +2,7 @@
 # for the resulting nyan library
 
 
-find_package(FLEX REQUIRED)
+find_package(FLEX 2.6 REQUIRED)
 
 set(nyanl_cpp "${CMAKE_CURRENT_BINARY_DIR}/flex.gen.cpp")
 set(nyanl_lpp "${CMAKE_CURRENT_SOURCE_DIR}/lexer/flex.lpp")
@@ -67,10 +67,15 @@ add_library(nyan::nyan ALIAS nyan)
 
 if(UNIX)
 	target_link_libraries(nyan
-		dl
+		${CMAKE_DL_LIBS}
 	)
 
-	set_target_properties(nyan PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
+	if(APPLE)
+		set(link_flag "-undefined error")
+	else()
+		set(link_flag "-Wl,--no-undefined")
+	endif()
+	set_target_properties(nyan PROPERTIES LINK_FLAGS ${link_flag})
 endif()
 if(WIN32)
 	set_target_properties(nyan PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
