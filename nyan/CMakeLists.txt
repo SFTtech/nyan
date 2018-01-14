@@ -71,6 +71,7 @@ if(UNIX)
 	)
 
 	if(NOT APPLE)
+		# for ld on macOS: "The default is to treat undefined symbols as errors."
 		set_target_properties(nyan PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
 	endif()
 endif()
