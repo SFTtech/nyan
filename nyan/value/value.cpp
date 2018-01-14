@@ -1,7 +1,8 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "value.h"
 
+#include "boolean.h"
 #include "file.h"
 #include "number.h"
 #include "object.h"
@@ -26,6 +27,11 @@ static ValueHolder value_from_value_token(const Type &target_type,
 	ValueHolder member_value;
 
 	switch (target_type.get_primitive_type()) {
+	case primitive_t::BOOLEAN:
+		member_value = ValueHolder{
+			std::make_shared<Boolean>(value_token)
+		};
+		break;
 	case primitive_t::TEXT:
 		member_value = ValueHolder{
 			std::make_shared<Text>(value_token)

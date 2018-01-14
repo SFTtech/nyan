@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "nyan_tool.h"
 
@@ -75,6 +75,9 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	          << std::endl
 	          << "SetTest.orderedmember = "
 	          << root->get("test.SetTest").get("orderedmember")->str()
+	          << std::endl
+	          << "Fifth.truth = "
+	          << root->get("test.Fifth").get("truth")->str()
 	          << std::endl
 	          << "PATCH"
 	          << std::endl

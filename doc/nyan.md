@@ -347,7 +347,7 @@ the calculation is done like this:
     - `text`:     `"lol"`          - (duh.)
     - `int`:      `1337`           - (some number)
     - `float`:    `42.235`, `inf`  - (some floating point number)
-    - `bool`:     `True`, `False`  - (some boolean value)
+    - `bool`:     `true`, `false`  - (some boolean value)
     - `file`:     `"./name" `      - (some filename, relative to the directory
                                       the defining nyan file is located at.
                                       If absolute, the path is relative to
@@ -1083,7 +1083,7 @@ DropSite():
 Animation():
     image : file
     frames : int = 1
-    loop : bool = True
+    loop : bool = true
     speed : float = 15.0
 
 Ability():
@@ -1094,7 +1094,7 @@ CooldownAbility(Ability):
 
 Movement(Ability):
     speed : float
-    instant : bool = False
+    instant : bool = false
     range : float = inf
 
 CollectResource(Movement):
@@ -1143,7 +1143,7 @@ TeleportBlurb(Animation):
 
 Teleport(Movement, CooldownAbility):
     speed = 0.0
-    instant = True
+    instant = true
     recharge_time = 30.0
     range = 5
     animation = TeleportBlurb

@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "basic_type.h"
 
@@ -16,6 +16,7 @@ bool BasicType::is_object() const {
 
 bool BasicType::is_fundamental() const {
 	switch (this->primitive_type) {
+	case primitive_t::BOOLEAN:
 	case primitive_t::TEXT:
 	case primitive_t::FILENAME:
 	case primitive_t::INT:
@@ -41,34 +42,11 @@ bool BasicType::operator ==(const BasicType &other) const {
 }
 
 
-// type of a right hand side assignment
-BasicType BasicType::from_value_token(const IDToken &tok) {
-	primitive_t value_type;
-
-	switch (tok.get_type()) {
-	case token_type::ID:
-		value_type = primitive_t::OBJECT;
-		break;
-	case token_type::INT:
-		value_type = primitive_t::INT;
-		break;
-	case token_type::FLOAT:
-		value_type = primitive_t::FLOAT;
-		break;
-	case token_type::STRING:
-		value_type = primitive_t::TEXT;
-		break;
-	default:
-		throw ASTError{"expected some value but there is", tok};
-	}
-	return BasicType{value_type, container_t::SINGLE};
-}
-
-
 // textual type conversion for the type definition in a member
 BasicType BasicType::from_type_token(const IDToken &tok) {
 	// primitive type name map
 	static const std::unordered_map<std::string, primitive_t> primitive_types = {
+		{"bool", primitive_t::BOOLEAN},
 		{"text", primitive_t::TEXT},
 		{"file", primitive_t::FILENAME},
 		{"int", primitive_t::INT},
