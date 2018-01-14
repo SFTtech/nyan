@@ -1,5 +1,5 @@
 %{
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 /**
  * @file
@@ -13,15 +13,19 @@
 using namespace std::string_literals;
 
 // Downcast `this` into our custom implementation
-#define impl static_cast<nyan::lexer::Impl *>(this)
+#define impl static_cast<nyan::lexer::Impl *>(yyextra)
+
+// read characters from the input feed
+#define YY_INPUT(buf, result, max_size) \
+    { result = impl->read_input(buf, max_size); }
 
 // before matching a rule, advance the line position by length of current token
-#define YY_USER_ACTION impl->linepos += this->yyleng;
+#define YY_USER_ACTION impl->advance_linepos();
 
 %}
 
 
-%option c++
+%option reentrant
 %option warn nodefault
 %option yylineno
 %option nounistd
@@ -43,7 +47,10 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 "\n"                    { impl->endline(); }
 
 ^[ ]*[^ \n]+            { /* indent */
-    impl->handle_indent();
+    int depth = 0;
+    for(; depth < yyleng && yytext[depth] == ' '; ++depth);
+    impl->handle_indent(depth);
+    yyless(depth);
 }
 
 \"(\\.|[^\\"])*\"       { impl->token(nyan::token_type::STRING); }
