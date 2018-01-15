@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 #include "id_token.h"
 
 #include <string>
@@ -47,7 +47,7 @@ bool IDToken::exists() const {
 
 
 token_type IDToken::get_type() const {
-	if (not this->exists()) {
+	if (unlikely(not this->exists())) {
 		return token_type::INVALID;
 	}
 	else {
@@ -57,7 +57,7 @@ token_type IDToken::get_type() const {
 
 
 const Location &IDToken::get_start_location() const {
-	if (not this->exists()) {
+	if (unlikely(not this->exists())) {
 		throw InternalError{
 			"this IDToken doesn't exist, but you queried its location"
 		};
@@ -91,7 +91,7 @@ const std::vector<Token> &IDToken::get_components() const {
 
 
 const std::string &IDToken::get_first() const {
-	if (not this->exists()) {
+	if (unlikely(not this->exists())) {
 		throw InternalError{"element of non-existing IDToken requested"};
 	}
 

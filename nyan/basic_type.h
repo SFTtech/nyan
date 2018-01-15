@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include "config.h"
@@ -16,6 +16,7 @@ class IDToken;
  * The OBJECT type requires a payload as "target" name.
  */
 enum class primitive_t {
+	BOOLEAN,
 	TEXT,
 	FILENAME,
 	INT,
@@ -85,15 +86,6 @@ public:
 
 
 	/**
-	 * Test if the given value token indicates a valid primitive_t,
-	 * then return it.
-	 * A value token is e.g. "1337", "'rofl'" or "SomeThing".
-	 * throws ASTError if it fails.
-	 */
-	static BasicType from_value_token(const IDToken &token);
-
-
-	/**
 	 * Test if the given type token declares a valid primitive_t,
 	 * returns it. Also returns the container type.
 	 * A type token is e.g. "int" or "float" or "SomeObject".
@@ -109,6 +101,7 @@ public:
  */
 constexpr const char *type_to_string(primitive_t type) {
 	switch (type) {
+	case primitive_t::BOOLEAN:       return "bool";
 	case primitive_t::TEXT:          return "text";
 	case primitive_t::FILENAME:      return "file";
 	case primitive_t::INT:           return "int";
