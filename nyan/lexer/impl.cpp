@@ -1,19 +1,27 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "impl.h"
 
+#define YY_NO_UNISTD_H
+#include "flex.gen.h"
+
+#include "../compiler.h"
 #include "../file.h"
 
 namespace nyan::lexer {
 
 Impl::Impl(const std::shared_ptr<File> &file)
 	:
-	yyFlexLexer{},
 	file{file},
 	input{file->get_content()} {
 
-	// set the input stream in the flex base class
-	this->switch_streams(&this->input);
+	yylex_init_extra(this, &this->scanner);
+}
+
+Impl::~Impl() {
+	if (this->scanner) {
+		yylex_destroy(this->scanner);
+	}
 }
 
 /*
@@ -22,7 +30,7 @@ Impl::Impl(const std::shared_ptr<File> &file)
  */
 Token Impl::generate_token() {
 	if (this->tokens.empty()) {
-		this->yylex();
+		yylex(this->scanner);
 	}
 
 	if (not this->tokens.empty()) {
@@ -43,22 +51,32 @@ TokenizeError Impl::error(const std::string &msg) {
 	return TokenizeError{
 		Location{
 			this->file,
-			this->yylineno,
-			this->linepos - this->yyleng,
-			this->yyleng
+			yyget_lineno(this->scanner),
+			this->linepos - yyget_leng(this->scanner),
+			yyget_leng(this->scanner)
 		},
 		msg
 	};
+}
+
+void Impl::advance_linepos() {
+	this->linepos += yyget_leng(this->scanner);
+}
+
+int Impl::read_input(char *buffer, int max_size) {
+	if (unlikely(max_size <= 0)) {
+		return 0;
+	}
+
+	this->input.read(buffer, static_cast<std::streamsize>(max_size));
+	return static_cast<int>(this->input.gcount());
 }
 
 void Impl::endline() {
 	// ENDLINE is not an acceptable first token.
 	// Optimize for consecutive ENDLINE tokens: keep only one.
 	if (not tokens.empty() and tokens.back().type != token_type::ENDLINE) {
-		/* don't assign the `\n` for the next line */
-		this->yylineno--;
 		this->token(token_type::ENDLINE);
-		this->yylineno++;
 	}
 	// Reset the line position to the beginning.
 	this->linepos = linepos_start;
@@ -68,8 +86,13 @@ void Impl::endline() {
  * Fetch the current lexer state variables and create a token.
  */
 void Impl::token(token_type type) {
-
-	int token_start = this->linepos - this->yyleng;
+	int length = yyget_leng(this->scanner);
+	int token_start = this->linepos - length;
+	int lineno = yyget_lineno(this->scanner);
+	if (type == token_type::ENDLINE) {
+		/* don't assign the `\n` for the next line */
+		--lineno;
+	}
 
 	// to register open and close parenthesis
 	// for correct line-wrap-indentation.
@@ -78,19 +101,19 @@ void Impl::token(token_type type) {
 	if (token_needs_payload(type)) {
 		this->tokens.push(Token{
 			this->file,
-			this->yylineno,
+			lineno,
 			token_start,
-			this->yyleng,
+			length,
 			type,
-			this->yytext
+			yyget_text(this->scanner)
 		});
 	}
 	else {
 		this->tokens.push(Token{
 			this->file,
-			this->yylineno,
+			lineno,
 			token_start,
-			this->yyleng,
+			length,
 			type
 		});
 	}
@@ -182,17 +205,9 @@ void Impl::track_brackets(token_type type, int token_start) {
 /*
  * measure the indentation of a line
  */
-void Impl::handle_indent() {
-	// measure current indent
-	// walk from right to left until the indent begin is found
-	int depth = this->yyleng - 1;
-	while ((depth >= 0) && (this->yytext[depth] != ' ')) {
-		// return the unused characters to flex lexer
-		this->yyunput(this->yytext[depth], this->yytext);
-		--depth;
-		--this->linepos;
-	}
-	++depth; // One-off for iteration
+void Impl::handle_indent(int depth) {
+
+	this->linepos -= yyget_leng(this->scanner) - depth;
 
 	if (not this->brackets.empty()) {
 		// we're in a pair of brackets,
