@@ -29,7 +29,7 @@ using namespace std::string_literals;
 %option warn nodefault
 %option yylineno
 %option nounistd
-%option noyywrap
+%option noinput nounput noyywrap
 %option never-interactive
 
 
