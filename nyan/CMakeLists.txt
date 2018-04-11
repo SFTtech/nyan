@@ -1,6 +1,15 @@
 # source file configuration
 # for the resulting nyan library
 
+if (APPLE)
+    execute_process(COMMAND brew --prefix flex
+                    OUTPUT_VARIABLE BREW_FLEX_HOME
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if (EXISTS "${BREW_FLEX_HOME}/bin/flex")
+        message(STATUS "Found homebrew flex, using it instead.")
+        set(FLEX_EXECUTABLE "${BREW_FLEX_HOME}/bin/flex")
+    endif ()
+endif ()
 
 find_package(FLEX 2.6 REQUIRED)
 
