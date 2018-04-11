@@ -14,6 +14,7 @@ _the nyan authors_ are:
 | Michael Enßlin              | mic_e                       | michael@ensslin.cc                    |
 | Andre Kupka                 | freakout                    | kupka@in.tum.de                       |
 | Tushar Maheshwari           | tusharpm                    | tushar27192@gmail.com                 |
+| Andrew Thompson             | mrwerdo                     | mrwerdo331@me.com                     |
 
 If you're a first-time commiter, add yourself to the above list. This is not
 just for legal reasons, but also to keep an overview of all those nicknames.
