@@ -52,8 +52,8 @@ TokenizeError Impl::error(const std::string &msg) {
 		Location{
 			this->file,
 			yyget_lineno(this->scanner),
-			this->linepos - yyget_leng(this->scanner),
-			yyget_leng(this->scanner)
+			this->linepos - static_cast<int>(yyget_leng(this->scanner)),
+			static_cast<int>(yyget_leng(this->scanner))
 		},
 		msg
 	};
