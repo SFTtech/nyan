@@ -30,6 +30,13 @@ sudo pacman -Syu --as-needed cmake flex make clang gcc
 sudo emerge -avt cmake flex make
 ```
 
+###### Windows
+
+  - [CMake](https://cmake.org/download/)
+  - [Visual Studio 2017 Community edition](https://www.visualstudio.com/downloads/)
+  - [flex](https://sourceforge.net/projects/winflexbison/)
+    - The path to win_flex.exe needs to be added to the PATH environment variable
+  
 ## Clone this repository
 
 ```
