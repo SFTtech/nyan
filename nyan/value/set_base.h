@@ -95,7 +95,7 @@ public:
 	}
 
 
-	void clear () {
+	void clear() {
 		this->values.clear();
 	}
 
@@ -104,7 +104,7 @@ public:
 		throw Error{
 			"Sets are not non-const-iterable. "
 			"make it const by using e.g. "
-			"for (auto &it = util::as_const(container))"
+			"for (auto &it = std::as_const(container))"
 		};
 	}
 

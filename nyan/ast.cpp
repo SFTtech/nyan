@@ -432,7 +432,7 @@ ASTMember::ASTMember(const Token &name,
 
 		token = tokens.next();
 	}
-	else if (had_def_or_decl == false) {
+	if (not had_def_or_decl) {
 		throw ASTError("expected type declaration ( : type ) "
 		               "or value ( = something), instead got",
 		               *token);

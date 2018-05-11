@@ -17,43 +17,27 @@
 
 namespace nyan {
 
-Value::Value() {}
-
 
 static ValueHolder value_from_value_token(const Type &target_type,
                                           const IDToken &value_token,
                                           const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value) {
 
-	ValueHolder member_value;
-
 	switch (target_type.get_primitive_type()) {
 	case primitive_t::BOOLEAN:
-		member_value = ValueHolder{
-			std::make_shared<Boolean>(value_token)
-		};
-		break;
+		return {std::make_shared<Boolean>(value_token)};
+
 	case primitive_t::TEXT:
-		member_value = ValueHolder{
-			std::make_shared<Text>(value_token)
-		};
-		break;
+		return {std::make_shared<Text>(value_token)};
+
 	case primitive_t::INT:
-		member_value = ValueHolder{
-			std::make_shared<Int>(value_token)
-		};
-		break;
-	case primitive_t::FLOAT: {
-		member_value = ValueHolder{
-			std::make_shared<Float>(value_token)
-		};
-		break;
-	}
+		return {std::make_shared<Int>(value_token)};
+
+	case primitive_t::FLOAT:
+		return {std::make_shared<Float>(value_token)};
+
 	case primitive_t::FILENAME: {
 		// TODO: make relative to current namespace
-		member_value = ValueHolder{
-			std::make_shared<Filename>(value_token)
-		};
-		break;
+		return {std::make_shared<Filename>(value_token)};
 	}
 	case primitive_t::OBJECT: {
 
@@ -66,16 +50,13 @@ static ValueHolder value_from_value_token(const Type &target_type,
 
 		fqon_t obj_id = get_obj_value(target_type, value_token);
 
-		member_value = ValueHolder{
-			std::make_shared<ObjectValue>(std::move(obj_id))
-		};
-		break;
+		return {std::make_shared<ObjectValue>(std::move(obj_id))};
 	}
 	default:
 		throw InternalError{"non-implemented value type"};
 	}
 
-	return member_value;
+	return {nullptr};
 }
 
 
@@ -120,20 +101,12 @@ ValueHolder Value::from_ast(const Type &target_type,
 	// switch by container type determined in the ast,
 	// which can be different than the target_type.
 	switch (astmembervalue.get_container_type()) {
-	case container_t::SET: {
+	case container_t::SET:
 		// create a set from the value list
-		return ValueHolder{
-			std::make_unique<Set>(std::move(values))
-		};
-		break;
-	}
+		return {std::make_shared<Set>(std::move(values))};
 
-	case container_t::ORDEREDSET: {
-		return ValueHolder{
-			std::make_unique<OrderedSet>(std::move(values))
-		};
-		break;
-	}
+	case container_t::ORDEREDSET:
+		return {std::make_shared<OrderedSet>(std::move(values))};
 
 	default:
 		throw InternalError{"value creation for unhandled container type"};

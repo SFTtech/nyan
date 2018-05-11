@@ -7,7 +7,7 @@
 
 namespace nyan {
 
-ValueHolder::ValueHolder() {}
+ValueHolder::ValueHolder() = default;
 
 
 ValueHolder::ValueHolder(std::shared_ptr<Value> &&value)

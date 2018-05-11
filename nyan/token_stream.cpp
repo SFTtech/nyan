@@ -14,7 +14,7 @@ TokenStream::TokenStream(const TokenStream::container_t &container)
 	reinserted{nullptr} {}
 
 
-TokenStream::~TokenStream() {}
+TokenStream::~TokenStream() = default;
 
 
 const TokenStream::tok_t *TokenStream::next() {

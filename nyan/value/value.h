@@ -21,7 +21,7 @@ class Object;
  */
 class Value {
 public:
-	Value();
+	Value() = default;
 	virtual ~Value() = default;
 
 	/**

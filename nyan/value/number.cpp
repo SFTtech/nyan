@@ -7,6 +7,7 @@
 
 #include "../compiler.h"
 #include "../error.h"
+#include "../id_token.h"
 #include "../ops.h"
 #include "../token.h"
 #include "../util.h"
@@ -70,9 +71,7 @@ Number<T>::Number(T value)
 
 template <typename T>
 ValueHolder Number<T>::copy() const {
-	return ValueHolder{
-		std::make_shared<Number>(dynamic_cast<const Number &>(*this))
-	};
+	return {std::make_shared<Number>(*this)};
 }
 
 
@@ -104,9 +103,7 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 
 template <typename T>
 std::string Number<T>::str() const {
-	std::ostringstream builder;
-	builder << this->value;
-	return builder.str();
+	return std::to_string(this->value);
 }
 
 
@@ -118,7 +115,7 @@ std::string Number<T>::repr() const {
 
 template <typename T>
 size_t Number<T>::hash() const {
-	return this->value;
+	return std::hash<T>{}(this->value);
 }
 
 

@@ -189,7 +189,7 @@ public:
 	using holder_iterator = ContainerIterator<ValueHolder>;
 	using holder_const_iterator = ContainerIterator<const ValueHolder>;
 
-	Container();
+	Container() = default;
 	virtual ~Container() = default;
 
 	/**
