@@ -14,25 +14,7 @@
 #include <streambuf>
 
 
-namespace nyan {
-namespace util {
-
-size_t file_size(const std::string &filename) {
-	std::ifstream input{filename, std::ifstream::ate | std::ifstream::binary};
-
-	if (input) {
-		size_t ret = input.tellg();
-		input.close();
-		return ret;
-	}
-	else {
-		std::ostringstream builder;
-		builder << "failed getting size of file '"
-		        << filename << "': "
-		        << strerror(errno);
-		throw FileReadError{builder.str()};
-	}
-}
+namespace nyan::util {
 
 
 std::string read_file(const std::string &filename, bool binary) {
@@ -149,5 +131,4 @@ size_t hash_combine(size_t hash1, size_t hash2) {
 	return hash1 ^ (hash2 + 0x9e3779b9 + ((hash1 << 6) + (hash1 >> 2)));
 }
 
-} // namespace util
-} // namespace nyan
+} // namespace nyan::util

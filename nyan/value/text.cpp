@@ -6,6 +6,7 @@
 
 #include "../compiler.h"
 #include "../error.h"
+#include "../id_token.h"
 #include "../util.h"
 #include "../token.h"
 
@@ -31,9 +32,7 @@ Text::Text(const IDToken &token)
 
 
 ValueHolder Text::copy() const {
-	return ValueHolder{
-		std::make_shared<Text>(dynamic_cast<const Text &>(*this))
-	};
+	return {std::make_shared<Text>(*this)};
 }
 
 

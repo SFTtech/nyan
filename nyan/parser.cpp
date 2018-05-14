@@ -21,7 +21,7 @@
 
 namespace nyan {
 
-Parser::Parser() {}
+Parser::Parser() = default;
 
 
 AST Parser::parse(const std::shared_ptr<File> &file) {

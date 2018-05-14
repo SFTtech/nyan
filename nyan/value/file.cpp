@@ -34,9 +34,7 @@ Filename::Filename(const IDToken &token)
 
 
 ValueHolder Filename::copy() const {
-	return ValueHolder{
-		std::make_shared<Filename>(dynamic_cast<const Filename &>(*this))
-	};
+	return {std::make_shared<Filename>(*this)};
 }
 
 

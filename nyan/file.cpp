@@ -26,35 +26,15 @@ File::File(const std::string &path)
 }
 
 
-
-File::File(File &&other) noexcept
-	:
-	name{std::move(other.name)},
-	data{std::move(other.data)} {}
-
-
 void File::extract_lines() {
-	this->lines.clear();
+	this->line_ends = { std::string::npos };
 
-	size_t pos = 0;
-	size_t len = 0;
 	for (size_t i = 0; i < this->data.size(); i++) {
 		if (this->data[i] == '\n') {
-			this->lines.push_back(line_info{pos, len});
-			pos = i + 1;
-			len = 0;
-		} else {
-			len++;
+			this->line_ends.push_back(i);
 		}
 	}
-	this->lines.push_back(line_info{pos, len});
-}
-
-
-File &File::operator =(File &&other) noexcept {
-	this->name = std::move(other.name);
-	this->data = std::move(other.data);
-	return *this;
+	this->line_ends.push_back(data.size());
 }
 
 
@@ -69,8 +49,9 @@ const std::string &File::get_content() const {
 
 
 std::string File::get_line(size_t n) const {
-	line_info lineinfo = this->lines[n - 1];
-	return this->data.substr(lineinfo.offset, lineinfo.len);
+	size_t begin = this->line_ends[n - 1] + 1;
+	size_t len = this->line_ends[n] - begin;
+	return this->data.substr(begin, len);
 }
 
 

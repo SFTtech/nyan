@@ -199,8 +199,8 @@ void ASTObject::ast_inheritance_mod(TokenStream &tokens) {
 	comma_list(
 		token_type::RBRACKET,
 		tokens,
-		[this] (const Token &token, TokenStream &stream) {
-			stream.reinsert(&token);
+		[this] (const Token & /*token*/, TokenStream &stream) {
+			stream.reinsert_last();
 			this->inheritance_change.push_back(ASTInheritanceChange{stream});
 		}
 	);
@@ -255,7 +255,7 @@ void ASTObject::ast_members(TokenStream &tokens) {
 				               "after", *token);
 			}
 
-			tokens.reinsert(lookahead);
+			tokens.reinsert_last();
 
 			if (object_next) {
 				this->objects.push_back(ASTObject{*token, tokens});
@@ -348,7 +348,7 @@ ASTInheritanceChange::ASTInheritanceChange(TokenStream &tokens) {
 		throw ASTError{"inheritance change is missing operator", *token, false};
 	}
 	else {
-		tokens.reinsert(token);
+		tokens.reinsert_last();
 	}
 }
 
@@ -411,7 +411,7 @@ ASTMember::ASTMember(const Token &name,
 			this->value = ASTMemberValue{ctype, tokens};
 		}
 		else {
-			tokens.reinsert(next_token);
+			tokens.reinsert_last();
 
 			if (token->type == token_type::LBRACE) {
 				// no set type defined => it's a standard set
@@ -432,7 +432,7 @@ ASTMember::ASTMember(const Token &name,
 
 		token = tokens.next();
 	}
-	else if (had_def_or_decl == false) {
+	if (not had_def_or_decl) {
 		throw ASTError("expected type declaration ( : type ) "
 		               "or value ( = something), instead got",
 		               *token);
@@ -477,7 +477,7 @@ ASTMemberType::ASTMemberType(const Token &name,
 			throw ASTError("expected closing parens, but encountered", *token);
 		}
 	} else {
-		tokens.reinsert(token);
+		tokens.reinsert_last();
 	}
 }
 

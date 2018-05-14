@@ -26,7 +26,7 @@ IDToken::IDToken(const Token &first,
 		token = tokens.next();
 	}
 
-	tokens.reinsert(token);
+	tokens.reinsert_last();
 }
 
 

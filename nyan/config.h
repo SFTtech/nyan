@@ -24,4 +24,4 @@ using memberid_t = std::string;
 using override_depth_t = unsigned;
 
 
-} // nyan
+} // namespace nyan

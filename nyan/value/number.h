@@ -4,10 +4,10 @@
 
 #include "value.h"
 
-#include "../id_token.h"
-
 
 namespace nyan {
+
+class IDToken;
 
 /**
  * Nyan value to store a number.

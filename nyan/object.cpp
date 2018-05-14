@@ -25,7 +25,7 @@ Object::Object(const fqon_t &name, const std::shared_ptr<View> &origin)
 	name{name} {}
 
 
-Object::~Object() {}
+Object::~Object() = default;
 
 
 const fqon_t &Object::get_name() const {

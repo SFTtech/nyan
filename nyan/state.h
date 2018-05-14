@@ -71,4 +71,4 @@ private:
 	std::shared_ptr<State> previous_state;
 };
 
-} // nyan
+} // namespace nyan

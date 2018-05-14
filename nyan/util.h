@@ -12,21 +12,7 @@
 #include "error.h"
 
 
-namespace nyan {
-namespace util {
-
-/**
- * C++17 provides std::as_const, which does exactly the same:
- * Constify a value by prepending const.
- */
-template<typename T> constexpr const T &as_const(T &t) noexcept {
-	return t;
-}
-
-/**
- * Determine the size of a file.
- */
-size_t file_size(const std::string &filename);
+namespace nyan::util {
 
 /**
  * Read a file from the filesystem and return the contents.
@@ -162,5 +148,4 @@ bool contains(const T &container, const V &value) {
  */
 size_t hash_combine(size_t hash1, size_t hash2);
 
-} // namespace util
-} // namespace nyan
+} // namespace nyan::util

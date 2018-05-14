@@ -16,9 +16,7 @@ ObjectValue::ObjectValue(const fqon_t &name)
 
 
 ValueHolder ObjectValue::copy() const {
-	return ValueHolder{
-		std::make_shared<ObjectValue>(dynamic_cast<const ObjectValue &>(*this))
-	};
+	return {std::make_shared<ObjectValue>(*this)};
 }
 
 

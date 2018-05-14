@@ -42,7 +42,7 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 		}
 	}
 
-	int value = *root->get("test.First").get<Int>("member");
+	auto value = *root->get("test.First").get<Int>("member");
 
 	std::cout << "after change: First.member == "
 	          << value

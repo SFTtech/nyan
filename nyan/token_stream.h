@@ -2,16 +2,12 @@
 #pragma once
 
 
-#include <functional>
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <vector>
-
-#include "error.h"
 
 
 namespace nyan {
+
+class Token;
 
 /**
  * Python-yield like iterator for a token stream.
@@ -24,7 +20,6 @@ class TokenStream {
 public:
 	using tok_t = Token;
 	using container_t = std::vector<tok_t>;
-	using iter_t = container_t::const_iterator;
 
 	TokenStream(const container_t &container);
 
@@ -36,13 +31,14 @@ public:
 
 	bool empty() const;
 
-	/** really stupid variant of one-lookahead... */
-	void reinsert(const tok_t *item);
+	/**
+	 * Reinserts the tokens previously returned by next in reverse order.
+	 */
+	void reinsert_last();
 
 protected:
-	const std::vector<Token> &container;
-	iter_t iter;
-	const tok_t *reinserted;
+	const container_t &container;
+	container_t::const_iterator iter;
 };
 
 } // namespace nyan

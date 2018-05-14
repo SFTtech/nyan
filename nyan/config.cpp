@@ -3,4 +3,4 @@
 #include "config.h"
 
 namespace nyan {
-} // nyan
+} // namespace nyan

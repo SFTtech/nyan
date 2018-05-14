@@ -8,7 +8,7 @@
 
 namespace nyan {
 
-OrderedSet::OrderedSet() {}
+OrderedSet::OrderedSet() = default;
 
 
 OrderedSet::OrderedSet(std::vector<ValueHolder> &&values) {
@@ -19,11 +19,7 @@ OrderedSet::OrderedSet(std::vector<ValueHolder> &&values) {
 
 
 ValueHolder OrderedSet::copy() const {
-	return ValueHolder{
-		std::make_shared<OrderedSet>(
-			dynamic_cast<const OrderedSet &>(*this)
-		)
-	};
+	return {std::make_shared<OrderedSet>(*this)};
 }
 
 

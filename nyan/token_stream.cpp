@@ -2,6 +2,8 @@
 
 #include "token_stream.h"
 
+#include <iostream>
+
 #include "token.h"
 
 
@@ -10,20 +12,14 @@ namespace nyan {
 TokenStream::TokenStream(const TokenStream::container_t &container)
 	:
 	container{container},
-	iter{std::begin(container)},
-	reinserted{nullptr} {}
+	iter{std::begin(container)} {}
 
 
-TokenStream::~TokenStream() {}
+TokenStream::~TokenStream() = default;
 
 
 const TokenStream::tok_t *TokenStream::next() {
 	const tok_t *ret;
-	if (this->reinserted != nullptr) {
-		ret = this->reinserted;
-		this->reinserted = nullptr;
-		return ret;
-	}
 
 	if (not this->full()) {
 		throw InternalError{"requested item from empty list"};
@@ -48,8 +44,12 @@ bool TokenStream::empty() const {
 }
 
 
-void TokenStream::reinsert(const tok_t *item) {
-	this->reinserted = item;
+void TokenStream::reinsert_last() {
+	if (this->iter == std::begin(this->container)) {
+		throw InternalError{"requested reinsert of unavailable token"};
+	}
+
+	this->iter = std::prev(this->iter);
 }
 
 } // namespace nyan

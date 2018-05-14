@@ -31,7 +31,7 @@ Database::Database()
 	state{std::make_shared<State>()} {}
 
 
-Database::~Database() {}
+Database::~Database() = default;
 
 
 /**

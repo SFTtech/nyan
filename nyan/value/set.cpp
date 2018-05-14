@@ -8,7 +8,7 @@
 
 namespace nyan {
 
-Set::Set() {}
+Set::Set() = default;
 
 
 Set::Set(std::vector<ValueHolder> &&values) {
@@ -19,9 +19,7 @@ Set::Set(std::vector<ValueHolder> &&values) {
 
 
 ValueHolder Set::copy() const {
-	return ValueHolder{
-		std::make_shared<Set>(dynamic_cast<const Set &>(*this))
-	};
+	return {std::make_shared<Set>(*this)};
 }
 
 
