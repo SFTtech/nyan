@@ -13,6 +13,65 @@
 #include <fstream>
 #include <streambuf>
 
+#if defined(_WIN32) || defined(__CYGWIN__)
+#include <array>
+#include <mutex>
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <DbgHelp.h>
+
+
+namespace {
+
+
+std::string symbol_name_win(const void *addr, bool require_exact_addr) {
+	// Handle to the current process
+	static HANDLE process_handle = INVALID_HANDLE_VALUE;
+	static bool initialized_symbol_handler = false;
+	static bool initialized_symbol_handler_successfully = false;
+
+	// SymInitialize & SymFromAddr are, according to MSDN, not thread-safe.
+	static std::mutex sym_mutex;
+	std::lock_guard<std::mutex> sym_lock_guard{sym_mutex};
+
+	// Initialize symbol handler for process, if it has not yet been initialized
+	// If we are not succesful on the first try, leave it, since MSDN says that searching for symbol files is very time consuming
+	if (!initialized_symbol_handler) {
+		initialized_symbol_handler = true;
+
+		process_handle = GetCurrentProcess();
+		initialized_symbol_handler_successfully = SymInitialize(process_handle, nullptr, TRUE);
+	}
+
+	if (!initialized_symbol_handler_successfully) {
+		return {};
+	}
+
+	// The magic of winapi
+	constexpr int name_buffer_size = 1024;
+	constexpr int buffer_size = sizeof(SYMBOL_INFO) + name_buffer_size * sizeof(char);
+	std::array<char, buffer_size> buffer;
+
+	SYMBOL_INFO *symbol_info = reinterpret_cast<SYMBOL_INFO*>(buffer.data());
+
+	symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
+	symbol_info->MaxNameLen = name_buffer_size;
+
+	DWORD64 symbol_offset = 0;
+	if (not SymFromAddr(process_handle, reinterpret_cast<DWORD64>(addr),
+	                    &symbol_offset, symbol_info)
+	    or (require_exact_addr and symbol_offset != 0)) {
+		return {};
+	}
+
+	return std::string(symbol_info->Name);
+}
+
+
+} // <anonymous> namespace
+#endif
+
 
 namespace nyan::util {
 
@@ -75,9 +134,13 @@ std::string addr_to_string(const void *addr) {
 
 std::string symbol_name(const void *addr,
                         bool require_exact_addr, bool no_pure_addrs) {
-#ifdef _MSC_VER
-	// TODO: implement symbol_name for MSVC; Possibly using SymFromAddr
-	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms681323(v=vs.85).aspx
+#if defined(_WIN32) || defined(__CYGWIN__)
+	auto symbol_name_result = symbol_name_win(addr, require_exact_addr);
+
+	if (!symbol_name_result.empty()) {
+		return symbol_name_result;
+	}
+
 	return no_pure_addrs ? "" : addr_to_string(addr);
 #else
 	Dl_info addr_info;

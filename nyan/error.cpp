@@ -4,13 +4,14 @@
 
 #include <memory>
 #include <sstream>
-#ifndef _MSC_VER
-#include <execinfo.h>
-#else
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-// TODO - RtlCaptureStackBackTrace doesn't report number of frames available
+// TODO - CaptureStackBackTrace doesn't report number of frames available
 // need to implement increase buffer size
-#define backtrace(buffer, buf_size) RtlCaptureStackBackTrace(0, buf_size, buffer, NULL)
+#define backtrace(buffer, buf_size) CaptureStackBackTrace(0, buf_size, buffer, NULL)
+#else
+#include <execinfo.h>
 #endif
 
 #include "compiler.h"
