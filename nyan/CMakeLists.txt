@@ -88,6 +88,7 @@ if(UNIX)
 endif()
 if(WIN32)
 	set_target_properties(nyan PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+	target_link_libraries(nyan PRIVATE DbgHelp)
 endif()
 
 set_target_properties(nyan PROPERTIES

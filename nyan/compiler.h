@@ -19,7 +19,7 @@
 /*
  * Software breakpoint for debugging.
  */
-#ifdef _MSC_VER
+#ifdef _WIN32
 	#define BREAKPOINT __debugbreak()
 #else
 	#include <signal.h>
