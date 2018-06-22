@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language name="nyan" version="1" kateversion="5.0" extensions="*.nyan" section="Markup" casesensitive="1" author="Christoph Heine (heinezen@mailbox.org)" license="LGPL">
+<highlighting>
+    <list name="keywords">
+      <item> import </item>
+      <item> as </item>
+    </list>
+    <list name="primitive_types">
+      <item>int</item>
+      <item>float</item>
+      <item>text</item>
+      <item>file</item>
+      <item>bool</item>
+    </list>
+    <list name="list_types">
+      <item>set</item>
+      <item>orderedset</item>
+      <!-- <item>dict</item> implement me jj, pls.. -->
+    </list>
+	<list name="constants">
+		<item>True</item>
+		<item>False</item>
+		<item>inf</item>
+	</list>
+    <contexts>
+      <context attribute="Normal" lineEndContext="#pop" name="normal" >
+        <DetectSpaces/>
+        <keyword attribute="Keyword" context="#stay" String="keywords" />
+        <keyword attribute="PrimitveType" context="#stay" String="primitive_types" />
+        <keyword attribute="ListType" context="#stay" String="list_types" />
+        <keyword attribute="Constant" context="#stay" String="constants" />
+        <Float attribute="Float" context="#stay"/>
+        <Int attribute="Int" context="#stay"/>
+        <DetectChar attribute="Override" context="#stay" char="&#x0040;" />
+        <DetectChar attribute="String" context="string" char="&quot;" />
+        <DetectChar attribute="PatchTarget" context="patchtarget" char="&lt;" />
+        <DetectChar attribute="Comment" context="comment" char="#" />
+      </context>
+      <context attribute="String" lineEndContext="#stay" name="string" >
+        <DetectChar attribute="String" context="#pop" char="&quot;" />
+      </context>
+      <context attribute="PatchTarget" lineEndContext="#stay" name="patchtarget" >
+          <DetectChar attribute="PatchTarget" context="#pop" char="&gt;" />
+      </context>
+      <context attribute="Comment" lineEndContext="#pop" name="comment">
+        <IncludeRules context="##Alerts" />
+        <IncludeRules context="##Modelines" />
+      </context>
+    </contexts>
+    <itemDatas>
+      <itemData name="Normal" defStyleNum="dsNormal" />
+      <itemData name="Keyword" defStyleNum="dsImport" />
+      <itemData name="PrimitveType" defStyleNum="dsDataType" />
+      <itemData name="ListType" defStyleNum="dsBuiltIn" />
+      <itemData name="Constant" defStyleNum="dsConstant" />
+      <itemData name="Float" defStyleNum="dsFloat" />
+      <itemData name="Int" defStyleNum="dsDecVal" />
+      <itemData name="Override" defStyleNum="dsSpecialChar" />
+      <itemData name="String" defStyleNum="dsString" />
+      <itemData name="PatchTarget" defStyleNum="dsNormal" italic="1" />
+      <itemData name="Comment" defStyleNum="dsComment"/>
+    </itemDatas>
+  </highlighting>
+  <general>
+    <comments>
+      <comment name="singleLine" start="#"/>
+    </comments>
+    <keywords casesensitive="1"/>
+  </general>
+</language>
