@@ -2,6 +2,8 @@
 #pragma once
 
 
+#include <functional>
+
 #include "value.h"
 
 
@@ -16,12 +18,25 @@ template <typename T>
 class Number : public Value {
 public:
 	Number(const IDToken &token);
-	Number(T value);
+	Number(T value)
+		:
+		value{value} {}
 
-	ValueHolder copy() const override;
-	std::string str() const override;
-	std::string repr() const override;
-	size_t hash() const override;
+	ValueHolder copy() const override {
+		return {std::make_shared<Number>(*this)};
+	}
+
+	std::string str() const override {
+		return std::to_string(this->value);
+	}
+
+	std::string repr() const override {
+		return this->str();
+	}
+
+	size_t hash() const override {
+		return std::hash<T>{}(this->value);
+	}
 
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
@@ -30,9 +45,13 @@ public:
 		return this->value;
 	}
 
+	using storage_type = T;
 protected:
 	void apply_value(const Value &value, nyan_op operation) override;
-	bool equals(const Value &other) const override;
+	bool equals(const Value &other) const override {
+		auto &other_val = dynamic_cast<const Number &>(other);
+		return this->value == other_val.value;
+	}
 
 	/**
 	 * Actual numerical value.
@@ -52,4 +71,4 @@ using Int = Number<int64_t>;
  */
 using Float = Number<double>;
 
-} // namespace std
+} // namespace nyan
