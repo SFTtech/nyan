@@ -64,18 +64,6 @@ Float::Number(const IDToken &token) {
 
 
 template <typename T>
-Number<T>::Number(T value)
-	:
-	value{value} {}
-
-
-template <typename T>
-ValueHolder Number<T>::copy() const {
-	return {std::make_shared<Number>(*this)};
-}
-
-
-template <typename T>
 void Number<T>::apply_value(const Value &value, nyan_op operation) {
 	const Number &change = dynamic_cast<const Number &>(value);
 
@@ -98,31 +86,6 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 	default:
 		throw Error{"unknown operation requested"};
 	}
-}
-
-
-template <typename T>
-std::string Number<T>::str() const {
-	return std::to_string(this->value);
-}
-
-
-template <typename T>
-std::string Number<T>::repr() const {
-	return this->str();
-}
-
-
-template <typename T>
-size_t Number<T>::hash() const {
-	return std::hash<T>{}(this->value);
-}
-
-
-template <typename T>
-bool Number<T>::equals(const Value &other) const {
-	auto &other_val = dynamic_cast<const Number &>(other);
-	return this->value == other_val.value;
 }
 
 
@@ -168,5 +131,24 @@ const BasicType &Float::get_type() const {
 
 	return type;
 }
+
+// explicit instantiation of member functions
+template
+void Number<typename Int::storage_type>::apply_value(
+	const Value &value, nyan_op operation);
+
+template
+void Number<typename Float::storage_type>::apply_value(
+	const Value &value, nyan_op operation);
+
+template
+const std::unordered_set<nyan_op> &
+Number<typename Int::storage_type>::allowed_operations(
+	const Type &with_type) const;
+
+template
+const std::unordered_set<nyan_op> &
+Number<typename Float::storage_type>::allowed_operations(
+	const Type &with_type) const;
 
 } // namespace nyan
