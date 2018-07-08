@@ -39,6 +39,15 @@ set(nyan_exports_name "nyanTargets")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# CMake policies
+foreach(pol
+        CMP0067  # honor language standard in try_compile()
+       )
+	if (POLICY ${pol})
+		cmake_policy(SET ${pol} NEW)
+	endif()
+endforeach()
+
 # Ensure CMAKE_BUILD_TYPE is set correctly.
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")

@@ -1,11 +1,5 @@
 # Copyright 2018-2018 the nyan authors. See copying.md for legal info.
 
-cmake_policy(PUSH)
-
-if(POLICY CMP0067)
-	cmake_policy(SET CMP0067 NEW) # honor CXX_STANDARD in try_compile.
-endif()
-
 include(CheckCXXSourceCompiles)
 
 check_cxx_source_compiles("
@@ -36,5 +30,3 @@ Please upgrade your compiler to build nyan.
 
 ")
 endif()
-
-cmake_policy(POP)
