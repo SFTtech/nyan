@@ -98,6 +98,12 @@ set_target_properties(nyan PROPERTIES
 	COMPATIBLE_INTERFACE_STRING nyan_MAJOR_VERSION
 )
 
+# C++ standard requirement
+target_compile_features(nyan
+	PUBLIC
+		cxx_std_17
+)
+
 # binaries
 install(
 	TARGETS nyan
