@@ -59,6 +59,7 @@ set(BUILDSYSTEM_DIR "${nyan_SOURCE_DIR}/buildsystem")
 set(CMAKE_MODULE_PATH "${BUILDSYSTEM_DIR}")
 
 # load helper modules
+include(CheckCompilerFeatures)
 include(CMakePackageConfigHelpers)
 include(CTest)
 include(GenerateExportHeader)
