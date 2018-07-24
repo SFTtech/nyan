@@ -2,13 +2,13 @@
 # for the resulting nyan library
 
 if (APPLE)
-    execute_process(COMMAND brew --prefix flex
-                    OUTPUT_VARIABLE BREW_FLEX_HOME
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if (EXISTS "${BREW_FLEX_HOME}/bin/flex")
-        message(STATUS "Found homebrew flex, using it instead.")
-        set(FLEX_EXECUTABLE "${BREW_FLEX_HOME}/bin/flex")
-    endif ()
+	execute_process(COMMAND brew --prefix flex
+	                OUTPUT_VARIABLE BREW_FLEX_HOME
+	                OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if (EXISTS "${BREW_FLEX_HOME}/bin/flex")
+		message(STATUS "Found homebrew flex, using it instead.")
+		set(FLEX_EXECUTABLE "${BREW_FLEX_HOME}/bin/flex")
+	endif ()
 endif ()
 
 find_package(FLEX 2.6 REQUIRED)
@@ -77,15 +77,19 @@ add_library(nyan SHARED
 add_library(nyan::nyan ALIAS nyan)
 
 if(UNIX)
-	target_link_libraries(nyan
-		${CMAKE_DL_LIBS}
-	)
+	if("${CMAKE_SYSTEM_NAME}" MATCHES "^(Free|Net|Open)BSD|DragonFly")
+		find_library(EXECINFO_LIBRARY execinfo)
+		target_link_libraries(nyan ${CMAKE_DL_LIBS} ${EXECINFO_LIBRARY})
+	else()
+		target_link_libraries(nyan ${CMAKE_DL_LIBS})
+	endif()
 
 	if(NOT APPLE)
 		# for ld on macOS: "The default is to treat undefined symbols as errors."
 		set_target_properties(nyan PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
 	endif()
 endif()
+
 if(WIN32)
 	set_target_properties(nyan PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 	target_link_libraries(nyan PRIVATE DbgHelp)
