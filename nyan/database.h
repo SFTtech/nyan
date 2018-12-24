@@ -31,7 +31,9 @@ using namespace_lookup_t = std::unordered_map<Namespace, NamespaceFinder>;
 
 
 /**
- * Nyan database.
+ * The nyan database. Use this class to interface with nyan.
+ * Use the static Database::create() method to obtain a shared_ptr,
+ * it is required for db views so they can store pointers.
  */
 class Database : public std::enable_shared_from_this<Database> {
 public:

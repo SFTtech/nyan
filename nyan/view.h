@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <string>
@@ -27,7 +27,7 @@ public:
 
 	Object get(const fqon_t &fqon);
 
-	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t=DEFAULT_T) const;
+	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t=LATEST_T) const;
 
 	const ObjectInfo &get_info(const fqon_t &fqon) const;
 
@@ -37,11 +37,11 @@ public:
 
 	const Database &get_database() const;
 
-	const std::vector<fqon_t> &get_linearization(const fqon_t &fqon, order_t t=DEFAULT_T) const;
+	const std::vector<fqon_t> &get_linearization(const fqon_t &fqon, order_t t=LATEST_T) const;
 
-	const std::unordered_set<fqon_t> &get_obj_children(const fqon_t &fqon, order_t t=DEFAULT_T) const;
+	const std::unordered_set<fqon_t> &get_obj_children(const fqon_t &fqon, order_t t=LATEST_T) const;
 
-	std::unordered_set<fqon_t> get_obj_children_all(const fqon_t &fqon, order_t t=DEFAULT_T) const;
+	std::unordered_set<fqon_t> get_obj_children_all(const fqon_t &fqon, order_t t=LATEST_T) const;
 
 	/**
 	 * Drop all state later than given time.

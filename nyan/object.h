@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -46,14 +46,14 @@ public:
 	/**
 	 * Get a calculated member value.
 	 */
-	ValueHolder get(const memberid_t &member, order_t t=DEFAULT_T) const;
+	ValueHolder get(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
 	 * Invokes the get function and then does a cast.
 	 * TODO: either return a stored variant reference or the shared ptr of the holder
 	 */
 	template <typename V>
-	std::shared_ptr<V> get(memberid_t member, order_t t=DEFAULT_T) const {
+	std::shared_ptr<V> get(memberid_t member, order_t t=LATEST_T) const {
 		try {
 			return std::dynamic_pointer_cast<V>(this->get(member, t).get_ptr());
 		}
@@ -66,18 +66,18 @@ public:
 	/**
 	 * Return the parents of the object.
 	 */
-	const std::deque<fqon_t> &get_parents(order_t t=DEFAULT_T) const;
+	const std::deque<fqon_t> &get_parents(order_t t=LATEST_T) const;
 
 	/**
 	 * Test if this object has a member of given name.
 	 */
-	bool has(const memberid_t &member, order_t t=DEFAULT_T) const;
+	bool has(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
 	 * Test if this object is a child of the given parent.
 	 * Returns true if parent equals this object.
 	 */
-	bool extends(fqon_t other_fqon, order_t t=DEFAULT_T) const;
+	bool extends(fqon_t other_fqon, order_t t=LATEST_T) const;
 
 	/**
 	 * Return the object metadata.
@@ -99,7 +99,7 @@ public:
 	/**
 	 * Return the linearization of this object and its parent objects.
 	 */
-	const std::vector<fqon_t> &get_linearized(order_t t=DEFAULT_T) const;
+	const std::vector<fqon_t> &get_linearized(order_t t=LATEST_T) const;
 
 	// TODO: event-callback for this object.
 	// invoked whenever the member is updated:
@@ -113,13 +113,13 @@ protected:
 	/**
 	 * Return the object state for a given time.
 	 */
-	const std::shared_ptr<ObjectState> &get_raw(order_t t=DEFAULT_T) const;
+	const std::shared_ptr<ObjectState> &get_raw(order_t t=LATEST_T) const;
 
 	/**
 	 * Calculate a member value of this object.
 	 * This performs tree traversal for value calculations.
 	 */
-	ValueHolder calculate_value(const memberid_t &member, order_t t=DEFAULT_T) const;
+	ValueHolder calculate_value(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
 	 * View the object was created from.

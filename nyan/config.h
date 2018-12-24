@@ -1,7 +1,11 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+
 #pragma once
 
+#include <cstddef>
 #include <string>
+#include <limits>
+
 
 namespace nyan {
 
@@ -13,6 +17,9 @@ using order_t = uint64_t;
 
 /** starting point of order */
 constexpr const order_t DEFAULT_T = 0;
+
+/** the maximum representable value of order_t is always the "latest" value */
+constexpr const order_t LATEST_T = std::numeric_limits<order_t>::max();
 
 /** fully-qualified object name */
 using fqon_t = std::string;
