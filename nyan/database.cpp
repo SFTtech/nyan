@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "database.h"
 
@@ -317,7 +317,7 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 			std::make_shared<Type>(
 				astmember.type,
 				scope,
-				ns,
+				objname,
 				this->meta_info
 			),
 			true   // type was defined in the ast -> initial definition
