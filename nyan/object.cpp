@@ -45,7 +45,7 @@ ValueHolder Object::get(const memberid_t &member, order_t t) const {
 
 template <>
 std::shared_ptr<Object> Object::get<Object>(memberid_t member, order_t t) const {
-	auto obj_val = std::dynamic_pointer_cast<ObjectValue>(this->get(member, t).get_ptr());
+	auto obj_val = this->get<ObjectValue>(member, t);
 	fqon_t fqon = obj_val->get();
 	std::shared_ptr<Object> ret = std::make_shared<Object>(Object::Restricted{},
 	                                                       fqon, this->origin);
