@@ -8,9 +8,6 @@
 #    nyan_VERSION      -- nyan library version number
 #    nyan::nyan        -- target library to link to
 #
-# options:
-#    nyan_FIND_QUIETLY -- if true, don't emit the "found nyan" message
-#
 # nyan automatically provides all paths and includedirs through cmake.
 # this is done by the PUBLIC include_dir specification.
 # usage:
@@ -28,7 +25,3 @@ set(nyan_VERSION @PROJECT_VERSION@)
 # include the target and library definitions
 include("${CMAKE_CURRENT_LIST_DIR}/@nyan_exports_name@.cmake")
 check_required_components(nyan)
-
-if(NOT nyan_FIND_QUIETLY)
-	message(STATUS "Found nyan ${nyan_VERSION}")
-endif()
