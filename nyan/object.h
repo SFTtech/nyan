@@ -83,7 +83,8 @@ public:
 
 	/**
 	 * Test if this object is a child of the given parent.
-	 * Returns true if parent equals this object.
+	 * Returns true if other_fqon equals this object or any
+	 * of its (transitive) parents.
 	 */
 	bool extends(fqon_t other_fqon, order_t t=LATEST_T) const;
 
@@ -148,10 +149,10 @@ std::shared_ptr<T> Object::get(memberid_t member, order_t t) const {
 
 	if (not ret) {
 		std::stringstream ss;
-		ss << "failed to cast value of " << this->name << "." << member
+		ss << "failed to fetch value of " << this->name << "." << member
 		   << " of real type "
 		   << util::typestring(value.get())
-		   << " to type " << util::typestring<T>();
+		   << " as type " << util::typestring<T>();
 		throw APIError{ss.str()};
 	}
 

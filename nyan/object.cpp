@@ -56,13 +56,13 @@ std::shared_ptr<Object> Object::get<Object>(memberid_t member, order_t t) const 
 ValueHolder Object::calculate_value(const memberid_t &member, order_t t) const {
 	using namespace std::string_literals;
 
-	// TODO: don't allow for patches?
+	// TODO: don't allow calculating values for patches?
 	// it's impossible as they may have members without =
 
 	// get references to all parentobject-states
 	std::vector<std::shared_ptr<ObjectState>> parents;
 
-	const std::vector<fqon_t> linearization = this->get_linearized(t);
+	const std::vector<fqon_t> &linearization = this->get_linearized(t);
 
 	// find the last value assigning with =
 	// it sets the base value where we apply the modifications then
