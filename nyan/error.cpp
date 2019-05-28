@@ -246,10 +246,18 @@ APIError::APIError(const std::string &msg)
 	Error{msg} {}
 
 
-ObjectNotFoundError::ObjectNotFoundError(const fqon_t &objname)
+ObjectNotFoundError::ObjectNotFoundError(const fqon_t &obj_name)
 	:
-	APIError{"object not found: " + objname},
-	name{objname} {}
+	APIError{"object not found: " + obj_name},
+	name{obj_name} {}
+
+
+MemberNotFoundError::MemberNotFoundError(const fqon_t &obj_name,
+                                         const memberid_t &member_name)
+	:
+	APIError{"Could not find member " + obj_name + "." + member_name},
+	obj_name{obj_name},
+	name{member_name} {}
 
 
 FileError::FileError(const Location &location,

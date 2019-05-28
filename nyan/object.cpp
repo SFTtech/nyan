@@ -87,7 +87,7 @@ ValueHolder Object::calculate_value(const memberid_t &member, order_t t) const {
 	// -> no parent assigned a value.
 	// errors in the data files are detected at load time already.
 	if (unlikely(defined_by >= linearization.size() or base_value == nullptr)) {
-		throw APIError{"member not found: "s + this->name + "." + member};
+		throw MemberNotFoundError{this->name, member};
 	}
 
 	// if this object defines the value, no aggregation is needed.

@@ -214,6 +214,20 @@ protected:
 
 
 /**
+ * An object member queried over the API is not found.
+ */
+class MemberNotFoundError : public APIError {
+public:
+	MemberNotFoundError(const fqon_t &objname,
+	                    const memberid_t &membername);
+
+protected:
+	fqon_t obj_name;
+	memberid_t name;
+};
+
+
+/**
  * Exception class to capture problems with files,
  * for that, it stores line number and line offset.
  */
