@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -147,6 +147,11 @@ protected:
 	 * The error message text.
 	 */
 	std::string msg;
+
+	/**
+	 * Cached error message text for returning C string via what().
+	 */
+	mutable std::string what_cache;
 
 	/**
 	 * Re-throw this with rethrow_cause().

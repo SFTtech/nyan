@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "error.h"
 
@@ -112,7 +112,8 @@ std::string Error::str() const {
 
 
 const char *Error::what() const noexcept {
-	return this->msg.c_str();
+	this->what_cache = this->str();
+	return this->what_cache.c_str();
 }
 
 
