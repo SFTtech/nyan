@@ -1,16 +1,19 @@
-// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
 #include <deque>
 #include <memory>
-#include <unordered_set>
+#include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "config.h"
 #include "error.h"
 #include "value/value_holder.h"
+#include "value/object.h"
+#include "util.h"
 
 
 namespace nyan {
@@ -28,9 +31,19 @@ class View;
 class Object {
 	friend class View;
 protected:
+	/**
+	 * Create a nyan-object handle. This is never invoked by the user,
+	 * as handles are generated internally and then handed over.
+	 */
 	Object(const fqon_t &name, const std::shared_ptr<View> &origin);
+	class Restricted {};
 
 public:
+	// This constructor is public, but can't be invoked since the Restricted
+	// class is not available. We use this to be able to invoke make_shared
+	// within this class, but not outside of it.
+	Object(Object::Restricted, const fqon_t &name, const std::shared_ptr<View> &origin)
+		: Object(name, origin) {};
 	~Object();
 
 	/**
@@ -50,18 +63,13 @@ public:
 
 	/**
 	 * Invokes the get function and then does a cast.
+	 * There's a special variant for T=nyan::Object which creates
+	 * an object handle.
+	 *
 	 * TODO: either return a stored variant reference or the shared ptr of the holder
 	 */
-	template <typename V>
-	std::shared_ptr<V> get(memberid_t member, order_t t=LATEST_T) const {
-		try {
-			return std::dynamic_pointer_cast<V>(this->get(member, t).get_ptr());
-		}
-		catch (std::bad_cast &) {
-			// TODO: show which it was
-			throw APIError{"bad cast of value"};
-		}
-	}
+	template <typename T>
+	std::shared_ptr<T> get(memberid_t member, order_t t=LATEST_T) const;
 
 	/**
 	 * Return the parents of the object.
@@ -132,5 +140,30 @@ protected:
 	fqon_t name;
 };
 
+
+template <typename T>
+std::shared_ptr<T> Object::get(memberid_t member, order_t t) const {
+	std::shared_ptr<Value> value = this->get(member, t).get_ptr();
+	auto ret = std::dynamic_pointer_cast<T>(value);
+
+	if (not ret) {
+		std::stringstream ss;
+		ss << "failed to cast value of " << this->name << "." << member
+		   << " of real type "
+		   << util::typestring(value.get())
+		   << " to type " << util::typestring<T>();
+		throw APIError{ss.str()};
+	}
+
+	return ret;
+}
+
+
+/**
+ * Specialization of the get function to generate a nyan::Object
+ * from the ObjectValue that is stored in a value.
+ */
+template <>
+std::shared_ptr<Object> Object::get<Object>(memberid_t member, order_t t) const;
 
 } // namespace nyan

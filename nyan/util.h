@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -32,6 +32,23 @@ std::string demangle(const char *symbol);
  * Return the demangled symbol name for a given code address.
  */
 std::string symbol_name(const void *addr, bool require_exact_addr=true, bool no_pure_addrs=false);
+
+
+/**
+ * Returns the string representation of the given type.
+ */
+template <typename T>
+std::string typestring() {
+	return demangle(typeid(T).name());
+}
+
+/**
+ * Returns the string representation of type of the given pointer.
+ */
+template <typename T>
+std::string typestring(const T *ptr) {
+	return demangle(typeid(*ptr).name());
+}
 
 
 template <typename T>

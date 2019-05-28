@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object.h"
 
@@ -40,6 +40,16 @@ const std::shared_ptr<View> &Object::get_view() const {
 
 ValueHolder Object::get(const memberid_t &member, order_t t) const {
 	return this->calculate_value(member, t);
+}
+
+
+template <>
+std::shared_ptr<Object> Object::get<Object>(memberid_t member, order_t t) const {
+	auto obj_val = std::dynamic_pointer_cast<ObjectValue>(this->get(member, t).get_ptr());
+	fqon_t fqon = obj_val->get();
+	std::shared_ptr<Object> ret = std::make_shared<Object>(Object::Restricted{},
+	                                                       fqon, this->origin);
+	return ret;
 }
 
 
