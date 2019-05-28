@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "transaction.h"
 
@@ -44,20 +44,37 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 	// first, perform transaction on the requested view
 	create_state_mod(std::move(origin));
 
-	// also apply the transaction in all childs of the view.
-	for (auto &target_child_view_weakptr :
-	     this->states.at(0).view->get_children()) {
 
-		auto target_child_view = target_child_view_weakptr.lock();
-		if (not target_child_view) {
-			// child view no longer there, so we skip it.
-			// TODO: tell the view that it vanished.
-			//       otherwise they're never cleaned up.
-			continue;
+	auto &main_view = this->states.at(0).view;
+
+	// recursively visit all of the view's children and their children
+	// lol C++
+	std::function<void(const std::shared_ptr<View>&)> recurse =
+	[&create_state_mod, &recurse] (const std::shared_ptr<View> &view) {
+		bool view_has_stale_children = false;
+
+		// also apply the transaction in all childs of the view.
+		for (auto &target_child_view_weakptr :
+		     view->get_children()) {
+
+			auto target_child_view = target_child_view_weakptr.lock();
+			if (not target_child_view) {
+				// child view no longer there, so we skip it.
+				view_has_stale_children = true;
+				continue;
+			}
+
+			recurse(target_child_view);
+
+			create_state_mod(std::move(target_child_view));
 		}
 
-		create_state_mod(std::move(target_child_view));
-	}
+		if (view_has_stale_children) {
+			view->cleanup_stale_children();
+		}
+	};
+
+	recurse(main_view);
 }
 
 

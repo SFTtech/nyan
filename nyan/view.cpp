@@ -65,7 +65,21 @@ std::shared_ptr<View> View::new_child() {
 }
 
 
-std::vector<std::weak_ptr<View>> &View::get_children() {
+void View::cleanup_stale_children() {
+	auto it = std::begin(this->children);
+
+	while (it != std::end(this->children)) {
+		if (it->expired()) {
+			it = this->children.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+}
+
+
+const std::vector<std::weak_ptr<View>> &View::get_children() {
 	return this->children;
 }
 
@@ -117,6 +131,7 @@ StateHistory &View::get_state_history() {
 
 
 void View::add_child(const std::shared_ptr<View> &view) {
+	view->parent_view = this->shared_from_this();
 	this->children.push_back(view);
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <string>
@@ -35,6 +35,8 @@ public:
 
 	std::shared_ptr<View> new_child();
 
+	void cleanup_stale_children();
+
 	const Database &get_database() const;
 
 	const std::vector<fqon_t> &get_linearization(const fqon_t &fqon, order_t t=LATEST_T) const;
@@ -52,7 +54,7 @@ public:
 
 
 protected:
-	std::vector<std::weak_ptr<View>> &get_children();
+	const std::vector<std::weak_ptr<View>> &get_children();
 
 	void gather_obj_children(std::unordered_set<fqon_t> &target,
 	                         const fqon_t &obj,
@@ -77,6 +79,12 @@ protected:
 	 * Child views. Used to propagate down patches.
 	 */
 	std::vector<std::weak_ptr<View>> children;
+
+	/**
+	 * If this view is a child of another view, this pointer
+	 * can bring us back to the parent.
+	 */
+	std::weak_ptr<View> parent_view;
 
 	// TODO: track transactions and then use tracking to
 	//       check for transaction modificationconflicts
