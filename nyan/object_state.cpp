@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object_state.h"
 
@@ -92,12 +92,12 @@ const std::deque<fqon_t> &ObjectState::get_parents() const {
 }
 
 
-bool ObjectState::has_member(const memberid_t &name) const {
+bool ObjectState::has(const memberid_t &name) const {
 	return this->members.find(name) != std::end(this->members);
 }
 
 
-Member *ObjectState::get_member(const memberid_t &name) {
+Member *ObjectState::get(const memberid_t &name) {
 	auto it = this->members.find(name);
 	if (it == std::end(this->members)) {
 		return nullptr;
@@ -107,7 +107,7 @@ Member *ObjectState::get_member(const memberid_t &name) {
 
 
 // Thanks C++, always redundancy free!
-const Member *ObjectState::get_member(const memberid_t &name) const {
+const Member *ObjectState::get(const memberid_t &name) const {
 	auto it = this->members.find(name);
 	if (it == std::end(this->members)) {
 		return nullptr;

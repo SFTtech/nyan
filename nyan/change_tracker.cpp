@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "change_tracker.h"
 
@@ -20,13 +20,13 @@ bool ObjectChanges::parents_update_required() const {
 }
 
 
-ObjectChanges &ChangeTracker::track_patch(const fqon_t &name) {
+ObjectChanges &ChangeTracker::track_patch(const fqon_t &target_name) {
 	// if existing, return the object change tracker
 	// else: create a new one.
-	auto it = this->changes.find(name);
+	auto it = this->changes.find(target_name);
 	if (it == std::end(this->changes)) {
 		return this->changes.emplace(
-			name,
+			target_name,
 			ObjectChanges{}
 		).first->second;
 	}
@@ -38,6 +38,18 @@ ObjectChanges &ChangeTracker::track_patch(const fqon_t &name) {
 
 const std::unordered_map<fqon_t, ObjectChanges> &ChangeTracker::get_object_changes() const {
 	return this->changes;
+}
+
+
+std::unordered_set<fqon_t> ChangeTracker::get_changed_objects() const {
+	std::unordered_set<fqon_t> ret;
+	ret.reserve(this->changes.size());
+
+	for (auto &it : this->changes) {
+		ret.insert(it.first);
+	}
+
+	return ret;
 }
 
 

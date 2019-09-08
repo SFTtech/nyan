@@ -1,4 +1,4 @@
-// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "nyan_tool.h"
 
@@ -14,7 +14,8 @@
 
 namespace nyan {
 
-void test_parser(const std::string &base_path, const std::string &filename) {
+int test_parser(const std::string &base_path, const std::string &filename) {
+	int ret = 0;
 	auto db = Database::create();
 
 	db->load(
@@ -49,21 +50,47 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	          << std::endl;
 
 	if (value != 24) {
-		throw std::runtime_error{"patch result wrong"};
+		std::cout << "patch result is wrong" << std::endl;
+		return 1;
 	}
 
+
+	order_t trans_callback_time = -1;
+	bool got_child_callback = false;
+	auto cb_func = [&](order_t t, const fqon_t &fqon, const ObjectState &) {
+		trans_callback_time = t;
+		if (fqon == "test.TestChild") {
+			got_child_callback = true;
+		}
+		std::cout << "got transaction callback for object " << fqon << std::endl;
+	};
+
+	auto callback_hdl_test = root->get("test.Test").subscribe(cb_func);
+	auto callback_hdl_testchild = root->get("test.TestChild").subscribe(cb_func);
+
 	bool success;
-	Transaction tx = root->new_transaction(1);
+	order_t trans_time = 1;
+	Transaction tx = root->new_transaction(trans_time);
 	tx.add(patch);
 	tx.add(root->get("test.Patch"));
 	tx.add(root->get("test.SetPatch"));
 	success = tx.commit();
+
+	if (trans_callback_time != trans_time) {
+		std::cout << "Transaction callback failed" << std::endl;
+	}
+
+	if (not got_child_callback) {
+		std::cout << "got no callback for TestChild" << std::endl;
+		ret = 1;
+	}
 
 	if (success) {
 		std::cout << "Transaction OK" << std::endl;
 	}
 	else {
 		std::cout << "Transaction FAILED" << std::endl;
+		ret = 1;
 	}
 
 	std::cout << "after change: Second.member == "
@@ -93,6 +120,8 @@ void test_parser(const std::string &base_path, const std::string &filename) {
 	          << "test.gschicht parents = " << util::strjoin(", ", root->get("test.Test").get_parents(1))
 	          << std::endl << "newvalue = " << root->get("test.Test").get("new_value", 1)->str()
 	          << std::endl;
+
+	return ret;
 }
 
 
@@ -100,6 +129,10 @@ int run(flags_t flags, params_t params) {
 	try {
 		if (flags[option_flag::TEST_PARSER]) {
 			const std::string &filename = params[option_param::FILE];
+
+			if (filename.size() == 0) {
+				throw Error{"empty filename given"};
+			}
 
 			std::vector<std::string> parts = util::split(filename, '/');
 
@@ -111,7 +144,7 @@ int run(flags_t flags, params_t params) {
 			std::string base_path = util::strjoin("/", parts);
 
 			try {
-				nyan::test_parser(base_path, first_file);
+				return nyan::test_parser(base_path, first_file);
 			}
 			catch (FileError &err) {
 				std::cout << "\x1b[33;1mfile error:\x1b[m\n"

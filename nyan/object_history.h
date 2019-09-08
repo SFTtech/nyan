@@ -1,6 +1,7 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
+#include <optional>
 #include <set>
 #include <unordered_set>
 #include <utility>
@@ -33,9 +34,8 @@ public:
 	 * exact_order: the ordering timestamp for the last matching change.
 	 *              will be 0, but invalid, if in_history is false.
 	 *
-	 * TODO: use std::optional...
 	 */
-	std::pair<bool, order_t> last_change_before(order_t t) const;
+	std::optional<order_t> last_change_before(order_t t) const;
 
 	// TODO: curve for value cache: memberid_t => curve<valueholder>
 

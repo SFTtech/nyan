@@ -13,6 +13,7 @@
 #include "error.h"
 #include "value/value_holder.h"
 #include "value/object.h"
+#include "object_notifier_types.h"
 #include "util.h"
 
 
@@ -20,6 +21,7 @@ namespace nyan {
 
 class ObjectInfo;
 class ObjectState;
+class ObjectNotifier;
 class Type;
 class Value;
 class View;
@@ -100,22 +102,23 @@ public:
 	bool is_patch() const;
 
 	/**
-	 * Get the patch target.
-	 * Currently, there's only one target and it can't be changed.
+	 * Get the patch target. Returns nullptr if the object is not a patch.
 	 */
-	const fqon_t &get_target() const;
+	const fqon_t *get_target() const;
 
 	/**
 	 * Return the linearization of this object and its parent objects.
 	 */
 	const std::vector<fqon_t> &get_linearized(order_t t=LATEST_T) const;
 
-	// TODO: event-callback for this object.
-	// invoked whenever the member is updated:
-	// triggered either by patch application or by notification of parent object to all childs
-	// within a view only (as patches propagate down views anyway)
-	// registration of the callback is done in the view!
-	// on_change(member, std::function<void(order_t, ObjectState, memberid_t)>);
+	/**
+	 * Register a function that will be called when this object changes in its current view.
+	 * It is triggered when a patch is applied on this object
+	 * or a parent object.
+	 * The callback is registered in this object's view and will be fired as long
+	 * as the returned ObjectNotifier was not deleted.
+	 */
+	std::shared_ptr<ObjectNotifier> subscribe(const update_cb_t &callback);
 
 protected:
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <ciso646>
@@ -28,6 +28,8 @@ public:
 
 	~Location() = default;
 
+	bool is_builtin() const;
+	const std::string &get_msg() const;
 	int get_line() const;
 	int get_line_offset() const;
 	int get_length() const;
@@ -37,6 +39,12 @@ public:
 	void str(std::ostringstream &builder) const;
 
 protected:
+	/**
+	 * if true, this location does point to a file,
+	 * instead it describes some built-in location of nyan itself.
+	 */
+	bool _is_builtin = false;
+
 	std::shared_ptr<File> file;
 
 	int line;

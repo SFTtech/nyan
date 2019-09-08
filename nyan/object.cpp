@@ -72,7 +72,7 @@ ValueHolder Object::calculate_value(const memberid_t &member, order_t t) const {
 	for (auto &obj : linearization) {
 		parents.push_back(this->origin->get_raw(obj, t));
 		const ObjectState *obj_raw = parents.back().get();
-		const Member *obj_member = obj_raw->get_member(member);
+		const Member *obj_member = obj_raw->get(member);
 		// if the object has the member, check if it's the =
 		if (obj_member != nullptr) {
 			if (obj_member->get_operation() == nyan_op::ASSIGN) {
@@ -100,7 +100,7 @@ ValueHolder Object::calculate_value(const memberid_t &member, order_t t) const {
 
 	// walk back and apply the value changes
 	while (true) {
-		const Member *change = parents[defined_by]->get_member(member);
+		const Member *change = parents[defined_by]->get(member);
 		if (change != nullptr) {
 			result->apply(*change);
 		}
@@ -125,7 +125,7 @@ bool Object::has(const memberid_t &member, order_t t) const {
 	const std::vector<fqon_t> &lin = this->get_linearized(t);
 
 	for (auto &obj : lin) {
-		if (this->origin->get_raw(obj, t)->get_member(member) != nullptr) {
+		if (this->origin->get_raw(obj, t)->get(member) != nullptr) {
 			return true;
 		}
 	}
@@ -168,17 +168,22 @@ bool Object::is_patch() const {
 }
 
 
-const fqon_t &Object::get_target() const {
+const fqon_t *Object::get_target() const {
 	const PatchInfo *patch_info = this->get_info().get_patch().get();
 	if (unlikely(patch_info == nullptr)) {
-		throw InternalError{"queried target on non-patch"};
+		return nullptr;
 	}
-	return patch_info->get_target();
+	return &patch_info->get_target();
 }
 
 
 const std::vector<fqon_t> &Object::get_linearized(order_t t) const {
 	return this->origin->get_linearization(this->name, t);
+}
+
+std::shared_ptr<ObjectNotifier>
+Object::subscribe(const update_cb_t &callback) {
+	return this->origin->create_notifier(this->name, callback);
 }
 
 

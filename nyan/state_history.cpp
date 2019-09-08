@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "state_history.h"
 
@@ -17,6 +17,10 @@ StateHistory::StateHistory(const std::shared_ptr<Database> &base) {
 		std::make_shared<State>(base->get_state()),
 		DEFAULT_T
 	);
+}
+
+const std::shared_ptr<State> &StateHistory::get_state(order_t t) const {
+	return this->history.at(t);
 }
 
 
@@ -39,15 +43,15 @@ const std::shared_ptr<ObjectState> *StateHistory::get_obj_state(const fqon_t &fq
 		return nullptr;
 	}
 
-	std::pair<bool, order_t> order = obj_history->last_change_before(t);
+	std::optional<order_t> order = obj_history->last_change_before(t);
 
-	if (not order.first) {
+	if (not order) {
 		// the change is earlier than what is recorded in this history.
 		return nullptr;
 	}
 
 	// now we know the time in history the object was changed
-	const std::shared_ptr<State> *state = this->history.at_exact(order.second);
+	const std::shared_ptr<State> *state = this->history.at_exact(*order);
 	if (unlikely(state == nullptr)) {
 		throw InternalError{"no history record at change point"};
 	}

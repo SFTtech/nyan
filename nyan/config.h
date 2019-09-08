@@ -1,10 +1,10 @@
-// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #pragma once
 
 #include <cstddef>
-#include <string>
 #include <limits>
+#include <string>
 
 
 namespace nyan {
@@ -29,6 +29,5 @@ using memberid_t = std::string;
 
 /** member and override nesting depth type */
 using override_depth_t = unsigned;
-
 
 } // namespace nyan

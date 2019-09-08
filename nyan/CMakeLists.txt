@@ -50,6 +50,8 @@ add_library(nyan SHARED
 	object.cpp
 	object_history.cpp
 	object_info.cpp
+	object_notifier.cpp
+	object_notifier_types.cpp
 	object_state.cpp
 	ops.cpp
 	parser.cpp

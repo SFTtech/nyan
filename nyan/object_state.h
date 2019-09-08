@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <deque>
@@ -36,9 +36,9 @@ public:
 
 	const std::deque<fqon_t> &get_parents() const;
 
-	bool has_member(const memberid_t &name) const;
-	Member *get_member(const memberid_t &name);
-	const Member *get_member(const memberid_t &name) const;
+	bool has(const memberid_t &name) const;
+	Member *get(const memberid_t &name);
+	const Member *get(const memberid_t &name) const;
 	const std::unordered_map<memberid_t, Member> &get_members() const;
 
 	std::string str() const;

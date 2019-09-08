@@ -300,7 +300,14 @@ static void visualize_location(std::ostringstream &builder, const Location &loca
 
 std::string FileError::show_problem_origin() const {
 	std::ostringstream builder;
-	visualize_location(builder, this->location);
+
+	if (this->location.is_builtin()) {
+		builder << this->location.get_msg();
+	}
+	else {
+		visualize_location(builder, this->location);
+	}
+
 	return builder.str();
 }
 

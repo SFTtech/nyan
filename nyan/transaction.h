@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <exception>
@@ -38,6 +38,18 @@ struct view_update {
 	 * Maps objects to their new children.
 	 */
 	child_map_t children;
+};
+
+
+/**
+ * New information for a view.
+ * * The state that we're gonna build with this transaction
+ * * Changes done in the transaction to invalidate caches.
+ */
+struct view_state {
+	std::shared_ptr<View> view;
+	std::shared_ptr<State> state;
+	ChangeTracker changes;
 };
 
 
@@ -132,20 +144,9 @@ protected:
 	order_t at;
 
 	/**
-	 * New information for a view.
-	 * * The state that we're gonna build with this transaction
-	 * * Changes done in the transaction to invalidate caches.
-	 */
-	struct view_change {
-		std::shared_ptr<View> view;
-		std::shared_ptr<State> state;
-		ChangeTracker changes;
-	};
-
-	/**
 	 * The views where the transaction will be applied in.
 	 */
-	std::vector<view_change> states;
+	std::vector<view_state> states;
 };
 
 } // namespace nyan

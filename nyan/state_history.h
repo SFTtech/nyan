@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
@@ -20,15 +20,24 @@ class State;
 
 /**
  * Object state history tracking.
- * TODO: merge this class into View.
  */
 class StateHistory {
 public:
 	StateHistory(const std::shared_ptr<Database> &base);
 
+	/** return the state for t or if t doesn't exist, the latest state before that */
+	const std::shared_ptr<State> &get_state(order_t t) const;
+
+	/** return the latest state before t, that is if t exists, the previous one. */
 	const std::shared_ptr<State> &get_state_before(order_t t) const;
+
+	/** return the state at exactly t, which is nullptr if there's no state at t */
 	const std::shared_ptr<State> *get_state_exact(order_t t) const;
 
+	/**
+	 * find the latest object state for a given object at t.
+	 * if there's no object state at t, take the latest state before t.
+	 */
 	const std::shared_ptr<ObjectState> *get_obj_state(const fqon_t &fqon, order_t t) const;
 
 	void insert(std::shared_ptr<State> &&new_state, order_t t);

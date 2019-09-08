@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object_history.h"
 
@@ -21,18 +21,18 @@ void ObjectHistory::insert_change(const order_t time) {
 }
 
 
-std::pair<bool, order_t> ObjectHistory::last_change_before(order_t t) const {
+std::optional<order_t> ObjectHistory::last_change_before(order_t t) const {
 	// get the iterator to the first element greater than t
 	auto it = this->changes.upper_bound(t);
 	if (it == std::begin(this->changes)) {
 		// the requested ordering point is not in this history
-		return std::make_pair(false, 0);
+		return {};
 	}
 
 	// go one back, this is the item we're looking for
 	--it;
 
-	return std::make_pair(true, *it);
+	return *it;
 }
 
 } // namespace nyan

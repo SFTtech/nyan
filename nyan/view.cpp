@@ -1,9 +1,10 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "view.h"
 
 #include "c3.h"
 #include "database.h"
+#include "object_notifier.h"
 #include "object_state.h"
 #include "state.h"
 
@@ -70,7 +71,13 @@ void View::cleanup_stale_children() {
 
 	while (it != std::end(this->children)) {
 		if (it->expired()) {
-			it = this->children.erase(it);
+			if (this->children.size() > 1) {
+				std::iter_swap(it, std::end(this->children) - 1);
+				this->children.pop_back();
+			}
+			else {
+				this->children.clear();
+			}
 		}
 		else {
 			++it;
@@ -106,6 +113,65 @@ std::unordered_set<fqon_t> View::get_obj_children_all(const fqon_t &fqon, order_
 
 	return ret;
 }
+
+
+std::shared_ptr<ObjectNotifier> View::create_notifier(const fqon_t &fqon,
+                                                      const update_cb_t &callback) {
+
+	auto it = this->notifiers.find(fqon);
+	decltype(this->notifiers)::mapped_type *notifier_set = nullptr;
+
+	if (it == std::end(this->notifiers)) {
+
+		// create new set, add to object map and and get pointer
+		auto ins = this->notifiers.insert(
+			{
+				fqon,
+				std::unordered_set<std::shared_ptr<ObjectNotifierHandle>>{},
+			}
+		);
+
+		notifier_set = &ins.first->second;
+	}
+	else {
+		notifier_set = &it->second;
+	}
+
+	auto notifier = std::make_shared<ObjectNotifier>(fqon, callback, this->shared_from_this());
+	const auto& handle = notifier->get_handle();
+	notifier_set->insert(handle);
+	return notifier;
+}
+
+
+void View::deregister_notifier(const fqon_t &fqon,
+                               const std::shared_ptr<ObjectNotifierHandle> &notifier) {
+	auto it = this->notifiers.find(fqon);
+	if (it != std::end(this->notifiers)) {
+		size_t removed = it->second.erase(notifier);
+		if (removed == 0) {
+			throw InternalError{"could not find notifier instance in fqon set to deregister"};
+		}
+	}
+	else {
+		throw InternalError{"could not find notifier set by fqon to deregister"};
+	}
+}
+
+
+void View::fire_notifications(const std::unordered_set<fqon_t> &changed_objs,
+                              order_t t) const {
+	for (auto &obj : changed_objs) {
+		auto it = this->notifiers.find(obj);
+		if (it != std::end(this->notifiers)) {
+			for (auto &notifier : it->second) {
+				const std::shared_ptr<ObjectState> &obj_state = this->get_raw(obj, t);
+				notifier->fire(t, obj, *obj_state);
+			}
+		}
+	}
+}
+
 
 
 void View::gather_obj_children(std::unordered_set<fqon_t> &target,

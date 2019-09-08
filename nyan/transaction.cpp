@@ -44,7 +44,7 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 	// first, perform transaction on the requested view
 	create_state_mod(std::move(origin));
 
-
+	// this is actually the `origin` view, but we've moved it there.
 	auto &main_view = this->states.at(0).view;
 
 	// recursively visit all of the view's children and their children
@@ -88,23 +88,26 @@ bool Transaction::add(const Object &patch) {
 		return false;
 	}
 
+	const auto target_ptr = patch.get_target();
 	// TODO: recheck if target exists?
-
-	const auto &target = patch.get_target();
+	if (target_ptr == nullptr) {
+		throw InternalError{"patch somehow has no target"};
+	}
+	const auto &target = *target_ptr;
 
 	// apply the patch in each view's state
-	for (auto &view_change : this->states) {
+	for (auto &view_state : this->states) {
 
-		auto &view = view_change.view;
-		auto &new_state = view_change.state;
-		auto &tracker = view_change.changes;
+		auto &view = view_state.view;
+		auto &new_state = view_state.state;
+		auto &tracker = view_state.changes;
 
 		// TODO: speed up the state backtracking for finding the object
 
 		// This does not copy the object if the new state already has it.
 		auto &target_obj = new_state->copy_object(target, this->at, view);
 
-		// apply each patch component
+		// apply each patch component (i.e. all the parents of the patch)
 		for (auto &patch_name : patch.get_linearized(this->at)) {
 
 			auto &patch_tracker = tracker.track_patch(target);
@@ -161,8 +164,8 @@ bool Transaction::commit() {
 
 
 void Transaction::merge_changed_states() {
-	for (auto &view_change : this->states) {
-		auto &view = view_change.view;
+	for (auto &view_state : this->states) {
+		auto &view = view_state.view;
 
 		StateHistory &view_history = view->get_state_history();
 
@@ -182,10 +185,10 @@ void Transaction::merge_changed_states() {
 			auto merge_base = std::make_shared<State>(*existing->get());
 
 			// replace all objects of the old state with objects from the new state
-			merge_base->update(std::move(view_change.state));
+			merge_base->update(std::move(view_state.state));
 
 			// so we now have a combined new state
-			view_change.state = std::move(merge_base);
+			view_state.state = std::move(merge_base);
 		}
 	}
 }
@@ -198,10 +201,10 @@ std::vector<view_update> Transaction::generate_updates() {
 
 	// try linearizing objects which have changed parents
 	// and their children
-	for (auto &view_change : this->states) {
-		auto &view = view_change.view;
-		auto &new_state = view_change.state;
-		auto &tracker = view_change.changes;
+	for (auto &view_state : this->states) {
+		auto &view = view_state.view;
+		auto &new_state = view_state.state;
+		auto &tracker = view_state.changes;
 
 		// update to perform for this view.
 		view_update update;
@@ -245,6 +248,7 @@ Transaction::inheritance_updates(const ChangeTracker &tracker,
                                  const std::shared_ptr<View> &view,
                                  std::unordered_set<fqon_t> &objs_to_linearize) const {
 
+	// maps fqon => set of children fqons
 	view_update::child_map_t children;
 
 	// those objects were changed and require handling.
@@ -255,7 +259,8 @@ Transaction::inheritance_updates(const ChangeTracker &tracker,
 		// the object has new parents.
 		if (obj_changes.parents_update_required()) {
 
-			// so we register the object at that parent as child.
+			// so we register the object at each parent as new child.
+			// the previous children are merged with that set later.
 			for (auto &parent : obj_changes.get_new_parents()) {
 				auto ins = children.emplace(
 					parent,
@@ -317,10 +322,11 @@ Transaction::relinearize_objects(const std::unordered_set<fqon_t> &objs_to_linea
 
 void Transaction::update_views(std::vector<view_update> &&updates) {
 	size_t idx = 0;
-	for (auto &view_change : this->states) {
-		auto &view = view_change.view;
-		auto &new_state = view_change.state;
+	for (auto &view_state : this->states) {
+		auto &view = view_state.view;
+		auto &new_state = view_state.state;
 
+		// record the state updates in each view's history
 		StateHistory &view_history = view->get_state_history();
 
 		// insert the new state and drop later ones.
@@ -331,12 +337,12 @@ void Transaction::update_views(std::vector<view_update> &&updates) {
 			view_history.insert_linearization(std::move(lin), this->at);
 		}
 
+		// inheritance updates can generate new children for existing objects
 		for (auto &it : updates[idx].children) {
 			auto &obj = it.first;
 			auto &new_children = it.second;
 
-			// add the previous children to the new child set
-			// otherwise they'd be missing.
+			// merge the previous children with tne new child set
 			const auto &previous_children = view->get_obj_children(obj, this->at);
 			new_children.insert(std::begin(previous_children),
 			                    std::end(previous_children));
@@ -345,6 +351,29 @@ void Transaction::update_views(std::vector<view_update> &&updates) {
 		}
 
 		idx += 1;
+	}
+
+	// now that the views were updated, we can fire the event notifications.
+	for (auto &view_state : this->states) {
+		auto &view = view_state.view;
+		auto &tracker = view_state.changes;
+
+		std::unordered_set<fqon_t> updated_objects = tracker.get_changed_objects();
+		std::unordered_set<fqon_t> affected_children;
+		// all children of the patched objects are also affected.
+		for (auto &obj : updated_objects) {
+			std::unordered_set<fqon_t> children = view->get_obj_children_all(obj, this->at);
+			affected_children.merge(children);
+		}
+
+		updated_objects.merge(affected_children);
+
+		// TODO: if we don't want to fire for every object, but only
+		//       for those with some members changed, we have to
+		//       extend the ChangeTracker and track individual member updates
+		//       (maybe only if the object is of interest).
+		//       then we pass only the relevant objects here.
+		view->fire_notifications(updated_objects, this->at);
 	}
 }
 

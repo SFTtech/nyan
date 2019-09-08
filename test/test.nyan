@@ -50,6 +50,9 @@ Test(Second):
     member += 1337
     gschicht : int = 0
 
+TestChild(Test):
+    member -= 10
+
 NewParent(Second):
     member -= 337
     new_value : int = 0

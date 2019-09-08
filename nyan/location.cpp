@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "location.h"
 
@@ -35,8 +35,17 @@ Location::Location(const std::shared_ptr<File> &file,
 
 Location::Location(const std::string &custom)
 	:
+	_is_builtin{true},
 	msg{custom} {}
 
+
+bool Location::is_builtin() const {
+	return this->_is_builtin;
+}
+
+const std::string &Location::get_msg() const {
+	return this->msg;
+}
 
 int Location::get_line() const {
 	return this->line;
@@ -53,13 +62,16 @@ int Location::get_length() const {
 
 
 std::string Location::get_line_content() const {
+	if (this->_is_builtin) {
+		return this->msg;
+	}
 	return this->file->get_line(this->get_line());
 }
 
 
 void Location::str(std::ostringstream &builder) const {
-	if (this->msg.size() > 0) {
-		builder << this->msg;
+	if (this->_is_builtin) {
+		builder << "[native call]: ";
 		return;
 	}
 

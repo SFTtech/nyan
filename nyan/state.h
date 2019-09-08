@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
@@ -44,6 +44,7 @@ public:
 
 	/**
 	 * Copy an object from origin to this state.
+	 * If it is in this state already, don't copy it.
 	 */
 	const std::shared_ptr<ObjectState> &copy_object(const fqon_t &name,
 	                                                order_t t,

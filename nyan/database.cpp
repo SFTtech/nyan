@@ -94,7 +94,7 @@ void Database::load(const std::string &filename,
 	to_import.insert(
 		{
 			Namespace::from_filename(filename),
-			Location{"explicit load request"}
+			Location{" -> requested by native call to Database::load()"}
 		}
 	);
 
@@ -385,7 +385,7 @@ void Database::find_member(bool skip_first,
 		if (unlikely(par_state == nullptr)) {
 			throw InternalError{"object state not retrieved"};
 		}
-		const Member *member = par_state->get_member(member_id);
+		const Member *member = par_state->get(member_id);
 
 		finished = member_found(obj, *obj_member_info, member);
 
