@@ -14,7 +14,7 @@ properly represent the enormous complexity of storing the data for [openage](htt
 The main focus is *readability* and *moddability*.
 
 [![github stars](https://img.shields.io/github/stars/SFTtech/nyan.svg)](https://github.com/SFTtech/nyan/stargazers)
-[![#sfttech on Freenode](http://img.shields.io/Freenode/%23sfttech.png)](https://webchat.freenode.net/?channels=sfttech)
+[![#sfttech on Freenode](https://img.shields.io/badge/chat-on%20freenode-brightgreen)](https://webchat.freenode.net/?channels=sfttech)
 
 
 The foundation of **nyan**:
