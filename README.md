@@ -89,6 +89,7 @@ and gives the striders even more hp.
 # create a new unit:
 OverwatchElite(Unit):
     hp = 70
+    animation = "./assets/coolersoldier.ani"
 
 # change the strider:
 ChangeStrider<Strider>():

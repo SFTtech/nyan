@@ -344,23 +344,22 @@ the calculation is done like this:
 
 * Members of `nyan::Object` must have a type, which can be a
   * primitive type
-    - `text`:     `"lol"`          - (duh.)
-    - `int`:      `1337`           - (some number)
-    - `float`:    `42.235`, `inf`  - (some floating point number)
-    - `bool`:     `true`, `false`  - (some boolean value)
-    - `file`:     `"./name" `      - (some filename, relative to the directory
-                                      the defining nyan file is located at.
-                                      If absolute, the path is relative to
-                                      an engine defined root directory)
+    - `text`:     `"lol"`                  - (duh.)
+    - `int`:      `1337`                   - (some number)
+    - `float`:    `42.235`, `inf`, `-inf`  - (some floating point number)
+    - `bool`:     `true`, `false`          - (some boolean value)
+    - `file`:     `"./name" `              - (some filename, relative to the directory the defining nyan file is located at.
+                                              If absolute, the path is relative to an engine defined root directory.)
   * ordered set of elements of a type: `orderedset(type)`
   * set of elements of a type: `set(type)`
+  * dictionary of elements of a type to elements of another type: `dict(keyType, valueType)`
   * currently, there is **no** `list(type)` specified,
     but may be added later if needed
   * `nyan::Object`, to allow arbitrary hierarchies
 
 * Type hierarchy
   * A `nyan::Object`'s type name equals its name: `A()` has type `A`
-  * A `nyan::Object` `isinstance` of all the types of its parent `nyan::Object`s
+  * A `nyan::Object` `isinstance` of its type and all the types of its parent `nyan::Object`s
     * Sounds complicated, but is totally easy:
     * If an object `B` inherits from an object `A`, it also has the type `A`
     * Just like the multi inheritance of other programming languages
@@ -490,6 +489,7 @@ Huntable(Ability):
 Unit():
     abilities : set(Ability)
     hp : int
+    graphic : file
 
 ResourceAmount():
     type : Resource
@@ -662,7 +662,7 @@ Loom(Tech):
     HPBoost<Villager>():
         hp += 50
 
-    patches = {HPBoost}
+    patches = o{HPBoost}
 
 TownCenter(engine.Unit):
     hp = 1500
@@ -677,7 +677,7 @@ DefaultMod(engine.Mod):
     Activate<engine.StartConfigs>():
         available += {DefaultConfig}
 
-    patches = {Activate}
+    patches = o{Activate}
 ```
 
 Mod information file `pack.nfo`:
@@ -992,6 +992,7 @@ A user mod that patches loom to increase villager hp by 10 instead of 15.
 # Game engine defines:
 Tech():
     name : text
+    desc : text
     updates : set(Patch)
 
 Mod():
@@ -1020,8 +1021,9 @@ Villager(Unit):
 LoomVillagerHP<Villager>():
     hp += 15
 
-Loom(Tech):
-    name = "Research Loom to give villagers more HP"
+Loom(engine.Tech):
+    name = "Loom"
+    desc = "Research Loom to give villagers more HP"
     updates = {LoomVillagerHP}
 
 TownCenter(Building):
@@ -1064,9 +1066,6 @@ The game engine uses sets of those to modify unit behavior.
 Mod():
     name : text
     patches : set(Patch)
-
-Ability():
-    mouse_animation : file
 
 Unit():
     name : text
