@@ -490,6 +490,7 @@ Huntable(Ability):
 Unit():
     abilities : set(Ability)
     hp : int
+    graphic : file
 
 ResourceAmount():
     type : Resource
@@ -662,7 +663,7 @@ Loom(Tech):
     HPBoost<Villager>():
         hp += 50
 
-    patches = {HPBoost}
+    patches = o{HPBoost}
 
 TownCenter(engine.Unit):
     hp = 1500
@@ -677,7 +678,7 @@ DefaultMod(engine.Mod):
     Activate<engine.StartConfigs>():
         available += {DefaultConfig}
 
-    patches = {Activate}
+    patches = o{Activate}
 ```
 
 Mod information file `pack.nfo`:
@@ -1020,7 +1021,7 @@ Villager(Unit):
 LoomVillagerHP<Villager>():
     hp += 15
 
-Loom(Tech):
+Loom(engine.Tech):
     name = "Research Loom to give villagers more HP"
     updates = {LoomVillagerHP}
 
@@ -1065,8 +1066,6 @@ Mod():
     name : text
     patches : set(Patch)
 
-Ability():
-    mouse_animation : file
 
 Unit():
     name : text
