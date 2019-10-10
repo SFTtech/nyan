@@ -1,11 +1,11 @@
-// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "boolean.h"
 
 #include <typeinfo>
 
 #include "../compiler.h"
-#include "../error.h"
+#include "../lang_error.h"
 #include "../util.h"
 #include "../token.h"
 
@@ -20,7 +20,7 @@ Boolean::Boolean(const bool &value)
 Boolean::Boolean(const IDToken &token) {
 
 	if (unlikely(token.get_type() != token_type::ID)) {
-		throw FileError{
+		throw LangError{
 			token,
 			"invalid value for boolean"
 		};
@@ -35,7 +35,7 @@ Boolean::Boolean(const IDToken &token) {
 		this->value = false;
 	}
 	else {
-		throw FileError{
+		throw LangError{
 			token,
 			"unknown boolean value (did you use 'true' and 'false'?)"
 		};

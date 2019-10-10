@@ -1,10 +1,11 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
 #include <unordered_set>
 
 #include "../ops.h"
+#include "set_types.h"
 #include "set_base.h"
 
 

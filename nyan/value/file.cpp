@@ -5,7 +5,7 @@
 #include <typeinfo>
 
 #include "../compiler.h"
-#include "../error.h"
+#include "../lang_error.h"
 #include "../id_token.h"
 #include "../util.h"
 
@@ -25,11 +25,16 @@ Filename::Filename(const IDToken &token)
 	Filename{token.get_first()} {
 
 	if (unlikely(token.get_type() != token_type::STRING)) {
-		throw FileError{
+		throw LangError{
 			token,
 			"invalid value for filename"
 		};
 	}
+}
+
+
+const std::string &Filename::get() const {
+	return this->path;
 }
 
 

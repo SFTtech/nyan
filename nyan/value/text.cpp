@@ -1,11 +1,11 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "text.h"
 
 #include <typeinfo>
 
 #include "../compiler.h"
-#include "../error.h"
+#include "../lang_error.h"
 #include "../id_token.h"
 #include "../util.h"
 #include "../token.h"
@@ -23,7 +23,7 @@ Text::Text(const IDToken &token)
 	Text{token.get_first()} {
 
 	if (unlikely(token.get_type() != token_type::STRING)) {
-		throw FileError{
+		throw LangError{
 			token,
 			"invalid value for text"
 		};

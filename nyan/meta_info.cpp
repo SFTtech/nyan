@@ -1,10 +1,10 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "meta_info.h"
 
 #include <sstream>
 
-#include "error.h"
+#include "lang_error.h"
 
 
 namespace nyan {
@@ -15,7 +15,7 @@ ObjectInfo &MetaInfo::add_object(const fqon_t &name, ObjectInfo &&obj) {
 
 	auto ret = this->object_info.insert({name, std::move(obj)});
 	if (ret.second == false) {
-		throw ReasonError{
+		throw LangError{
 			loc,
 			"object already defined",
 			{{ret.first->second.get_location(), "first defined here"}}

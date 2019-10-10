@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -9,6 +9,7 @@
 
 #include "error.h"
 #include "id_token.h"
+#include "lang_error.h"
 #include "location.h"
 #include "ops.h"
 #include "token.h"
@@ -207,7 +208,7 @@ protected:
 /**
  * AST creation failure
  */
-class ASTError : public FileError {
+class ASTError : public LangError {
 public:
 	ASTError(const std::string &msg, const Token &token,
 	         bool add_token=true);

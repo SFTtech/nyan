@@ -6,6 +6,8 @@
 
 #include "value.h"
 
+#include "../config.h"
+
 
 namespace nyan {
 
@@ -38,6 +40,10 @@ public:
 		return std::hash<T>{}(this->value);
 	}
 
+	T get() const {
+		return *this;
+	}
+
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
 
@@ -63,12 +69,12 @@ protected:
 /**
  * Integer storage.
  */
-using Int = Number<int64_t>;
+using Int = Number<value_int_t>;
 
 
 /**
  * Floating point data type.
  */
-using Float = Number<double>;
+using Float = Number<value_float_t>;
 
 } // namespace nyan

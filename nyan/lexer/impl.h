@@ -1,10 +1,12 @@
-// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <queue>
 #include <stack>
 
 #include "bracket.h"
+#include "../lang_error.h"
+
 
 namespace nyan::lexer {
 

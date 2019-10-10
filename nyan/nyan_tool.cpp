@@ -27,14 +27,14 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 
 	std::shared_ptr<View> root = db->new_view();
 
-	Object second = root->get("test.Second");
-	Object first = root->get("test.First");
+	Object second = root->get_object("test.Second");
+	Object first = root->get_object("test.First");
 
 	std::cout << "after change: First.member == "
-	          << *root->get("test.First").get<Int>("member")
+	          << *root->get_object("test.First").get<Int>("member")
 	          << std::endl;
 
-	Object patch = root->get("test.FirstPatch");
+	Object patch = root->get_object("test.FirstPatch");
 	for (int i = 0; i < 3; i++) {
 		Transaction tx = root->new_transaction();
 		tx.add(patch);
@@ -43,7 +43,7 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 		}
 	}
 
-	auto value = *root->get("test.First").get<Int>("member");
+	auto value = *root->get_object("test.First").get<Int>("member");
 
 	std::cout << "after change: First.member == "
 	          << value.str()
@@ -65,15 +65,15 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 		std::cout << "got transaction callback for object " << fqon << std::endl;
 	};
 
-	auto callback_hdl_test = root->get("test.Test").subscribe(cb_func);
-	auto callback_hdl_testchild = root->get("test.TestChild").subscribe(cb_func);
+	auto callback_hdl_test = root->get_object("test.Test").subscribe(cb_func);
+	auto callback_hdl_testchild = root->get_object("test.TestChild").subscribe(cb_func);
 
 	bool success;
 	order_t trans_time = 1;
 	Transaction tx = root->new_transaction(trans_time);
 	tx.add(patch);
-	tx.add(root->get("test.Patch"));
-	tx.add(root->get("test.SetPatch"));
+	tx.add(root->get_object("test.Patch"));
+	tx.add(root->get_object("test.SetPatch"));
 	success = tx.commit();
 
 	if (trans_callback_time != trans_time) {
@@ -98,27 +98,27 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 	          << std::endl;
 
 	std::cout << "SetTest.member = "
-	          << root->get("test.SetTest").get("member")->str()
+	          << root->get_object("test.SetTest").get_value("member")->str()
 	          << std::endl
 	          << "SetTest.orderedmember = "
-	          << root->get("test.SetTest").get("orderedmember")->str()
+	          << root->get_object("test.SetTest").get_value("orderedmember")->str()
 	          << std::endl
 	          << "Fifth.truth = "
-	          << root->get("test.Fifth").get("truth")->str()
+	          << root->get_object("test.Fifth").get_value("truth")->str()
 	          << std::endl
 	          << "PATCH"
 	          << std::endl
 	          << "SetTest.member = "
-	          << root->get("test.SetTest").get("member", 1)->str()
+	          << root->get_object("test.SetTest").get_value("member", 1)->str()
 	          << std::endl
 	          << "SetTest.orderedmember = "
-	          << root->get("test.SetTest").get("orderedmember", 1)->str()
+	          << root->get_object("test.SetTest").get_value("orderedmember", 1)->str()
 	          << std::endl << std::endl;
 
-	std::cout << "test.gschicht parents = " << util::strjoin(", ", root->get("test.Test").get_parents())
+	std::cout << "test.gschicht parents = " << util::strjoin(", ", root->get_object("test.Test").get_parents())
 	          << std::endl << "PATCH" << std::endl
-	          << "test.gschicht parents = " << util::strjoin(", ", root->get("test.Test").get_parents(1))
-	          << std::endl << "newvalue = " << root->get("test.Test").get("new_value", 1)->str()
+	          << "test.gschicht parents = " << util::strjoin(", ", root->get_object("test.Test").get_parents(1))
+	          << std::endl << "newvalue = " << root->get_object("test.Test").get_value("new_value", 1)->str()
 	          << std::endl;
 
 	return ret;
@@ -146,7 +146,7 @@ int run(flags_t flags, params_t params) {
 			try {
 				return nyan::test_parser(base_path, first_file);
 			}
-			catch (FileError &err) {
+			catch (LangError &err) {
 				std::cout << "\x1b[33;1mfile error:\x1b[m\n"
 				          << err << std::endl
 				          << err.show_problem_origin()

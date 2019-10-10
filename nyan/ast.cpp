@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "ast.h"
 
@@ -700,11 +700,13 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 }
 
 
+
+
 ASTError::ASTError(const std::string &msg,
                    const Token &token,
                    bool add_token)
 	:
-	FileError{Location{token}, ""} {
+	LangError{Location{token}, ""} {
 
 	if (add_token) {
 		std::ostringstream builder;
@@ -722,7 +724,7 @@ ASTError::ASTError(const std::string &msg,
                    const IDToken &token,
                    bool add_token)
 	:
-	FileError{Location{token}, ""} {
+	LangError{Location{token}, ""} {
 
 	if (add_token) {
 		std::ostringstream builder;
@@ -734,5 +736,6 @@ ASTError::ASTError(const std::string &msg,
 		this->msg = msg;
 	}
 }
+
 
 } // namespace nyan

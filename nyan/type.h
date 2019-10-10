@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -23,17 +23,6 @@ class NamespaceFinder;
 class Object;
 class State;
 class Token;
-
-
-/**
- * Thrown when encountering type problems.
- */
-class TypeError : public FileError {
-public:
-	TypeError(const Location &location, const std::string &msg);
-
-	virtual ~TypeError() = default;
-};
 
 
 /**

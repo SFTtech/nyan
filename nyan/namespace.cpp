@@ -1,11 +1,11 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "namespace.h"
 
 
 #include <algorithm>
 
-#include "error.h"
+#include "api_error.h"
 #include "id_token.h"
 #include "util.h"
 

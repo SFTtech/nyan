@@ -119,7 +119,7 @@ void Database::load(const std::string &filename,
 		catch (FileReadError &err) {
 			// the import request failed,
 			// so the nyan file structure or content is wrong.
-			throw FileError{req_location, err.str()};
+			throw LangError{req_location, err.str()};
 		}
 
 		// create import tracking entry for this file
@@ -440,7 +440,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 			if (parent_info->is_initial_patch()) {
 				if (unlikely(obj_info->is_initial_patch())) {
 					// TODO: show patch target instead of member
-					throw ReasonError{
+					throw LangError{
 						obj_info->get_location(),
 						"child patches can't declare a patch target",
 						{{parent_info->get_location(), "parent that declares the patch"}}
@@ -495,7 +495,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 							// which is disallowed!
 
 							// TODO: show location of infringing type instead of member
-							throw ReasonError{
+							throw LangError{
 								member_info.get_location(),
 								("parent '"s + parent
 								 + "' already defines type of '" + member_id + "'"),
@@ -676,7 +676,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 		// check if an object has inher parent adds, it must be a patch.
 		if (obj_info->get_inheritance_change().size() > 0) {
 			if (unlikely(not obj_info->is_patch())) {
-				throw FileError{
+				throw LangError{
 					obj_info->get_location(),
 					"Inheritance additions can only be done in patches."
 				};
@@ -719,7 +719,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 
 			if (unlikely(other_op and not assign_ok)) {
 				const MemberInfo *member_info = obj_info->get_member(it.first);
-				throw FileError{
+				throw LangError{
 					member_info->get_location(),
 					"this member was never assigned a value."
 				};

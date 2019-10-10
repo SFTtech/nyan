@@ -29,7 +29,7 @@ class View : public std::enable_shared_from_this<View> {
 public:
 	View(const std::shared_ptr<Database> &database);
 
-	Object get(const fqon_t &fqon);
+	Object get_object(const fqon_t &fqon);
 
 	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t=LATEST_T) const;
 

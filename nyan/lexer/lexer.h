@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "../error.h"
+#include "../lang_error.h"
 #include "../token.h"
 
 
@@ -45,7 +45,7 @@ protected:
 /**
  * Exception for lexer problems.
  */
-class LexerError : public FileError {
+class LexerError : public LangError {
 public:
 	LexerError(const Location &location, const std::string &msg);
 };

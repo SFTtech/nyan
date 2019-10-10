@@ -24,6 +24,6 @@ Token Lexer::get_next_token() {
 LexerError::LexerError(const Location &location,
                        const std::string &msg)
 	:
-	FileError{location, msg} {}
+	LangError{location, msg} {}
 
 } // namespace nyan

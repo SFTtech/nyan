@@ -1,10 +1,10 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object_info.h"
 
 #include <sstream>
 
-#include "error.h"
+#include "lang_error.h"
 #include "util.h"
 #include "patch_info.h"
 #include "state.h"
@@ -31,7 +31,7 @@ MemberInfo &ObjectInfo::add_member(const memberid_t &name,
 
 	auto ret = this->member_info.insert({name, std::move(member)});
 	if (ret.second == false) {
-		throw ReasonError{
+		throw LangError{
 			loc,
 			"member already in this object",
 			{{ret.first->second.get_location(), "first defined here"}}

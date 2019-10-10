@@ -13,7 +13,13 @@
 #include "object_state.h"
 #include "patch_info.h"
 #include "util.h"
+#include "value/boolean.h"
+#include "value/file.h"
+#include "value/number.h"
 #include "value/object.h"
+#include "value/orderedset.h"
+#include "value/set.h"
+#include "value/text.h"
 #include "view.h"
 
 
@@ -38,13 +44,53 @@ const std::shared_ptr<View> &Object::get_view() const {
 }
 
 
-ValueHolder Object::get(const memberid_t &member, order_t t) const {
+ValueHolder Object::get_value(const memberid_t &member, order_t t) const {
 	return this->calculate_value(member, t);
 }
 
 
+value_int_t Object::get_int(const memberid_t &member, order_t t) const {
+	return this->get_number<Int>(member, t);
+}
+
+
+value_float_t Object::get_float(const memberid_t &member, order_t t) const {
+	return this->get_number<Float>(member, t);
+}
+
+
+const std::string &Object::get_text(const memberid_t &member, order_t t) const {
+	return *this->get<Text>(member, t);
+}
+
+
+bool Object::get_bool(const memberid_t &member, order_t t) const {
+	return *this->get<Boolean>(member, t);
+}
+
+
+const set_t &Object::get_set(const memberid_t &member, order_t t) const {
+	return this->get<Set>(member, t)->get();
+}
+
+
+const ordered_set_t &Object::get_orderedset(const memberid_t &member, order_t t) const {
+	return this->get<OrderedSet>(member, t)->get();
+}
+
+
+const std::string &Object::get_file(const memberid_t &member, order_t t) const {
+	return this->get<Filename>(member, t)->get();
+}
+
+
+Object Object::get_object(const memberid_t &member, order_t t) const {
+	return *this->get<Object>(member, t);
+}
+
+
 template <>
-std::shared_ptr<Object> Object::get<Object>(memberid_t member, order_t t) const {
+std::shared_ptr<Object> Object::get<Object>(const memberid_t &member, order_t t) const {
 	auto obj_val = this->get<ObjectValue>(member, t);
 	fqon_t fqon = obj_val->get();
 	std::shared_ptr<Object> ret = std::make_shared<Object>(Object::Restricted{},

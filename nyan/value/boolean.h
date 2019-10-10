@@ -1,4 +1,4 @@
-// Copyright 2018-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2018-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -20,6 +20,10 @@ public:
 	std::string str() const override;
 	std::string repr() const override;
 	size_t hash() const override;
+
+	bool get() const {
+		return *this;
+	}
 
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;

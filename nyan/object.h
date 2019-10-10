@@ -9,10 +9,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "api_error.h"
 #include "config.h"
-#include "error.h"
+#include "value/set_types.h"
 #include "value/value_holder.h"
-#include "value/object.h"
 #include "object_notifier_types.h"
 #include "util.h"
 
@@ -61,17 +61,36 @@ public:
 	/**
 	 * Get a calculated member value.
 	 */
-	ValueHolder get(const memberid_t &member, order_t t=LATEST_T) const;
+	ValueHolder get_value(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Invokes the get function and then does a cast.
+	 * Invokes the get_value function and then does a cast.
 	 * There's a special variant for T=nyan::Object which creates
 	 * an object handle.
 	 *
 	 * TODO: either return a stored variant reference or the shared ptr of the holder
 	 */
 	template <typename T>
-	std::shared_ptr<T> get(memberid_t member, order_t t=LATEST_T) const;
+	std::shared_ptr<T> get(const memberid_t &member, order_t t=LATEST_T) const;
+
+	template<typename T, typename ret=typename T::storage_type>
+	ret get_number(const memberid_t &member, order_t t=LATEST_T) const;
+
+	value_int_t get_int(const memberid_t &member, order_t t=LATEST_T) const;
+
+	value_float_t get_float(const memberid_t &member, order_t t=LATEST_T) const;
+
+	const std::string &get_text(const memberid_t &member, order_t t=LATEST_T) const;
+
+	bool get_bool(const memberid_t &member, order_t t=LATEST_T) const;
+
+	const set_t &get_set(const memberid_t &member, order_t t=LATEST_T) const;
+
+	const ordered_set_t &get_orderedset(const memberid_t &member, order_t t=LATEST_T) const;
+
+	const std::string &get_file(const memberid_t &member, order_t t=LATEST_T) const;
+
+	Object get_object(const memberid_t &fqon, order_t t=LATEST_T) const;
 
 	/**
 	 * Return the parents of the object.
@@ -145,21 +164,29 @@ protected:
 };
 
 
+// TODO: use concepts...
 template <typename T>
-std::shared_ptr<T> Object::get(memberid_t member, order_t t) const {
-	std::shared_ptr<Value> value = this->get(member, t).get_ptr();
+std::shared_ptr<T> Object::get(const memberid_t &member, order_t t) const {
+	std::shared_ptr<Value> value = this->get_value(member, t).get_ptr();
 	auto ret = std::dynamic_pointer_cast<T>(value);
 
 	if (not ret) {
-		std::stringstream ss;
-		ss << "failed to fetch value of " << this->name << "." << member
-		   << " of real type "
-		   << util::typestring(value.get())
-		   << " as type " << util::typestring<T>();
-		throw APIError{ss.str()};
+		throw MemberTypeError{
+			this->name,
+			member,
+			util::typestring(value.get()),
+			util::typestring<T>()
+		};
 	}
 
 	return ret;
+}
+
+
+// TODO: use concepts...
+template<typename T, typename ret>
+ret Object::get_number(const memberid_t &member, order_t t) const {
+	return *this->get<T>(member, t);
 }
 
 
@@ -168,6 +195,6 @@ std::shared_ptr<T> Object::get(memberid_t member, order_t t) const {
  * from the ObjectValue that is stored in a value.
  */
 template <>
-std::shared_ptr<Object> Object::get<Object>(memberid_t member, order_t t) const;
+std::shared_ptr<Object> Object::get<Object>(const memberid_t &member, order_t t) const;
 
 } // namespace nyan

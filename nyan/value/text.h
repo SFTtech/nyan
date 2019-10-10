@@ -24,6 +24,10 @@ public:
 	std::string repr() const override;
 	size_t hash() const override;
 
+	const std::string &get() const {
+		return *this;
+	}
+
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
 

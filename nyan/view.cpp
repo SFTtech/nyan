@@ -18,7 +18,7 @@ View::View(const std::shared_ptr<Database> &database)
 	state{database} {}
 
 
-Object View::get(const fqon_t &fqon) {
+Object View::get_object(const fqon_t &fqon) {
 	// test for object existence
 	this->get_info(fqon);
 

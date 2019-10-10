@@ -1,10 +1,11 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
 #include <unordered_set>
 #include <vector>
 
+#include "../api_error.h"
 #include "../compiler.h"
 #include "../util.h"
 #include "container.h"
@@ -97,6 +98,11 @@ public:
 
 	void clear() {
 		this->values.clear();
+	}
+
+
+	const value_storage &get() const {
+		return this->values;
 	}
 
 

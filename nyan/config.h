@@ -30,4 +30,11 @@ using memberid_t = std::string;
 /** member and override nesting depth type */
 using override_depth_t = unsigned;
 
+/** type used for nyan::Int values */
+using value_int_t = int64_t;
+
+/** type used for nyan::Float values */
+using value_float_t = double;
+
+
 } // namespace nyan

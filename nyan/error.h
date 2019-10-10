@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "config.h"
-#include "location.h"
+
 
 namespace nyan {
 
@@ -193,83 +193,6 @@ public:
 
 
 /**
- * Error thrown when the API user most likely did something wrong.
- */
-class APIError : public Error {
-public:
-	APIError(const std::string &msg);
-};
-
-
-/**
- * An object queried over the API is not found.
- */
-class ObjectNotFoundError : public APIError {
-public:
-	ObjectNotFoundError(const fqon_t &objname);
-
-protected:
-	fqon_t name;
-};
-
-
-/**
- * An object member queried over the API is not found.
- */
-class MemberNotFoundError : public APIError {
-public:
-	MemberNotFoundError(const fqon_t &objname,
-	                    const memberid_t &membername);
-
-protected:
-	fqon_t obj_name;
-	memberid_t name;
-};
-
-
-/**
- * Exception class to capture problems with files,
- * for that, it stores line number and line offset.
- */
-class FileError : public Error {
-public:
-	FileError(const Location &location, const std::string &msg);
-
-	std::string str() const override;
-
-	virtual std::string show_problem_origin() const;
-
-protected:
-	Location location;
-};
-
-
-/**
- * Exception for name access problems.
- */
-class NameError : public FileError {
-public:
-	NameError(const Location &location,
-	          const std::string &msg, const std::string &name="");
-
-	std::string str() const override;
-
-protected:
-	std::string name;
-};
-
-
-/**
- * Tokenize failure exception.
- */
-class TokenizeError : public FileError {
-public:
-	TokenizeError(const Location &location,
-	              const std::string &msg);
-};
-
-
-/**
  * Error thrown when reading nyan files fails.
  * This is a "low level" error, i.e. file not found,
  * permission problems etc.
@@ -278,21 +201,5 @@ class FileReadError : public Error {
 public:
 	FileReadError(const std::string &msg);
 };
-
-
-/**
- * Exception class to store an error with one or multiple reasons.
- */
-class ReasonError : public FileError {
-public:
-	ReasonError(const Location &location, const std::string &msg,
-	            std::vector<std::pair<Location, std::string>> &&reasons={});
-
-	std::string show_problem_origin() const override;
-
-protected:
-	std::vector<std::pair<Location, std::string>> reasons;
-};
-
 
 } // namespace nyan

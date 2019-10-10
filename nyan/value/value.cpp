@@ -42,7 +42,7 @@ static ValueHolder value_from_value_token(const Type &target_type,
 	case primitive_t::OBJECT: {
 
 		if (unlikely(value_token.get_type() != token_type::ID)) {
-			throw FileError{
+			throw LangError{
 				value_token,
 				"invalid value for object, expecting object id"
 			};

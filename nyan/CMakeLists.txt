@@ -25,6 +25,7 @@ add_custom_command(OUTPUT ${nyanl_cpp} ${nyanl_h}
 )
 
 add_library(nyan SHARED
+	api_error.cpp
 	ast.cpp
 	basic_type.cpp
 	c3.cpp
@@ -38,6 +39,7 @@ add_library(nyan SHARED
 	id_token.cpp
 	inheritance_change.cpp
 	${nyanl_cpp}
+	lang_error.cpp
 	lexer/bracket.cpp
 	lexer/impl.cpp
 	lexer/lexer.cpp
@@ -71,6 +73,7 @@ add_library(nyan SHARED
 	value/orderedset.cpp
 	value/set.cpp
 	value/set_base.cpp
+	value/set_types.cpp
 	value/text.cpp
 	value/value.cpp
 	value/value_holder.cpp
