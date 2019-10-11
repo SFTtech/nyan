@@ -16,7 +16,7 @@ MemberTypeError::MemberTypeError(const fqon_t &objname, const memberid_t &member
                                  const std::string &real_type, const std::string &wrong_type)
 	:
 	APIError{
-	(static_cast<std::ostringstream&>(
+	(static_cast<const std::ostringstream&>(
 		std::ostringstream{} << "type mismatch for member " << objname + "." << member
 		<< ": tried to convert real type " << real_type << " to " << wrong_type)
 	).str()},
