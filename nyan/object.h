@@ -41,6 +41,11 @@ protected:
 	class Restricted {};
 
 public:
+	/**
+	 * Default constructor for an invalid nyan::Object.
+	 */
+	Object() = default;
+
 	// This constructor is public, but can't be invoked since the Restricted
 	// class is not available. We use this to be able to invoke make_shared
 	// within this class, but not outside of it.

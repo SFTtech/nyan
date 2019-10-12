@@ -16,6 +16,17 @@ public:
 
 
 /**
+ * An Object was not initialized properly.
+ * This happens when you used the default constructor without
+ * updating the Object from a View.
+ */
+class InvalidObjectError : public APIError {
+public:
+	InvalidObjectError();
+};
+
+
+/**
  * The type of a member was queried wrongly.
  */
 class MemberTypeError : public APIError {

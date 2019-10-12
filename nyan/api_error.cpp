@@ -12,6 +12,11 @@ APIError::APIError(const std::string &msg)
 	Error{msg} {}
 
 
+InvalidObjectError::InvalidObjectError()
+	:
+	APIError("uninitialized object was used") {}
+
+
 MemberTypeError::MemberTypeError(const fqon_t &objname, const memberid_t &member,
                                  const std::string &real_type, const std::string &wrong_type)
 	:

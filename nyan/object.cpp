@@ -200,6 +200,10 @@ bool Object::extends(fqon_t other_fqon, order_t t) const {
 
 
 const ObjectInfo &Object::get_info() const {
+	if (unlikely(not this->name.size())) {
+		throw InvalidObjectError{};
+	}
+
 	const ObjectInfo *ret = this->origin->get_database().get_info().get_object(this->get_name());
 	if (unlikely(ret == nullptr)) {
 		throw InternalError{"object info unavailable for object handle"};
@@ -224,16 +228,28 @@ const fqon_t *Object::get_target() const {
 
 
 const std::vector<fqon_t> &Object::get_linearized(order_t t) const {
+	if (unlikely(not this->name.size())) {
+		throw InvalidObjectError{};
+	}
+
 	return this->origin->get_linearization(this->name, t);
 }
 
 std::shared_ptr<ObjectNotifier>
 Object::subscribe(const update_cb_t &callback) {
+	if (unlikely(not this->name.size())) {
+		throw InvalidObjectError{};
+	}
+
 	return this->origin->create_notifier(this->name, callback);
 }
 
 
 const std::shared_ptr<ObjectState> &Object::get_raw(order_t t) const {
+	if (unlikely(not this->name.size())) {
+		throw InvalidObjectError{};
+	}
+
 	return this->origin->get_raw(this->name, t);
 }
 
