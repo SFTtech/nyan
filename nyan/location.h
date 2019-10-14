@@ -1,7 +1,6 @@
 // Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
-#include <ciso646>
 #include <memory>
 #include <sstream>
 #include <string>

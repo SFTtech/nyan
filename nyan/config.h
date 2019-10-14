@@ -2,6 +2,11 @@
 
 #pragma once
 
+#ifdef _MSC_VER
+// Allow using alternative operator representation with non-conforming compiler
+	#include <ciso646>
+#endif
+
 #include <cstddef>
 #include <limits>
 #include <string>
