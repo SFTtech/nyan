@@ -75,10 +75,10 @@ AST::AST(TokenStream &tokens) {
 	while (tokens.full()) {
 		auto token = tokens.next();
 		if (token->type == token_type::IMPORT) {
-			this->imports.push_back(ASTImport{tokens});
+			this->imports.emplace_back(tokens);
 		}
 		else if (token->type == token_type::ID) {
-			this->objects.push_back(ASTObject{*token, tokens});
+			this->objects.emplace_back(*token, tokens);
 		}
 		else if (token->type == token_type::ENDFILE) {
 			// we're done!
@@ -201,7 +201,7 @@ void ASTObject::ast_inheritance_mod(TokenStream &tokens) {
 		tokens,
 		[this] (const Token & /*token*/, TokenStream &stream) {
 			stream.reinsert_last();
-			this->inheritance_change.push_back(ASTInheritanceChange{stream});
+			this->inheritance_change.emplace_back(stream);
 		}
 	);
 }
@@ -219,7 +219,7 @@ void ASTObject::ast_parents(TokenStream &tokens) {
 				};
 			}
 
-			this->parents.push_back(IDToken{token, stream});
+			this->parents.emplace_back(token, stream);
 		}
 	);
 }
@@ -258,10 +258,10 @@ void ASTObject::ast_members(TokenStream &tokens) {
 			tokens.reinsert_last();
 
 			if (object_next) {
-				this->objects.push_back(ASTObject{*token, tokens});
+				this->objects.emplace_back(*token, tokens);
 			}
 			else {
-				this->members.push_back(ASTMember{*token, tokens});
+				this->members.emplace_back(*token, tokens);
 			}
 		}
 		else if (token->type == token_type::PASS or
@@ -522,7 +522,7 @@ ASTMemberValue::ASTMemberValue(container_t type,
 		end_token,
 		tokens,
 		[this] (const Token &token, TokenStream &stream) {
-			this->values.push_back(IDToken{token, stream});
+			this->values.emplace_back(token, stream);
 		}
 	);
 }

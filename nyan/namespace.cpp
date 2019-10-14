@@ -31,7 +31,7 @@ Namespace::Namespace(const Namespace &other, const std::string &addend)
 	:
 	Namespace{other} {
 
-	for (auto component : util::split(addend, '.')) {
+	for (const auto &component : util::split(addend, '.')) {
 		this->components.push_back(component);
 	}
 }
