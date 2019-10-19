@@ -1,0 +1,20 @@
+os: osx
+osx_image: xcode10.2
+language: cpp 
+script:
+    - brew update-reset && brew update
+    - brew upgrade cmake
+    - brew install flex
+    - brew install make
+    - brew install -cc=clang llvm@8
+    - export PATH="/usr/local/opt/llvm@8/bin:$PATH:/usr/local/lib:/usr/local/opt/llvm/bin"
+    - export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig:/usr/local/lib"
+    - mkdir build && cd build
+    - cmake -DCMAKE_CXX_COMPILER="clang++" ..
+    - make && make test
+before_cache:
+  - brew cleanup
+cache:
+   directories:
+    - /usr/local/Homebrew
+    - $HOME/Library/Caches/Homebrew
