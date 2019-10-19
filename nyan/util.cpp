@@ -7,11 +7,11 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 #endif
-#include <errno.h>
-#include <string>
-#include <sstream>
+#include <cerrno>
 #include <fstream>
+#include <sstream>
 #include <streambuf>
+#include <string>
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include <array>
