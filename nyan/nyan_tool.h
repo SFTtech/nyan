@@ -1,7 +1,8 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
+#include <string>
 #include <unordered_map>
 
 namespace nyan {
