@@ -7,6 +7,31 @@ nyan
 functionality and inheritance.
 
 
+## Design idea
+
+[openage](https://github.com/SFTtech/openage) requires a very complex data
+storage to represent the hierarchy of its objects. Research and technology
+affects numerous units, civilization bonuses, monk conversions and all that
+with the goal to be ultimatively moddable by the community:
+
+Current data representation formats make this nearly impossible to
+accomplish. Readability problems or huge lexical overhead led us to
+design a language crafted for our needs.
+
+Enter **nyan**, which is our approach to store data in a new way™.
+
+
+## Core Principles
+
+* Human readable
+* general-purpose data language + database features
+* Portable
+* Object-oriented
+* Typesafe
+* Changing data with patches at runtime
+* Patches can be changed by patches, that way, any mod can be created
+
+
 ## Srsly?
 
 Let's create a new unit with a mod: a japanese tentacle monster.
@@ -30,33 +55,13 @@ Things like `Unit` and `Mod` are provided by the game engine,
 When the engine activates the mod, your town center can create the new unit.
 
 
-
-## Design idea
-
-[openage](https://github.com/SFTtech/openage) requires a very complex data
-storage to represent the hierarchy of its objects. Research and technology
-affects numerous units, civilization bonuses, monk conversions and all that
-with the goal to be ultimatively moddable by the community:
-
-Current data representation formats make this nearly impossible to
-accomplish. Readability problems or huge lexical overhead led us to
-design a language crafted for our needs.
-
-Enter **nyan**, which is our approach to store data in a new way™.
-
-
 ## Design goals
 
 Requirements:
 
-* nyan remains a general-purpose data language
 * Data is stored in `.nyan` files
-* Human readable
-* Portable
 * More or less compact (readability > memory)
 * Data is stored as members of `nyan::Object`s
-* Data is changed by patches that change members of `nyan::Object`s
-* Patches can be changed by patches, that way, any mod can be created
 * Data does not contain any executed code but can specify function names
   and parameters. The game engine is responsible for calling those
   functions or redirecting to custom scripts
@@ -71,7 +76,7 @@ Requirements:
   * Provides hooks so the engine can react on internal changes
 
 
-## Language features
+## Advanced Features
 
 * nyan allows easy modding
   * Data packs ship configuration data and game content as .nyan files
@@ -100,12 +105,22 @@ Concept:
 * `nyan::Object`s are placed in namespaces to organize the directory structure
 
 
-### Data handling
+
+## Introduction
+
+### Objects
 
 * *`nyan::Object`*: versatile atomic base type
   * Has named members which have a type and maybe a value
   * `nyan::Object`s remain abstract until all members have values
   * There exists no order of members
+
+
+### Members
+
+
+### Patches
+
 * **nyan::Patch**: is a `nyan::Object` and denominates a patch
   * Patches are used to change a target `nyan::Object` at runtime
   * It is created for exactly one `nyan::Object` with `PatchName<TargetObject>`
@@ -116,6 +131,9 @@ Concept:
     * The patch inherits from the target object
     * Values are calculated top-down
     * The resulting values are stored as the target object
+
+### Inheritance
+
 * A `nyan::Object` can inherit from an ordered set of `nyan::Object`s
   (-> from a *nyan::Patch* as well)
   * Members of parent objects are inherited
@@ -139,7 +157,10 @@ Concept:
       * Name conflicts must then resolved by manual qualification again
 
 
-### Syntax
+### Namespaces
+
+
+## Syntax
 
 ``` python
 # This is an example of the nyan language
