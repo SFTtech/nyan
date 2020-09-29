@@ -315,7 +315,7 @@ Operator    | Operation      | Examples                              | Descripti
 ------------|----------------|---------------------------------------|------------------------------------
 `=`         | Assignment     | `a = {<items>}`                       | Assigns the operand value to the member.
 `+=`, `\|=` | Union          | `a += {<items>}`<br>`a \|= {<items>}` | Performs a union of the operand and the current member value. Items from the operand are added to the member set.
-`-=`        | Complement     | `a -= {<items>}`                      | Performs a complement of the operand and the current member value. Items from the operand are removed from the member set.
+`-=`        | Difference     | `a -= {<items>}`                      | Calculates the difference of the operand and the current member value. Items from the operand are removed from the member set.
 `&=`        | Intersection   | `a &= {<items>}`                      | Performs an intersection of the operand and the current member value. Items that are not in both the operand and the member set are removed from the member set.
 
 
@@ -341,7 +341,7 @@ SomeObject():
 Patch<SomeObject>():
     a = {DifferentChildObject}       # result: a = {DifferentChildObject}              (reassignment)
     b += {DifferentChildObject}      # result: b = {OtherObject, DifferentChildObject} (union)
-    c -= {ChildObject}               # result: c = {}                                  (complement)
+    c -= {ChildObject}               # result: c = {}                                  (difference)
     d &= {ChildObject, OtherObject}  # result: d = {ChildObject}                       (intersection)
 ```
 
@@ -383,7 +383,7 @@ Operator    | Operation      | Examples                                | Descrip
 ------------|----------------|-----------------------------------------|------------------------------------
 `=`         | Assignment     | `a = o{<items>}`                        | Assigns the operand value to the member.
 `+=`, `\|=` | Union          | `a += o{<items>}`<br>`a \|= o{<items>}` | Performs a union of the operand value and the current member value. Items from the operand are added to the member set.
-`-=`        | Complement     | `a -= o{<items>}`; `a -= {<items>}`     | Performs a complement of the operand value and the current member value. Items from the operand are removed from the member set.
+`-=`        | Difference     | `a -= o{<items>}`; `a -= {<items>}`     | Calculates the difference of the operand value and the current member value. Items from the operand are removed from the member set.
 `&=`        | Intersection   | `a &= o{<items>}`; `a &= {<items>}`     | Performs an intersection of the operand value and the current member value. Items that are not in both the operand and the member set are removed from the member set.
 
 
@@ -409,7 +409,7 @@ SomeObject():
 Patch<SomeObject>():
     a = o{DifferentChildObject}       # result: a = o{DifferentChildObject}              (reassignment)
     b += o{DifferentChildObject}      # result: b = o{OtherObject, DifferentChildObject} (union)
-    c -= o{ChildObject}               # result: c = o{}                                  (complement)
+    c -= o{ChildObject}               # result: c = o{}                                  (difference)
     d &= o{ChildObject, OtherObject}  # result: d = o{ChildObject}                       (intersection)
 ```
 
@@ -448,7 +448,7 @@ Operator    | Operation        | Examples                               | Descri
 `=`         | Assignment       | `a = {key: val}`                       | Assigns the operand value to the member.
 `=`         | Keyed Assignment | `a[key] = val`                         | Assigns the operand value to the specified key. If the key already exists, its previous value is overwritten.
 `+=`, `\|=` | Union            | `a += {key: val}`<br>`a \|= {<items>}` | Performs a union of the operand value and the current member value. Items from the operand are added to the member dict.
-`-=`        | Complement       | `a -= {key}`                           | Performs a complement of the operand value and the current member value. Items using a key from the operand set are removed from the member dict.
+`-=`        | Difference       | `a -= {key}`                           | Calculates the difference of the operand value and the current member value. Items using a key from the operand set are removed from the member dict.
 `&=`        | Intersection     | `a &= {key}`                           | Performs an intersection of the operand value and the current member value. Items using a key that is not in both the operand set and the member dict are removed from the member dict.
 
 
@@ -477,7 +477,7 @@ Patch<SomeObject>():
     a = {OtherObject: 50}            # result: a = {OtherObject: 50}    (reassignment)
     b[OtherObject] = -1000           # result: b = {OtherObject: -1000} (keyed assignment)
     c += {ChildObject: 5}            # result: c = {ChildObject: 5}     (union)
-    d -= {ChildObject}               # result: d = {}                   (complement)
+    d -= {ChildObject}               # result: d = {}                   (difference)
     e &= {ChildObject, OtherObject}  # result: e = {ChildObject: 5}     (intersection)
 ```
 
