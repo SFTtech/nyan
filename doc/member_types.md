@@ -284,6 +284,10 @@ A member with type `set` can store a collection of items with a predefined
 type. The allowed item type must be specified during the member declaration.
 Sets cannot contain duplicates of an item. They can be empty.
 
+If the set type is `object`, references must not be abstract (i.e. all
+members have a value defined). Furthermore, they must be type-compatible to
+the set type.
+
 `set` does not preserve the input order of items.
 
 
@@ -351,6 +355,10 @@ Patch<SomeObject>():
 A member with type `orderedset` can store a collection of items with a predefined
 type. The allowed item type must be specified during the member declaration.
 Sets cannot contain duplicates of an item. They can be empty.
+
+If the set type is `object`, references must not be abstract (i.e. all
+members have a value defined). Furthermore, they must be type-compatible to
+the set type.
 
 `orderedset` does preserve the input order of items.
 
@@ -485,8 +493,9 @@ Patch<SomeObject>():
 ### `object`
 
 A member with type `object` can store a nyan object reference.
-This reference must not be non-abstract (i.e. all members have
-a value defined). Furthermore, it must be type-compatible.
+This reference must not be abstract (i.e. all members have
+a value defined). Furthermore, it must be type-compatible to the
+defined type.
 
 ```python
 OtherObject():
