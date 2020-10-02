@@ -485,6 +485,8 @@ Patch<SomeObject>():
 ### `object`
 
 A member with type `object` can store a nyan object reference.
+This reference must not be non-abstract (i.e. all members have
+a value defined). Furthermore, it must be type-compatible.
 
 ```python
 OtherObject():

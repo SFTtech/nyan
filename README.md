@@ -116,7 +116,7 @@ Which is totally possible with **nyan**.
 Specification
 -------------
 
-Read the [specification](doc/nyan.md).
+Read the [specification](doc/nyan_specification.md).
 
 
 Current State of the Project
