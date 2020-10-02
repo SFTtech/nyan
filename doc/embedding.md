@@ -1,3 +1,4 @@
+# Embedding nyan into a Game Engine
 
 ## nyan interpreter
 
@@ -11,70 +12,7 @@
 * All data history is stored over time
 
 
-### Database views
-
-Problem: Different players and teams have different states of the same nyan tree.
-
-Solution: Hierarchy of state views.
-
-A `nyan::View` has a parent which is either the root database or another `nyan::View`.
-
-The view then stores the state for e.g. a player.
-
-What does that mean?
-
-* You can create a view of the main database
-* You can create a view of a view
-* Querying values respects the view the query is executed in
-* If a patch is applied in a view, the data changes are applied in this view
-  and all children of it. Parent view remain unaffected.
-
-Querying data works like this:
-* `nyan::Object obj = view.get(object_name)`
-  * The `nyan::Object` is just a handle which is then used for real queries
-* `obj.get(member_name, time)` will evaluates the member of the object at a give time
-  * This returns the `nyan::Value` stored in the member at the given time.
-
-Patching data works as follows:
-* Obtain a patch object from some view
-  * `nyan::Object patch = view.get(patch_name);`
-  * If it is known in the view, return it
-  * Else return it from the parent view
-* Create a transaction with this Patch to change the view state at the desired time
-  * `nyan::Transaction tx = view.new_transaction(time);`
-* Add one or more patch objects to the transaction
-  * `tx.add(patch); tx.add(...);`
-  * `tx.add(another_patch, view.get(target_object_name))` is used to patch a child of
-    the patch target.
-* Commit the transaction
-  * `bool success = tx.commit();`
-  * This triggers, for each patch in the transaction:
-    * Determine the patch target object name
-      * If a custom patch target was requested,
-        check if it was a child of the default patch target at loadtime.
-    * Copy the patch target object in a (new) state at `time`
-      * Query the view of the transaction at `time` for the target object, this may recursively query parent views
-      * If there is no state at `time` in the view of the transaction, create a new state
-      * Copy the target object into the state at `time` in the view of the transaction
-    * Linearize the inheritance hierary to a list of patch objects
-      * e.g. if we have a `SomePatch<TargetObj>()` and `AnotherPatch(SomePatch)` and we would like to apply `AnotherPatch`, this will result in `[SomePatch, AnotherPatch]`
-    * Apply the list left to right and modify the copied target object
-    * Notify child views that this patch was applied, perform the patch there as well
-
-This approach allows different views of the database state and integrates with the
-patch idea so e.g. team boni and player specific updates can be handled in an "easy"
-way.
-
-
-### Embedding nyan
-
-A mod API could be implemented as follows: Create a `nyan::Object` named `Mod`
-that has a member with a set of patches to apply. To add new data to the engine,
-inherit from this `Mod`-object and add patches to the set. This `Mod`-object is
-registered to the engine with a mod description file.
-
-
-#### Embedding in the engine
+## Embedding in the Engine Code
 
 The mod API definitions in `engine.nyan` have to be designed exacly the way the
 C++ engine code is then using it. It sets up the type system so that the nyan
@@ -179,9 +117,65 @@ if (not research.commit()) { error("failed transaction"); }
 ```
 
 
+### Database views
+
+Problem: Different players and teams have different states of the same nyan tree.
+
+Solution: Hierarchy of state views.
+
+A `nyan::View` has a parent which is either the root database or another `nyan::View`.
+
+The view then stores the state for e.g. a player.
+
+What does that mean?
+
+* You can create a view of the main database
+* You can create a view of a view
+* Querying values respects the view the query is executed in
+* If a patch is applied in a view, the data changes are applied in this view
+  and all children of it. Parent view remain unaffected.
+
+Querying data works like this:
+* `nyan::Object obj = view.get(object_name)`
+  * The `nyan::Object` is just a handle which is then used for real queries
+* `obj.get(member_name, time)` will evaluates the member of the object at a give time
+  * This returns the `nyan::Value` stored in the member at the given time.
+
+Patching data works as follows:
+* Obtain a patch object from some view
+  * `nyan::Object patch = view.get(patch_name);`
+  * If it is known in the view, return it
+  * Else return it from the parent view
+* Create a transaction with this Patch to change the view state at the desired time
+  * `nyan::Transaction tx = view.new_transaction(time);`
+* Add one or more patch objects to the transaction
+  * `tx.add(patch); tx.add(...);`
+  * `tx.add(another_patch, view.get(target_object_name))` is used to patch a child of
+    the patch target.
+* Commit the transaction
+  * `bool success = tx.commit();`
+  * This triggers, for each patch in the transaction:
+    * Determine the patch target object name
+      * If a custom patch target was requested,
+        check if it was a child of the default patch target at loadtime.
+    * Copy the patch target object in a (new) state at `time`
+      * Query the view of the transaction at `time` for the target object, this may recursively query parent views
+      * If there is no state at `time` in the view of the transaction, create a new state
+      * Copy the target object into the state at `time` in the view of the transaction
+    * Linearize the inheritance hierary to a list of patch objects
+      * e.g. if we have a `SomePatch<TargetObj>()` and `AnotherPatch(SomePatch)` and we would like to apply `AnotherPatch`, this will result in `[SomePatch, AnotherPatch]`
+    * Apply the list left to right and modify the copied target object
+    * Notify child views that this patch was applied, perform the patch there as well
+
+This approach allows different views of the database state and integrates with the
+patch idea so e.g. team boni and player specific updates can be handled in an "easy"
+way.
+
+
 #### API definition example
 
-See openage
+openage uses an [ECS-style nyan API](https://github.com/SFTtech/openage/tree/master/doc/nyan/api_reference) for storing game data.
+
 
 ### Creating a scripting API
 
@@ -211,6 +205,3 @@ should be the annotated ones.
 
 Nevertheless, `nyanc` is just an optimization, and has therefore no
 priority until we need it.
-
-
-

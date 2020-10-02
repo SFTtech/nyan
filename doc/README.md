@@ -88,4 +88,3 @@ A full specification is provided [here](nyan_specification.md).
 * Data does not contain any executable code but can specify function names
   and parameters. The game engine is responsible for calling those
   functions or redirecting to custom scripts
-

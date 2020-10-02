@@ -581,4 +581,3 @@ the calculation is done like this:
   * `A` adds `5`, so `entry` is `12`
   * `LOLWhat` adds `1`, `entry` is `13`
   * `OHNoes` adds `1` as well, and `entry` is returned to be `14`
-
