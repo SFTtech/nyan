@@ -346,6 +346,7 @@ result for `SomePatch` will be `member_name += 5`.
 
 ----
 
+
 A patch adds additional parent objects to its target by specifying
 a list of object references after the patch target. The patch must
 specify for every parent whether it is appended to the front or the
@@ -363,6 +364,28 @@ PatchName<SomeObject>[+AdditionalParent, AnotherParent+, ...]():
 Adding a parent must not induce name clashes of members (see the
 [multiple inheritance example](#multi-inheritance)).
 
+Any object inheriting from a patch becomes a patch itself. The
+patch target of the parent cannot be changed, so the inheriting
+object must not define its own target.
+
+```python
+SomeObject():
+    member_name  : int = 7
+
+# Patch by definition
+SomePatch<SomeObject>():
+    member_name -= 3
+
+# Patch by inheritance
+ChildPatch(SomePatch):
+    member_name += 4
+```
+
+Applying an inherited patch will also apply its ancestors in
+descending order, i.e. the highest level ancestor is applied
+first, while the initiating patch is applied last. If a patch
+in the chain has multiple parents, they are applied in order of
+appearence, i.e. in the order they appear in the patch definition.
 
 ## Namespace
 
