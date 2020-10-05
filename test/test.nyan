@@ -1,4 +1,6 @@
 # test nyan file
+!version 1
+!arg 1 2 3 "Test"
 
 Dummy():
     ...

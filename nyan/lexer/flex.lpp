@@ -65,6 +65,7 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 "{"                     { impl->token(nyan::token_type::LBRACE); }
 "}"                     { impl->token(nyan::token_type::RBRACE); }
 "@"                     { impl->token(nyan::token_type::AT); }
+"!"                     { impl->token(nyan::token_type::BANG); }
 
 "pass"                  { impl->token(nyan::token_type::PASS); }
 "..."                   { impl->token(nyan::token_type::ELLIPSIS); }

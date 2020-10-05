@@ -74,7 +74,10 @@ const std::vector<ASTImport> &AST::get_imports() const {
 AST::AST(TokenStream &tokens) {
 	while (tokens.full()) {
 		auto token = tokens.next();
-		if (token->type == token_type::IMPORT) {
+		if (token->type == token_type::BANG) {
+			this->args.emplace_back(tokens);
+		}
+		else if (token->type == token_type::IMPORT) {
 			this->imports.emplace_back(tokens);
 		}
 		else if (token->type == token_type::ID) {
@@ -93,6 +96,33 @@ AST::AST(TokenStream &tokens) {
 			throw ASTError{"expected object name, but got", *token};
 		}
 	}
+}
+
+
+ASTArgument::ASTArgument(TokenStream &tokens) {
+	auto token = tokens.next();
+
+	if (token->type == token_type::ID) {
+		this->arg = IDToken{*token, tokens};
+		token = tokens.next();
+	} else {
+		throw ASTError("expected parameter keyword, encountered", *token);
+	}
+
+	while (token->type != token_type::ENDLINE) {
+		this->params.emplace_back(*token, tokens);
+		token = tokens.next();
+	}
+}
+
+
+const IDToken &ASTArgument::get_arg() const {
+	return this->arg;
+}
+
+
+const std::vector<IDToken> &ASTArgument::get_params() const {
+	return this->params;
 }
 
 
@@ -560,6 +590,12 @@ void AST::strb(std::ostringstream &builder, int indentlevel) const {
 	}
 }
 
+void ASTArgument::strb(std::ostringstream &builder, int /*indentlevel*/) const {
+	builder << "!" << this->arg.str();
+	for (auto &param : this->params) {
+		builder << " " << param.str();
+	}
+}
 
 void ASTImport::strb(std::ostringstream &builder, int /*indentlevel*/) const {
 	builder << "import " << this->namespace_name.str();

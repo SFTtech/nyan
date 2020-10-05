@@ -17,6 +17,7 @@ class File;
 enum class token_type {
 	AS,
 	AT,
+	BANG,
 	COLON,
 	COMMA,
 	DEDENT,
@@ -65,6 +66,7 @@ constexpr const char *token_type_str(token_type type) {
 	switch (type) {
 	case token_type::AS:             return "as";
 	case token_type::AT:             return "@";
+	case token_type::BANG:           return "!";
 	case token_type::COLON:          return "colon";
 	case token_type::COMMA:          return "comma";
 	case token_type::DEDENT:         return "dedentation";
