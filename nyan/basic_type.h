@@ -22,7 +22,7 @@ enum class primitive_t {
 	INT,
 	FLOAT,
 	CONTAINER,
-	OBJECT
+	OBJECT,
 };
 
 
@@ -34,6 +34,7 @@ enum class container_t {
 	SINGLE,
 	SET,
 	ORDEREDSET,
+	DICT,
 };
 
 
@@ -122,6 +123,7 @@ constexpr const char *container_type_to_string(container_t type) {
 	case container_t::SINGLE:        return "single_value";
 	case container_t::SET:           return "set";
 	case container_t::ORDEREDSET:    return "orderedset";
+	case container_t::DICT:          return "dict";
 	}
 
 	return "unhandled container_t";

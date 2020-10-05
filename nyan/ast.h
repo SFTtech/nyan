@@ -117,6 +117,27 @@ protected:
 
 
 /**
+ * The abstract syntax tree representation of an argument.
+ */
+class ASTArgument : public ASTBase {
+public:
+	ASTArgument(TokenStream &tokens);
+
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
+
+	/** return the payload */
+	const IDToken &get_arg() const;
+
+	/** return the payload */
+	const std::vector<IDToken> &get_params() const;
+
+protected:
+	IDToken arg;
+	std::vector<IDToken> params;
+};
+
+
+/**
  * An import in a nyan file is represented by this AST entry.
  * Used for the `import ... (as ...)` statement.
  */
@@ -142,7 +163,7 @@ protected:
 
 
 /**
- * Inheritance chang
+ * Inheritance change
  */
 class ASTInheritanceChange : public ASTBase {
 	friend class Database;
@@ -200,6 +221,7 @@ public:
 	const std::vector<ASTImport> &get_imports() const;
 
 protected:
+	std::vector<ASTArgument> args;
 	std::vector<ASTImport> imports;
 	std::vector<ASTObject> objects;
 };
