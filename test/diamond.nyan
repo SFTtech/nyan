@@ -1,3 +1,5 @@
+!version 1
+
 a():
     member : int = 0
 

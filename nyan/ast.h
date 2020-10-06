@@ -125,10 +125,10 @@ public:
 
 	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 
-	/** return the payload */
+	/** return the argument */
 	const IDToken &get_arg() const;
 
-	/** return the payload */
+	/** return the parameters */
 	const std::vector<IDToken> &get_params() const;
 
 protected:
@@ -217,6 +217,7 @@ public:
 	AST(TokenStream &tokens);
 
 	void strb(std::ostringstream &builder, int indentlevel=0) const override;
+	const std::vector<ASTArgument> &get_args() const;
 	const std::vector<ASTObject> &get_objects() const;
 	const std::vector<ASTImport> &get_imports() const;
 

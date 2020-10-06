@@ -1,2 +1,4 @@
+!version 1
+
 ImportedObject():
     it_works : int = 42
