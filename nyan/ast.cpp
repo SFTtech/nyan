@@ -61,6 +61,11 @@ std::string ASTBase::str() const {
 }
 
 
+const std::vector<ASTArgument> &AST::get_args() const {
+	return this->args;
+}
+
+
 const std::vector<ASTObject> &AST::get_objects() const {
 	return this->objects;
 }
@@ -72,8 +77,23 @@ const std::vector<ASTImport> &AST::get_imports() const {
 
 
 AST::AST(TokenStream &tokens) {
+	auto token = tokens.next();
+
+	// Ensure that AST has version argument
+	if (token->type == token_type::BANG) {
+		this->args.emplace_back(tokens);
+
+		if (this->args.front().get_arg().str() != "version") {
+			throw InternalError{"file must start with 'version' argument, not "
+								+ this->args.front().get_arg().str()};
+		}
+	}
+	else {
+		throw InternalError{"missing starting argument: version"};
+	}
+
 	while (tokens.full()) {
-		auto token = tokens.next();
+		token = tokens.next();
 		if (token->type == token_type::BANG) {
 			this->args.emplace_back(tokens);
 		}
@@ -106,12 +126,16 @@ ASTArgument::ASTArgument(TokenStream &tokens) {
 		this->arg = IDToken{*token, tokens};
 		token = tokens.next();
 	} else {
-		throw ASTError("expected parameter keyword, encountered", *token);
+		throw ASTError("expected argument keyword, encountered", *token);
 	}
 
 	while (token->type != token_type::ENDLINE) {
-		this->params.emplace_back(*token, tokens);
-		token = tokens.next();
+		if (token->is_content()) {
+			this->params.emplace_back(*token, tokens);
+			token = tokens.next();
+		} else {
+			throw ASTError("expected parameter value, encountered", *token);
+		}
 	}
 }
 
