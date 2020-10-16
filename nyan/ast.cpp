@@ -502,33 +502,30 @@ ASTMember::ASTMember(const Token &name,
 ASTMemberType::ASTMemberType()
 	:
 	does_exist{false},
-	has_payload{false} {}
+	has_args{false} {}
 
 
 ASTMemberType::ASTMemberType(const Token &name,
                              TokenStream &tokens)
 	:
 	does_exist{true},
-	has_payload{false} {
+	has_args{false} {
 
 	this->name = IDToken{name, tokens};
 
-	// now there may follow a type payload, e.g. set(payloadtype)
+	// now there may follow type arguments, e.g. set(arg, key=val)
 	auto token = tokens.next();
 	if (token->type == token_type::LPAREN) {
-		token = tokens.next();
-		if (token->type == token_type::ID) {
-			this->payload = IDToken{*token, tokens};
-			this->has_payload = true;
-		}
-		else {
-			throw ASTError("expected type identifier, but got", *token);
-		}
-
-		token = tokens.next();
-
-		if (token->type != token_type::RPAREN) {
-			throw ASTError("expected closing parens, but encountered", *token);
+		comma_list(
+			token_type::RPAREN,
+			tokens,
+			[this] (const Token & /*token*/, TokenStream &stream) {
+				stream.reinsert_last();
+				this->args.emplace_back(stream);
+			}
+		);
+		if (this->args.size() > 0) {
+			this->has_args = true;
 		}
 	} else {
 		tokens.reinsert_last();
@@ -538,6 +535,36 @@ ASTMemberType::ASTMemberType(const Token &name,
 
 bool ASTMemberType::exists() const {
 	return this->does_exist;
+}
+
+
+ASTMemberArgument::ASTMemberArgument(TokenStream &tokens)
+	:
+	has_key{false} {
+	auto token = tokens.next();
+	if (token->type != token_type::ID) {
+		throw ASTError("expected argument value or key, but got", *token);
+	}
+
+	auto next_token = tokens.next();
+	// check if the argument is keyed
+	if (next_token->type == token_type::OPERATOR) {
+		if (unlikely(op_from_token(*next_token) != nyan_op::ASSIGN)) {
+			throw ASTError("expected argument keyed assignment, but got", *token);
+		}
+
+		this->has_key = true;
+		this->key = IDToken(*token, tokens);
+
+		token = tokens.next();
+		if (unlikely(token->type != token_type::ID)) {
+			throw ASTError("expected argument value, but got", *token);
+		}
+	} else {
+		tokens.reinsert_last();
+	}
+
+	this->value = IDToken{*token, tokens};
 }
 
 
@@ -718,11 +745,23 @@ void ASTMember::strb(std::ostringstream &builder, int indentlevel) const {
 void ASTMemberType::strb(std::ostringstream &builder, int /*indentlevel*/) const {
 	builder << this->name.str();
 
-	if (this->has_payload) {
-		builder << "(" << this->payload.str() << ")";
+	if (this->has_args) {
+		builder << "(";
+		for (auto &arg : this->args) {
+			arg.strb(builder);
+		}
+		builder << ")";
 	}
 }
 
+
+void ASTMemberArgument::strb(std::ostringstream &builder, int /*indentlevel*/) const {
+	if (this->has_key) {
+		builder << this->key.str() << "=";
+	}
+
+	builder << this->value.str();
+}
 
 void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) const {
 	switch (this->container_type) {
