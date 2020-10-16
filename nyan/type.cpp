@@ -27,26 +27,21 @@ Type::Type(const ASTMemberType &ast_type,
 
 	// test if the type is primitive (int, float, text, ...)
 	if (this->basic_type.is_fundamental()) {
-		if (ast_type.has_payload) {
-			throw ASTError{
-				"fundamental type can't have a type payload",
-				ast_type.payload, false
-			};
-		}
 		return;
 	}
 
 	// container type like set(something)
 	if (this->basic_type.is_container()) {
-		if (not ast_type.has_payload) {
+		if (not ast_type.has_args) {
 			throw ASTError{
 				"container content type not specified",
 				ast_type.name, false
 			};
 		}
 
+		// TODO: Element type is more complex for dicts
 		this->element_type = std::make_unique<Type>(
-			ast_type.payload,
+			ast_type.args.at(0).value, 
 			scope,
 			ns,
 			type_info
@@ -55,14 +50,6 @@ Type::Type(const ASTMemberType &ast_type,
 	}
 
 	// here, type must be a OBJECT.
-
-	// type is not builtin, but has a payload
-	if (ast_type.has_payload) {
-		throw ASTError{
-			"you can't assign a target to an object type",
-			ast_type.payload, false
-		};
-	}
 
 	this->basic_type = {
 		primitive_t::OBJECT,

@@ -48,6 +48,26 @@ protected:
 
 
 /**
+ * AST representation of a member type argument declaration.
+ */
+class ASTMemberArgument : public ASTBase {
+	friend class ASTMemberType;
+	friend class Database;
+	friend class Type;
+
+public:
+	ASTMemberArgument(TokenStream &tokens);
+
+	void strb(std::ostringstream &builder, int indentlevel=0) const override;
+
+protected:
+	bool has_key;
+	IDToken key;
+	IDToken value;
+};
+
+
+/**
  * AST representation of a member type declaration.
  */
 class ASTMemberType : ASTBase {
@@ -65,8 +85,8 @@ protected:
 	bool does_exist;
 	IDToken name;
 
-	bool has_payload;
-	IDToken payload;
+	bool has_args;
+	std::vector<ASTMemberArgument> args;
 };
 
 
