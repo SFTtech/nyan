@@ -75,6 +75,7 @@ bool Token::is_content() const {
 	switch (this->type) {
 	case token_type::FLOAT:
 	case token_type::ID:
+	case token_type::INF:
 	case token_type::INT:
 	case token_type::STRING:
 		return true;

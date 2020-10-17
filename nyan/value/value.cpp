@@ -29,9 +29,11 @@ static ValueHolder value_from_value_token(const Type &target_type,
 	case primitive_t::TEXT:
 		return {std::make_shared<Text>(value_token)};
 
-	case primitive_t::INT:
-	case primitive_t::FLOAT: {
-		if (value_token.get_type() == token_type::INT) {
+	case primitive_t::INT: {
+		if (value_token.get_type() == token_type::INF) {
+			return {std::make_shared<Int>(value_token)};
+		}
+		else if (value_token.get_type() == token_type::INT) {
 			return {std::make_shared<Int>(value_token)};
 		}
 		else if (value_token.get_type() == token_type::FLOAT) {
@@ -39,7 +41,22 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		}
 		throw LangError{
 			value_token,
-			"invalid value for number, expecting float or int"
+			"invalid token for number, expected float, int or inf"
+		};
+	}
+	case primitive_t::FLOAT: {
+		if (value_token.get_type() == token_type::INF) {
+			return {std::make_shared<Float>(value_token)};
+		}
+		else if (value_token.get_type() == token_type::INT) {
+			return {std::make_shared<Int>(value_token)};
+		}
+		else if (value_token.get_type() == token_type::FLOAT) {
+			return {std::make_shared<Float>(value_token)};
+		}
+		throw LangError{
+			value_token,
+			"invalid token for number, expected float, int or inf"
 		};
 	}
 
