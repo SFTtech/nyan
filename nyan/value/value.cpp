@@ -30,10 +30,18 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		return {std::make_shared<Text>(value_token)};
 
 	case primitive_t::INT:
-		return {std::make_shared<Int>(value_token)};
-
-	case primitive_t::FLOAT:
-		return {std::make_shared<Float>(value_token)};
+	case primitive_t::FLOAT: {
+		if (value_token.get_type() == token_type::INT) {
+			return {std::make_shared<Int>(value_token)};
+		}
+		else if (value_token.get_type() == token_type::FLOAT) {
+			return {std::make_shared<Float>(value_token)};
+		}
+		throw LangError{
+			value_token,
+			"invalid value for number, expecting float or int"
+		};
+	}
 
 	case primitive_t::FILENAME: {
 		// TODO: make relative to current namespace

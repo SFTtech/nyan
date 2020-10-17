@@ -538,7 +538,7 @@ bool ASTMemberType::exists() const {
 }
 
 
-ASTMemberArgument::ASTMemberArgument(TokenStream &tokens)
+ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens)
 	:
 	has_key{false} {
 	auto token = tokens.next();
@@ -756,7 +756,7 @@ void ASTMemberType::strb(std::ostringstream &builder, int /*indentlevel*/) const
 }
 
 
-void ASTMemberArgument::strb(std::ostringstream &builder, int /*indentlevel*/) const {
+void ASTMemberTypeArgument::strb(std::ostringstream &builder, int /*indentlevel*/) const {
 	if (this->has_key) {
 		builder << this->key.str() << "=";
 	}

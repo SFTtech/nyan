@@ -65,26 +65,39 @@ Float::Number(const IDToken &token) {
 
 template <typename T>
 void Number<T>::apply_value(const Value &value, nyan_op operation) {
-	const Number &change = dynamic_cast<const Number &>(value);
+	auto applier = [](auto &member_value, auto operand, nyan_op operation) {
+		switch (operation) {
+		case nyan_op::ASSIGN:
+			member_value = operand; break;
 
-	switch (operation) {
-	case nyan_op::ASSIGN:
-		this->value = change.value; break;
+		case nyan_op::ADD_ASSIGN:
+			member_value += operand; break;
 
-	case nyan_op::ADD_ASSIGN:
-		this->value += change.value; break;
+		case nyan_op::SUBTRACT_ASSIGN:
+			member_value -= operand; break;
 
-	case nyan_op::SUBTRACT_ASSIGN:
-		this->value -= change.value; break;
+		case nyan_op::MULTIPLY_ASSIGN:
+			member_value *= operand; break;
 
-	case nyan_op::MULTIPLY_ASSIGN:
-		this->value *= change.value; break;
+		case nyan_op::DIVIDE_ASSIGN:
+			member_value /= operand; break;
 
-	case nyan_op::DIVIDE_ASSIGN:
-		this->value /= change.value; break;
+		default:
+			throw Error{"unknown operation requested"};
+		}
+	};
 
-	default:
-		throw Error{"unknown operation requested"};
+	if (typeid(Float&) == typeid(value)) {
+		const Float &change = dynamic_cast<const Float &>(value);
+		applier(this->value, change.get(), operation);
+	}
+	else if (typeid(Int&) == typeid(value)) {
+		const Int &change = dynamic_cast<const Int &>(value);
+		applier(this->value, change.get(), operation);
+	}
+	else {
+		InternalError("expected Number instance for operation, but got"
+					  + std::string(typeid(value).name()));
 	}
 }
 

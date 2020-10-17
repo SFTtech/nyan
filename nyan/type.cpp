@@ -105,7 +105,7 @@ bool Type::is_container(container_t type) const {
 }
 
 
-bool Type::is_basic_compatible(const BasicType &type) const {
+bool Type::is_basic_type_match(const BasicType &type) const {
 	return (this->basic_type == type);
 }
 
