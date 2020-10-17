@@ -72,9 +72,9 @@ public:
 	bool is_container(container_t type) const;
 
 	/**
-	 * Test if the basic type is compatbile, i. e. the same.
+	 * Test if the basic type matches the given type, i. e. it's the same.
 	 */
-	bool is_basic_compatible(const BasicType &type) const;
+	bool is_basic_type_match(const BasicType &type) const;
 
 	/**
 	 * Check if this type can be in the given other type.

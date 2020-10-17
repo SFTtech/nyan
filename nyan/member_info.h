@@ -13,7 +13,6 @@ class Type;
 
 /**
  * Stores information for a member of an Object.
- * Also responsible for validating applied operators.
  */
 class MemberInfo {
 public:

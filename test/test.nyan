@@ -15,7 +15,7 @@ FirstPatch<First>():
     member += 3
 
 Second(First):
-    member *= 5
+    member *= 5.5
 
 NestingBase(First):
 
