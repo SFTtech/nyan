@@ -39,7 +39,7 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		}
 		throw LangError{
 			value_token,
-			"invalid value for number, expecting float or int"
+			"invalid token for number, expecting float or int"
 		};
 	}
 

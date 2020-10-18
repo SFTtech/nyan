@@ -44,6 +44,18 @@ public:
 		return *this;
 	}
 
+	/**
+	 *  Checks if the value is positive or negative infinity.
+	 */
+	bool is_infinite() const;
+
+	/**
+	 * Calculates the value that is assigned when one of the operands
+	 * of apply_value() is infinity. This can be either -inf, inf or 0.
+	 * Throws an InternalError if the value would be NaN.
+	 */
+	T handle_infinity(const Number<T> &other, nyan_op operation);
+
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
 
