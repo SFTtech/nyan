@@ -30,9 +30,9 @@ operations that are allowed on them.
 
 nyan Type | C++ Equivalent | Operators               | Description
 ----------|----------------|-------------------------|-----------------------------------
-`int`     | `int32_t`      | `=`,`+=`,`-=`,`*=`,`/=` | 32-Bit signed integer.
-`float`   | `float`        | `=`,`+=`,`-=`,`*=`,`/=` | 32-Bit floating point value.
-`bool`    | `bool`         | `=`,`&=`,`\|=`           | Boolean value.
+`int`     | `int64_t`      | `=`,`+=`,`-=`,`*=`,`/=` | 64-Bit signed integer.
+`float`   | `double`       | `=`,`+=`,`-=`,`*=`,`/=` | double precision floating point value.
+`bool`    | `bool`         | `=`,`&=`,`\|=`          | Boolean value.
 `text`    | `std:string`   | `=`,`+=`                | String of characters.
 `file`    | `std:string`   | `=`                     | Path to a file.
 
@@ -59,9 +59,13 @@ Type Modifier | nyan Types | Description
 
 ### `int`
 
-A member with type `int` can store a signed 32-Bit integer value. Values must be
-in the range of `-2147483648` to `2147483647`. Additionally, positive infinity
+A member with type `int` can store a signed 64-Bit integer value. Positive infinity
 (`inf`) and negative infinity (`-inf`) are supported.
+
+`float` is compatible to `int` which means that `float` values can be used in
+operations on integer values. The result of operations with `float` operands is
+always floored (i.e. the value is truncated). This behaviour is consistent with
+*standard conversion* for integer/float types in C++.
 
 ```python
 SomeObject():
@@ -75,13 +79,13 @@ SomeObject():
 
 The following operators can be used when inheriting from or patching a nyan object.
 
-Operator | Operation      | Examples                | Description
----------|----------------|-------------------------|------------------------------------
-`=`      | Assignment     | `a = 5`                 | Assigns the operand value to the member.
-`+=`     | Addition       | `a += 5`                | Adds the operand value to the current member value.
-`-=`     | Subtraction    | `a -= 5`                | Subtracts the operand value from the current member value.
-`*=`     | Multiplication | `a *= 2`  `a *= 2.5f` | Multiplies the operand value with the current member value. Floats can be used as an operand. The result is floored.
-`/=`     | Division       | `a /= 2`  `a /= 2.5f` | Divides the current member value by the operand value. Floats can be used as an operand. The result is floored.
+Operator | Operation      | Examples            | Description
+---------|----------------|---------------------|------------------------------------
+`=`      | Assignment     | `a = 5` `a = 5.0`   | Assigns the operand value to the member. Floats can be used as an operand.
+`+=`     | Addition       | `a += 5` `a += 5.0` | Adds the operand value to the current member value. Floats can be used as an operand. The result is floored.
+`-=`     | Subtraction    | `a -= 5` `a -= 5.0` | Subtracts the operand value from the current member value. Floats can be used as an operand. The result is floored.
+`*=`     | Multiplication | `a *= 2` `a *= 2.5` | Multiplies the operand value with the current member value. Floats can be used as an operand. The result is floored.
+`/=`     | Division       | `a /= 2` `a /= 2.5` | Divides the current member value by the operand value. Floats can be used as an operand. The result is floored.
 
 #### Usage Examples
 
@@ -114,15 +118,19 @@ Patch2<OtherObject>():
 
 ### `float`
 
-A member with type `float` can store a single precision floating point value.
+A member with type `float` can store a *double precision* floating point value.
 Positive infinity (`inf`) and negative infinity (`-inf`) are supported.
+
+`int` is compatible to `float` which means that `int` values can be used in
+operations on integer values. This behaviour is consistent with
+*standard conversion* for integer/float types in C++.
 
 ```python
 SomeObject():
-    a : float            # only declaration
-    b : float = 5.0f     # declaration and initialization with 5.0
-    c : float = 8.3456f  # declaration and initialization with 8.3456
-    d : float = -20.2f   # declaration and initialization with -20.2
+    a : float           # only declaration
+    b : float = 5.0     # declaration and initialization with 5.0
+    c : float = 8.3456  # declaration and initialization with 8.3456
+    d : float = -20.2   # declaration and initialization with -20.2
 ```
 
 
@@ -130,13 +138,13 @@ SomeObject():
 
 The following operators can be used when inheriting from or patching a nyan object.
 
-Operator | Operation      | Examples    | Description
----------|----------------|-------------|------------------------------------
-`=`      | Assignment     | `a = 5.0f`  | Assigns the operand value to the member.
-`+=`     | Addition       | `a += 5.0f` | Adds the operand value to the current member value.
-`-=`     | Subtraction    | `a -= 5.0f` | Subtracts the operand value from the current member value.
-`*=`     | Multiplication | `a *= 2.5f` | Multiplies the operand value with the current member value.
-`/=`     | Division       | `a /= 2.5f` | Divides the current member value by the operand value.
+Operator | Operation      | Examples            | Description
+---------|----------------|---------------------|------------------------------------
+`=`      | Assignment     | `a = 5.0` `a = 5`   | Assigns the operand value to the member. Integers can be used as an operand.
+`+=`     | Addition       | `a += 5.0` `a += 5` | Adds the operand value to the current member value. Integers can be used as an operand.
+`-=`     | Subtraction    | `a -= 5.0` `a -= 5` | Subtracts the operand value from the current member value. Integers can be used as an operand.
+`*=`     | Multiplication | `a *= 2.5` `a *= 2` | Multiplies the operand value with the current member value. Integers can be used as an operand.
+`/=`     | Division       | `a /= 2.5` `a /= 2` | Divides the current member value by the operand value. Integers can be used as an operand.
 
 
 #### Usage Examples
@@ -144,28 +152,28 @@ Operator | Operation      | Examples    | Description
 
 ```python
 SomeObject():
-    a : float = 10.2f
-    b : float = -5.1f
-    c : float = 20.6f
-    d : float = 0.4f
+    a : float = 10.2
+    b : float = -5.1
+    c : float = 20.6
+    d : float = 0.4
 
 Patch1<SomeObject>():
-    a = 5.5f    # result: a = 5.5  (reassignment)
-    b += 1.2f   # result: b = 3.9  (addition: -5.1 + 1.2)
-    c -= 5.0f   # result: c = 15.6 (sutraction: 20.6 - 5.0f)
-    d *= 2.0f   # result: d = 0.8  (multiplication: 0.4 * 2.0)
+    a = 5.5    # result: a = 5.5  (reassignment)
+    b += 1.2   # result: b = 3.9  (addition: -5.1 + 1.2)
+    c -= 5.0   # result: c = 15.6 (sutraction: 20.6 - 5.0)
+    d *= 2.0   # result: d = 0.8  (multiplication: 0.4 * 2.0)
 
 OtherObject():
-    a : float = -7.5f
-    b : float = 3.3f
-    c : float = 4.0f
-    d : float = 4.9f
+    a : float = -7.5
+    b : float = 3.3
+    c : float = 4.0
+    d : float = 4.9
 
 Patch2<OtherObject>():
-    a -= 5.0f    # result: a = -12.5 (subtraction: -7.5 - 5.0)
-    b -= -2.0f   # result: b = 5.3   (addition: 3.3 - (-2.0))
-    c *= 0.5f    # result: c = 2.0   (multiplication: 4.0 * 0.5)
-    d /= 7.0f    # result: d = 0.7   (division: 4.9 / 7.0)
+    a -= 5.0    # result: a = -12.5 (subtraction: -7.5 - 5.0)
+    b -= -2.0   # result: b = 5.3   (addition: 3.3 - (-2.0))
+    c *= 0.5    # result: c = 2.0   (multiplication: 4.0 * 0.5)
+    d /= 7.0    # result: d = 0.7   (division: 4.9 / 7.0)
 ```
 
 
@@ -454,7 +462,6 @@ The following operators can be used when inheriting from or patching a nyan obje
 Operator    | Operation        | Examples                               | Description
 ------------|------------------|----------------------------------------|------------------------------------
 `=`         | Assignment       | `a = {key: val}`                       | Assigns the operand value to the member.
-`=`         | Keyed Assignment | `a[key] = val`                         | Assigns the operand value to the specified key. If the key already exists, its previous value is overwritten.
 `+=`, `\|=` | Union            | `a += {key: val}`<br>`a \|= {<items>}` | Performs a union of the operand value and the current member value. Items from the operand are added to the member dict.
 `-=`        | Difference       | `a -= {key}`                           | Calculates the difference of the operand value and the current member value. Items using a key from the operand set are removed from the member dict.
 `&=`        | Intersection     | `a &= {key}`                           | Performs an intersection of the operand value and the current member value. Items using a key that is not in both the operand set and the member dict are removed from the member dict.
@@ -476,17 +483,15 @@ DifferentChildObject(OtherObject):
 SomeObject():
     a : dict(OtherObject, int) = {}
     b : dict(OtherObject, int) = {}
-    c : dict(OtherObject, int) = {}
-    d : dict(OtherObject, int) = {ChildObject: 2}
-    e : dict(OtherObject, int) = {ChildObject: 5,
+    c : dict(OtherObject, int) = {ChildObject: 2}
+    d : dict(OtherObject, int) = {ChildObject: 5,
                                   DifferentChildObject: -10}
 
 Patch<SomeObject>():
     a = {OtherObject: 50}            # result: a = {OtherObject: 50}    (reassignment)
-    b[OtherObject] = -1000           # result: b = {OtherObject: -1000} (keyed assignment)
-    c += {ChildObject: 5}            # result: c = {ChildObject: 5}     (union)
-    d -= {ChildObject}               # result: d = {}                   (difference)
-    e &= {ChildObject, OtherObject}  # result: e = {ChildObject: 5}     (intersection)
+    b += {ChildObject: 5}            # result: c = {ChildObject: 5}     (union)
+    c -= {ChildObject}               # result: d = {}                   (difference)
+    d &= {ChildObject, OtherObject}  # result: e = {ChildObject: 5}     (intersection)
 ```
 
 
@@ -582,7 +587,7 @@ SomeObject():
 
 Patch<SomeObject>():
     a = None         # result: a = None        (reassignment)
-    b += 10.0f       # result: b = None        (no effect)
+    b += 10.0        # result: b = None        (no effect)
     c = {}           # result: c = {}          (reassignment)
     d = ChildObject  # result: d = ChildObject (reassignment)
 ```

@@ -15,7 +15,7 @@
     <list name="list_types">
       <item>set</item>
       <item>orderedset</item>
-      <!-- <item>dict</item> implement me jj, pls.. -->
+      <item>dict</item>
     </list>
 	<list name="constants">
 		<item>True</item>
