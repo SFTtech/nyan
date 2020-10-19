@@ -42,11 +42,11 @@ NestingBase(First):
 
 Fourth(First):
     guenther : int = 1337
-    truth : bool = true
+    truth : bool = True
 
 Fifth(Fourth):
     guenther /= 100
-    truth &= false
+    truth &= False
 
 Third(First):
     rolf : int = 42

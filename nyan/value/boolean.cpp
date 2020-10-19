@@ -28,16 +28,16 @@ Boolean::Boolean(const IDToken &token) {
 
 	const std::string &token_value = token.get_first();
 
-	if (token_value == "true") {
+	if (token_value == "True") {
 		this->value = true;
 	}
-	else if (token_value == "false") {
+	else if (token_value == "False") {
 		this->value = false;
 	}
 	else {
 		throw LangError{
 			token,
-			"unknown boolean value (did you use 'true' and 'false'?)"
+			"unknown boolean value (did you use 'True' and 'False'?)"
 		};
 	}
 }
@@ -71,10 +71,10 @@ void Boolean::apply_value(const Value &value, nyan_op operation) {
 
 std::string Boolean::str() const {
 	if (this->value) {
-		return "true";
+		return "True";
 	}
 	else {
-		return "false";
+		return "False";
 	};
 }
 
