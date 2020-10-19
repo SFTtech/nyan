@@ -103,13 +103,13 @@ Float::Number(const IDToken &token) {
 
 template<>
 bool Number<typename Int::storage_type>::is_infinite() const {
-	return this->value == INT_POS_INF or this->value == INT_NEG_INF;
+	return (this->value == INT_POS_INF or this->value == INT_NEG_INF);
 }
 
 
 template<>
 bool Number<typename Float::storage_type>::is_infinite() const {
-	return this->value == FLOAT_POS_INF or this->value == FLOAT_NEG_INF;
+	return (this->value == FLOAT_POS_INF or this->value == FLOAT_NEG_INF);
 }
 
 
@@ -144,8 +144,8 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 			applier(this->value, change.get(), operation);
 		}
 		else {
-			Float *left = dynamic_cast<Float *>(this);
-			auto change_value = left->handle_infinity(change, operation);
+			Float left = static_cast<Float>(*this);
+			auto change_value = left.handle_infinity(change, operation);
 			applier(this->value, change_value, nyan_op::ASSIGN);
 		}
 	}
@@ -156,8 +156,8 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 			applier(this->value, change.get(), operation);
 		}
 		else {
-			Int *left = dynamic_cast<Int *>(this);
-			auto change_value = left->handle_infinity(change, operation);
+			Int left = static_cast<Int>(*this);
+			auto change_value = left.handle_infinity(change, operation);
 			applier(this->value, change_value, nyan_op::ASSIGN);
 		}
 	}
