@@ -30,8 +30,9 @@ enum class token_type {
 	ID,
 	IMPORT,
 	INDENT,
-	INVALID,
+	INF,
 	INT,
+	INVALID,
 	LANGLE,
 	LBRACE,
 	LBRACKET,
@@ -79,6 +80,7 @@ constexpr const char *token_type_str(token_type type) {
 	case token_type::ID:             return "identifier";
 	case token_type::IMPORT:         return "import";
 	case token_type::INDENT:         return "indentation";
+	case token_type::INF:            return "inf";
 	case token_type::INT:            return "int";
 	case token_type::INVALID:        return "invalid";
 	case token_type::LANGLE:         return "'<'";
@@ -107,6 +109,7 @@ constexpr bool token_needs_payload(token_type type) {
 	switch (type) {
 	case token_type::FLOAT:
 	case token_type::ID:
+	case token_type::INF:
 	case token_type::INT:
 	case token_type::OPERATOR:
 	case token_type::STRING:

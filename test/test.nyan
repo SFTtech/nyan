@@ -10,6 +10,8 @@ First():
     member : int = 15
     test : text = "rofl lol"
     bla : file = "wtf.h4x"
+    blub : int = inf
+    blob : float = -inf
 
 FirstPatch<First>():
     member += 3

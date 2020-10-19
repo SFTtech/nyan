@@ -15,15 +15,23 @@
 
 namespace nyan {
 
-static void check_token(const IDToken &token, token_type expected) {
+static void check_token(const IDToken &token, std::vector<token_type> expected) {
 
 	using namespace std::string_literals;
 
-	if (unlikely(token.get_type() != expected)) {
+	if (unlikely(not (std::find(expected.begin(),
+						   		expected.end(),
+						    	token.get_type()) != expected.end()))) {
 		throw LangError{
 			token,
 			"invalid value for number, expected "s
-			+ token_type_str(expected)
+			+ util::strjoin(
+				" or ",
+				expected,
+				[] (const auto &token_type) {
+					return token_type_str(token_type);
+				}
+			)
 		};
 	}
 }
@@ -32,10 +40,25 @@ static void check_token(const IDToken &token, token_type expected) {
 template<>
 Int::Number(const IDToken &token) {
 
-	check_token(token, token_type::INT);
+	const static std::vector<token_type> expected{
+		token_type::INT,
+		token_type::INF,
+	};
+
+	check_token(token, expected);
 
 	try {
-		this->value = std::stoll(token.get_first(), nullptr, 0);
+		if (token.get_type() == token_type::INF) {
+			if (token.str() == "inf") {
+				this->value = INT_POS_INF;
+			}
+			else {
+				this->value = INT_NEG_INF;
+			}
+		}
+		else {
+			this->value = std::stoll(token.get_first(), nullptr, 0);
+		}
 	}
 	catch (std::invalid_argument &) {
 		throw InternalError{"int token was not an int"};
@@ -49,10 +72,25 @@ Int::Number(const IDToken &token) {
 template<>
 Float::Number(const IDToken &token) {
 
-	check_token(token, token_type::FLOAT);
+	const static std::vector<token_type> expected{
+		token_type::FLOAT,
+		token_type::INF,
+	};
+
+	check_token(token, expected);
 
 	try {
-		this->value = std::stod(token.get_first());
+		if (token.get_type() == token_type::INF) {
+			if (token.str() == "inf") {
+				this->value = FLOAT_POS_INF;
+			}
+			else {
+				this->value = FLOAT_NEG_INF;
+			}
+		}
+		else {
+			this->value = std::stod(token.get_first());
+		}
 	}
 	catch (std::invalid_argument &) {
 		throw InternalError{"float token was not a float"};
