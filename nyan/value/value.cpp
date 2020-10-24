@@ -1,4 +1,4 @@
-// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "value.h"
 
@@ -41,7 +41,7 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		}
 		throw LangError{
 			value_token,
-			"invalid token for number, expected float, int or inf"
+			"invalid token for int, expected int or inf"
 		};
 	}
 	case primitive_t::FLOAT: {
@@ -56,7 +56,7 @@ static ValueHolder value_from_value_token(const Type &target_type,
 		}
 		throw LangError{
 			value_token,
-			"invalid token for number, expected float, int or inf"
+			"invalid token for float, expected float or inf"
 		};
 	}
 
