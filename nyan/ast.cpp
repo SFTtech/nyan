@@ -468,8 +468,29 @@ ASTMember::ASTMember(const Token &name,
 			tokens.reinsert_last();
 
 			if (token->type == token_type::LBRACE) {
-				// no set type defined => it's a standard set
-				this->value = ASTMemberValue{container_t::SET, tokens};
+				// default => it's a standard set
+				container_t ctype = container_t::SET;
+
+				// Look ahead to check if it's a dict
+				// TODO: This is really inconvenient
+				int look_ahead = 0;
+				while (not (token->type == token_type::RBRACE
+							or token->type == token_type::COMMA)) {
+					token = tokens.next();
+					look_ahead++;
+					
+					if (token->type == token_type::COLON) {
+						ctype = container_t::DICT;
+						break;
+					}
+				}
+
+				// Go back to start of container
+				for (int i = look_ahead; i > 0; i--) {
+					tokens.reinsert_last();
+				}
+
+				this->value = ASTMemberValue{ctype, tokens};
 			}
 			else {
 				// single-value
@@ -618,14 +639,14 @@ ASTMemberValue::ASTMemberValue(container_t type,
 
 				auto next_token = stream.next();
 				if (next_token->type == token_type::COLON) {
-					stream.next();
+					next_token = stream.next();
 				}
 				else {
 					throw ASTError{"expected colon, but got", *next_token};
 				}
 
 				// value
-				id_tokens.emplace_back(token, stream);
+				id_tokens.emplace_back(*next_token, stream);
 
 				this->values.emplace_back(container_type, id_tokens);
 			}

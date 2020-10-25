@@ -26,6 +26,8 @@ NestingBase(First):
     setmember : set(int) = {1,2,3,4,
                             5,6,7,}
 
+    dictmember : dict(int, text) = {2: "two", 4: "four"}
+
     member = 2
 
     SomeChild(Dummy):
