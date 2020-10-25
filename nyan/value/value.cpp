@@ -19,61 +19,64 @@ namespace nyan {
 
 
 static ValueHolder value_from_value_token(const Type &target_type,
-                                          const IDToken &value_token,
+                                          const ValueToken &value_token,
                                           const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value) {
+
+	// Most value tokens only use one IDToken for the value
+	const IDToken &first = value_token.get_value()[0];
 
 	switch (target_type.get_primitive_type()) {
 	case primitive_t::BOOLEAN:
-		return {std::make_shared<Boolean>(value_token)};
+		return {std::make_shared<Boolean>(first)};
 
 	case primitive_t::TEXT:
-		return {std::make_shared<Text>(value_token)};
+		return {std::make_shared<Text>(first)};
 
 	case primitive_t::INT: {
-		if (value_token.get_type() == token_type::INF) {
-			return {std::make_shared<Int>(value_token)};
+		if (first.get_type() == token_type::INF) {
+			return {std::make_shared<Int>(first)};
 		}
-		else if (value_token.get_type() == token_type::INT) {
-			return {std::make_shared<Int>(value_token)};
+		else if (first.get_type() == token_type::INT) {
+			return {std::make_shared<Int>(first)};
 		}
-		else if (value_token.get_type() == token_type::FLOAT) {
-			return {std::make_shared<Float>(value_token)};
+		else if (first.get_type() == token_type::FLOAT) {
+			return {std::make_shared<Float>(first)};
 		}
 		throw LangError{
-			value_token,
+			first,
 			"invalid token for int, expected int or inf"
 		};
 	}
 	case primitive_t::FLOAT: {
-		if (value_token.get_type() == token_type::INF) {
-			return {std::make_shared<Float>(value_token)};
+		if (first.get_type() == token_type::INF) {
+			return {std::make_shared<Float>(first)};
 		}
-		else if (value_token.get_type() == token_type::INT) {
-			return {std::make_shared<Int>(value_token)};
+		else if (first.get_type() == token_type::INT) {
+			return {std::make_shared<Int>(first)};
 		}
-		else if (value_token.get_type() == token_type::FLOAT) {
-			return {std::make_shared<Float>(value_token)};
+		else if (first.get_type() == token_type::FLOAT) {
+			return {std::make_shared<Float>(first)};
 		}
 		throw LangError{
-			value_token,
+			first,
 			"invalid token for float, expected float or inf"
 		};
 	}
 
 	case primitive_t::FILENAME: {
 		// TODO: make relative to current namespace
-		return {std::make_shared<Filename>(value_token)};
+		return {std::make_shared<Filename>(first)};
 	}
 	case primitive_t::OBJECT: {
 
-		if (unlikely(value_token.get_type() != token_type::ID)) {
+		if (unlikely(first.get_type() != token_type::ID)) {
 			throw LangError{
-				value_token,
+				first,
 				"invalid value for object, expecting object id"
 			};
 		}
 
-		fqon_t obj_id = get_obj_value(target_type, value_token);
+		fqon_t obj_id = get_obj_value(target_type, first);
 
 		return {std::make_shared<ObjectValue>(std::move(obj_id))};
 	}
@@ -96,7 +99,7 @@ ValueHolder Value::from_ast(const Type &target_type,
 		// don't allow more than one value for a single-value type
 		if (astmembervalue.get_values().size() > 1) {
 			throw TypeError{
-				astmembervalue.get_values()[1],
+				astmembervalue.get_values()[1].get_start_location(),
 				"storing multiple values in non-container member"
 			};
 		}

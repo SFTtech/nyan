@@ -16,6 +16,7 @@
 #include "token_stream.h"
 #include "type.h"
 #include "util.h"
+#include "value_token.h"
 
 namespace nyan {
 
@@ -105,7 +106,7 @@ public:
 
 	bool exists() const;
 
-	const std::vector<IDToken> &get_values() const;
+	const std::vector<ValueToken> &get_values() const;
 	const container_t &get_container_type() const;
 
 	void strb(std::ostringstream &builder, int indentlevel=0) const override;
@@ -114,7 +115,7 @@ protected:
 	bool does_exist;
 	container_t container_type;
 
-	std::vector<IDToken> values;
+	std::vector<ValueToken> values;
 };
 
 
