@@ -18,8 +18,17 @@ namespace nyan {
 class ValueToken {
 public:
 	ValueToken() = default;
+
+    /**
+     * Simple constructor for a single value that is not in a container.
+     */
+	ValueToken(const IDToken &token);
+
+    /**
+     * Constructor for value tokens in a container.
+     */
 	ValueToken(container_t type,
-               std::vector<IDToken> tokens);
+               std::vector<IDToken> &tokens);
 
 	std::string str() const;
 

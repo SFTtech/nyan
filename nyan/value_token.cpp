@@ -1,4 +1,4 @@
-// Copyright 2020-2029 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2020-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 #include "value_token.h"
 
 #include <string>
@@ -11,13 +11,22 @@
 namespace nyan {
 
 
+ValueToken::ValueToken(const IDToken &token)
+    :
+	container_type{container_t::SINGLE} {
+
+    this->tokens.push_back(token);
+}
+
+
 ValueToken::ValueToken(container_t type,
-                       std::vector<IDToken> tokens) 
+                       std::vector<IDToken> &tokens) 
     :
 	container_type{type},
 	tokens{tokens} {
 
 }
+
 
 std::string ValueToken::str() const {
 	switch (this->container_type) {
@@ -34,9 +43,11 @@ std::string ValueToken::str() const {
     };
 }
 
+
 bool ValueToken::exists() const {
 	return this->tokens.size() > 0;
 }
+
 
 const Location &ValueToken::get_start_location() const {
 	if (unlikely(not this->exists())) {
@@ -47,6 +58,7 @@ const Location &ValueToken::get_start_location() const {
 
 	return this->tokens.at(0).get_start_location();
 }
+
 
 size_t ValueToken::get_length() const {
 	if (not this->exists()) {
@@ -60,7 +72,7 @@ size_t ValueToken::get_length() const {
         return this->tokens.at(0).get_length();
 
     case container_t::DICT:
-        // key length + value length + ": " separator length
+        // key token length + value token length + separating ": " length
         return this->tokens.at(0).get_length() +
                this->tokens.at(1).get_length() + 2;
 
@@ -69,9 +81,11 @@ size_t ValueToken::get_length() const {
     };
 }
 
+
 const std::vector<IDToken> &ValueToken::get_value() const {
 	return this->tokens;
 }
+
 
 const container_t &ValueToken::get_container_type() const {
 	return this->container_type;

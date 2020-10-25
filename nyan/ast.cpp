@@ -578,7 +578,7 @@ ASTMemberValue::ASTMemberValue(const IDToken &value)
 	does_exist{true},
 	container_type{container_t::SINGLE} {
 
-	this->values.push_back(value);
+	this->values.emplace_back(value);
 }
 
 
@@ -592,21 +592,51 @@ ASTMemberValue::ASTMemberValue(container_t type,
 
 	switch (this->container_type) {
 	case container_t::SET:
-	case container_t::ORDEREDSET:
-	case container_t::DICT:
-		end_token = token_type::RBRACE; break;
+	case container_t::ORDEREDSET: {
+		end_token = token_type::RBRACE;
+
+		comma_list(
+			end_token,
+			tokens,
+			[this] (const Token &token, TokenStream &stream) {
+				const IDToken id_token = IDToken(token, stream);
+				this->values.emplace_back(id_token);
+			}
+		);
+	} break;
+	case container_t::DICT: {
+		end_token = token_type::RBRACE;
+
+		comma_list(
+			end_token,
+			tokens,
+			[this] (const Token &token, TokenStream &stream) {
+				std::vector<IDToken> id_tokens;
+
+				// key
+				id_tokens.emplace_back(token, stream);
+
+				auto next_token = stream.next();
+				if (next_token->type == token_type::COLON) {
+					stream.next();
+				}
+				else {
+					throw ASTError{"expected colon, but got", *next_token};
+				}
+
+				// value
+				id_tokens.emplace_back(token, stream);
+
+				this->values.emplace_back(container_type, id_tokens);
+			}
+		);
+	} break;
 
 	default:
 		throw InternalError{"unknown container value type"};
 	}
 
-	comma_list(
-		end_token,
-		tokens,
-		[this] (const Token &token, TokenStream &stream) {
-			this->values.emplace_back(token, stream);
-		}
-	);
+	
 }
 
 
@@ -616,7 +646,7 @@ bool ASTMemberValue::exists() const {
 }
 
 
-const std::vector<IDToken> &ASTMemberValue::get_values() const {
+const std::vector<ValueToken> &ASTMemberValue::get_values() const {
 	return this->values;
 }
 
