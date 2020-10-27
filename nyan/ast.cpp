@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "ast.h"
 
@@ -129,7 +129,7 @@ ASTArgument::ASTArgument(TokenStream &tokens) {
 		throw ASTError("expected argument keyword, encountered", *token);
 	}
 
-	while (token->type != token_type::ENDLINE) {
+	while (not token->is_endmarker()) {
 		if (token->is_content()) {
 			this->params.emplace_back(*token, tokens);
 			token = tokens.next();
@@ -820,6 +820,7 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 		return;
 
 	case container_t::SET:
+	case container_t::DICT:
 		builder << "{"; break;
 
 	case container_t::ORDEREDSET:
@@ -841,6 +842,7 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 	switch (this->container_type) {
 	case container_t::SET:
 	case container_t::ORDEREDSET:
+	case container_t::DICT:
 		builder << "}"; break;
 
 	default:

@@ -1,4 +1,4 @@
-// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "basic_type.h"
 
@@ -56,7 +56,8 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 	// container type name map
 	static const std::unordered_map<std::string, container_t> container_types = {
 		{"set", container_t::SET},
-		{"orderedset", container_t::ORDEREDSET}
+		{"orderedset", container_t::ORDEREDSET},
+		{"dict", container_t::DICT}
 	};
 
 
