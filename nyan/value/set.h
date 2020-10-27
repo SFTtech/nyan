@@ -11,9 +11,6 @@
 
 namespace nyan {
 
-/** datatype used for unordered set storage */
-using set_t = std::unordered_set<ValueHolder>;
-
 
 /**
  * Nyan value to store a unordered set of things.

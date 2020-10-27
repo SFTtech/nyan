@@ -136,6 +136,9 @@ ValueHolder Value::from_ast(const Type &target_type,
 	case container_t::ORDEREDSET:
 		return {std::make_shared<OrderedSet>(std::move(values))};
 
+	case container_t::DICT:
+		// TODO
+
 	default:
 		throw InternalError{"value creation for unhandled container type"};
 	}

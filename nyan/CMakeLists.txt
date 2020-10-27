@@ -68,6 +68,7 @@ add_library(nyan SHARED
 	value_token.cpp
 	value/boolean.cpp
 	value/container.cpp
+	value/dict.cpp
 	value/file.cpp
 	value/number.cpp
 	value/object.cpp
