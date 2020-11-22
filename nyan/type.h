@@ -106,7 +106,7 @@ public:
 	 * Get the container element type, i. e. the inner type
 	 * that specifies the type of each element.
 	 */
-	const Type *get_element_type() const;
+	const std::vector<Type> *get_element_type() const;
 
 	/**
 	 * Return a string representation of this type.
@@ -123,7 +123,7 @@ protected:
 	/**
 	 * If this type is a container, the element type is stored here.
 	 */
-	std::shared_ptr<Type> element_type;
+	std::shared_ptr<std::vector<Type>> element_type;
 
 	/**
 	 * If this type is an object, store the target here.
