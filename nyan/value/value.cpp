@@ -3,6 +3,7 @@
 #include "value.h"
 
 #include "boolean.h"
+#include "dict.h"
 #include "file.h"
 #include "number.h"
 #include "object.h"
@@ -18,65 +19,61 @@
 namespace nyan {
 
 
-static ValueHolder value_from_value_token(const Type &target_type,
-                                          const ValueToken &value_token,
+static ValueHolder value_from_id_token(const Type &target_type,
+                                          const IDToken &id_token,
                                           const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value) {
-
-	// Most value tokens only use one IDToken for the value
-	const IDToken &first = value_token.get_value()[0];
 
 	switch (target_type.get_primitive_type()) {
 	case primitive_t::BOOLEAN:
-		return {std::make_shared<Boolean>(first)};
+		return {std::make_shared<Boolean>(id_token)};
 
 	case primitive_t::TEXT:
-		return {std::make_shared<Text>(first)};
+		return {std::make_shared<Text>(id_token)};
 
 	case primitive_t::INT: {
-		if (first.get_type() == token_type::INF) {
-			return {std::make_shared<Int>(first)};
+		if (id_token.get_type() == token_type::INF) {
+			return {std::make_shared<Int>(id_token)};
 		}
-		else if (first.get_type() == token_type::INT) {
-			return {std::make_shared<Int>(first)};
+		else if (id_token.get_type() == token_type::INT) {
+			return {std::make_shared<Int>(id_token)};
 		}
-		else if (first.get_type() == token_type::FLOAT) {
-			return {std::make_shared<Float>(first)};
+		else if (id_token.get_type() == token_type::FLOAT) {
+			return {std::make_shared<Float>(id_token)};
 		}
 		throw LangError{
-			first,
+			id_token,
 			"invalid token for int, expected int or inf"
 		};
 	}
 	case primitive_t::FLOAT: {
-		if (first.get_type() == token_type::INF) {
-			return {std::make_shared<Float>(first)};
+		if (id_token.get_type() == token_type::INF) {
+			return {std::make_shared<Float>(id_token)};
 		}
-		else if (first.get_type() == token_type::INT) {
-			return {std::make_shared<Int>(first)};
+		else if (id_token.get_type() == token_type::INT) {
+			return {std::make_shared<Int>(id_token)};
 		}
-		else if (first.get_type() == token_type::FLOAT) {
-			return {std::make_shared<Float>(first)};
+		else if (id_token.get_type() == token_type::FLOAT) {
+			return {std::make_shared<Float>(id_token)};
 		}
 		throw LangError{
-			first,
+			id_token,
 			"invalid token for float, expected float or inf"
 		};
 	}
-
 	case primitive_t::FILENAME: {
 		// TODO: make relative to current namespace
-		return {std::make_shared<Filename>(first)};
+		return {std::make_shared<Filename>(id_token)};
 	}
 	case primitive_t::OBJECT: {
 
-		if (unlikely(first.get_type() != token_type::ID)) {
+		if (unlikely(id_token.get_type() != token_type::ID)) {
 			throw LangError{
-				first,
+				id_token,
 				"invalid value for object, expecting object id"
 			};
 		}
 
-		fqon_t obj_id = get_obj_value(target_type, first);
+		fqon_t obj_id = get_obj_value(target_type, id_token);
 
 		return {std::make_shared<ObjectValue>(std::move(obj_id))};
 	}
@@ -104,42 +101,71 @@ ValueHolder Value::from_ast(const Type &target_type,
 			};
 		}
 
-		return value_from_value_token(target_type,
-		                              astmembervalue.get_values()[0],
+		return value_from_id_token(target_type,
+		                              astmembervalue.get_values()[0].get_value()[0],
 		                              get_obj_value);
 	}
 
-	// process multi-value values (orderedsets etc)
+	container_t container_type = astmembervalue.get_container_type();
+
+	// For sets/orderedsets (with primitive values)
 	std::vector<ValueHolder> values;
-	values.reserve(astmembervalue.get_values().size());
 
-	// convert all tokens to values
-	const Type *element_type = target_type.get_element_type();
-	if (unlikely(element_type == nullptr)) {
-		throw InternalError{"container element type is nonexisting"};
+	// For dicts (with key-value pairs)
+	std::unordered_map<ValueHolder, ValueHolder> items;
+
+	if (container_type == container_t::SET || container_type == container_t::ORDEREDSET) {
+		// process multi-value values (orderedsets etc)
+		values.reserve(astmembervalue.get_values().size());
+
+		// convert all tokens to values
+		const std::vector<Type> *element_type = target_type.get_element_type();
+		if (unlikely(element_type == nullptr)) {
+			throw InternalError{"container element type is nonexisting"};
+		}
+
+		const Type target_type = element_type->at(0);
+		for (auto &value_token : astmembervalue.get_values()) {
+			values.push_back(
+				value_from_id_token(target_type, value_token.get_value()[0],
+									get_obj_value)
+			);
+		}
+
+		switch (container_type) {
+		case container_t::SET:
+			// create a set from the value list
+			return {std::make_shared<Set>(std::move(values))};
+
+		case container_t::ORDEREDSET:
+			return {std::make_shared<OrderedSet>(std::move(values))};
+
+		default:
+			throw InternalError{"value creation for unhandled container type"};
+		}
 	}
+	else if (container_type == container_t::DICT) {
+		items.reserve(astmembervalue.get_values().size());
 
-	for (auto &value_token : astmembervalue.get_values()) {
-		values.push_back(
-			value_from_value_token(*element_type, value_token,
-			                       get_obj_value)
-		);
+		// convert all tokens to values
+		const std::vector<Type> *element_type = target_type.get_element_type();
+		if (unlikely(element_type == nullptr)) {
+			throw InternalError{"container element type is nonexisting"};
+		}
+
+		const Type key_type = element_type->at(0);
+		const Type value_type = element_type->at(1);
+		for (auto &value_token : astmembervalue.get_values()) {
+			ValueHolder key = value_from_id_token(key_type, value_token.get_value()[0],
+												  get_obj_value);
+			ValueHolder value = value_from_id_token(value_type, value_token.get_value()[1],
+													get_obj_value);
+			items.insert(std::make_pair(key, value));
+		}
+
+		return {std::make_shared<Dict>(std::move(items))};
 	}
-
-	// switch by container type determined in the ast,
-	// which can be different than the target_type.
-	switch (astmembervalue.get_container_type()) {
-	case container_t::SET:
-		// create a set from the value list
-		return {std::make_shared<Set>(std::move(values))};
-
-	case container_t::ORDEREDSET:
-		return {std::make_shared<OrderedSet>(std::move(values))};
-
-	case container_t::DICT:
-		// TODO
-
-	default:
+	else {
 		throw InternalError{"value creation for unhandled container type"};
 	}
 }

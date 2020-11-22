@@ -21,8 +21,8 @@ Dict::Dict(std::unordered_map<ValueHolder,ValueHolder> &&values) {
 
 ValueHolder Dict::copy() const {
 	// TODO
-	// return {std::make_shared<Dict>(*this)};
-	return ValueHolder();
+	return {std::make_shared<Dict>(*this)};
+	// return ValueHolder();
 }
 
 
@@ -85,9 +85,15 @@ void Dict::apply_value(const Value &value, nyan_op operation) {
 			break;
 		}
 
-		case nyan_op::INTERSECT_ASSIGN:
-			// TODO
+		case nyan_op::INTERSECT_ASSIGN:{
+			// only keep the values that are in both. Both key
+			// and value must match.
+
+			std::unordered_map<key_type, element_type> keep;
+			keep.reserve(member_value.size());
+
 			break;
+		}
 
 		default:
 			throw InternalError{"unknown dict value application"};

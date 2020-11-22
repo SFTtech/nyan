@@ -14,60 +14,9 @@
 namespace nyan {
 
 /**
- * Container iterator for the Set.
- *
- * Used for walking over the contained values,
- * i.e. it unpacks the ValueHolders!
- *
- */
-template<typename iter_type, typename elem_type>
-class DictIterator : public ContainerIterBase<elem_type> {
-public:
-	using this_type = DictIterator<iter_type, elem_type>;
-	using base_type = ContainerIterBase<elem_type>;
-
-	explicit DictIterator(iter_type &&iter)
-		:
-		iterator{std::move(iter)} {}
-
-	/**
-	 * Advance the iterator to the next element in the dict.
-	 */
-	base_type &operator ++() override {
-		++this->iterator;
-		return *this;
-	}
-
-	/**
-	 * Get the element the iterator is currently pointing to.
-	 */
-	elem_type &operator *() const override {
-		// unpack the ValueHolder!
-		return *(*this->iterator);
-	}
-
-protected:
-	/**
-	 * compare two iterators
-	 */
-	bool equals(const base_type &other) const override {
-		auto other_me = dynamic_cast<const this_type &>(other);
-		return (this->iterator == other_me.iterator);
-	}
-
-	/**
-	 * The wrapped std::iterator, from the Set std::unordered_set.
-	 */
-	iter_type iterator;
-};
-
-
-/**
  * Nyan value to store a dict/map/assocated array of things.
- *
- * T is the underlying storage type to store the Values.
  */
-class Dict : Value {
+class Dict : public Value {
 public:
 	using value_storage = std::unordered_map<ValueHolder,ValueHolder>;
 	using key_type = typename value_storage::key_type;
