@@ -39,13 +39,26 @@ Type::Type(const ASTMemberType &ast_type,
 			};
 		}
 
-		// TODO: Element type is more complex for dicts
-		this->element_type = std::make_unique<Type>(
-			ast_type.args.at(0).value, 
+		std::vector<Type> types;
+
+		types.emplace_back(
+			ast_type.args.at(0).value,
 			scope,
 			ns,
 			type_info
 		);
+
+		// Element type is more complex for dicts
+		if (basic_type.container_type == container_t::DICT) {
+			types.emplace_back(
+				ast_type.args.at(1).value,
+				scope,
+				ns,
+				type_info
+			);
+		}
+		this->element_type = std::make_unique<std::vector<Type>>(types);
+
 		return;
 	}
 
@@ -130,7 +143,7 @@ const primitive_t &Type::get_primitive_type() const {
 }
 
 
-const Type *Type::get_element_type() const {
+const std::vector<Type> *Type::get_element_type() const {
 	return this->element_type.get();
 }
 
@@ -153,9 +166,13 @@ std::string Type::str() const {
 		std::ostringstream builder;
 
 		builder << container_type_to_string(this->get_container_type())
-		        << "("
-		        << this->element_type->str()
-		        << ")";
+		        << "(";
+
+		for (auto &elem_type : *this->get_element_type()) {
+			builder << elem_type.str();
+		}
+
+		builder << ")";
 
 		return builder.str();
 	}
