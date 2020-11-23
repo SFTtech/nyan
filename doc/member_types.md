@@ -507,12 +507,12 @@ SomeObject():
 
 The following operators can be used when inheriting from or patching a nyan object.
 
-Operator    | Operation        | Examples                               | Description
-------------|------------------|----------------------------------------|------------------------------------
-`=`         | Assignment       | `a = {key: val}`                       | Assigns the operand value to the member.
-`+=`, `\|=` | Union            | `a += {key: val}`<br>`a \|= {<items>}` | Performs a union of the operand value and the current member value. Items from the operand are added to the member dict.
-`-=`        | Difference       | `a -= {key}`                           | Calculates the difference of the operand value and the current member value. Items using a key from the operand set are removed from the member dict.
-`&=`        | Intersection     | `a &= {key}`                           | Performs an intersection of the operand value and the current member value. Items using a key that is not in both the operand set and the member dict are removed from the member dict.
+Operator    | Operation        | Examples                             | Description
+------------|------------------|--------------------------------------|------------------------------------
+`=`         | Assignment       | `a = {key: val}`                     | Assigns the operand value to the member.
+`+=`, `\|=` | Union            | `a += {key: val}` `a \|= {key: val}` | Performs a union of the operand value and the current member value. Items from the operand are added to the member dict.
+`-=`        | Difference       | `a -= {key}`                         | Calculates the difference of the operand value and the current member value. Items using a key from the operand set are removed from the member dict.
+`&=`        | Intersection     | `a &= {key: val}` `a &= {key}`       | Performs an intersection of the operand value and the current member value. When given a set, only items that have a key specified in the set are kept. When given a dict, only items (i.e. key **and** value) that are in both dicts are kept.´
 
 
 #### Usage Examples
