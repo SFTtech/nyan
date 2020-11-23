@@ -20,9 +20,7 @@ Dict::Dict(std::unordered_map<ValueHolder,ValueHolder> &&values) {
 
 
 ValueHolder Dict::copy() const {
-	// TODO
 	return {std::make_shared<Dict>(*this)};
-	// return ValueHolder();
 }
 
 
@@ -69,6 +67,10 @@ const BasicType &Dict::get_type() const {
 	return type;
 }
 
+bool Dict::contains(const ValueHolder &value) const {
+	return (this->values.find(value) != std::end(this->values));
+}
+
 void Dict::apply_value(const Value &value, nyan_op operation) {
 	auto dict_applier = [](auto &member_value, auto operand, nyan_op operation) {
 		switch (operation) {
@@ -86,11 +88,31 @@ void Dict::apply_value(const Value &value, nyan_op operation) {
 		}
 
 		case nyan_op::INTERSECT_ASSIGN:{
-			// only keep the values that are in both. Both key
+			// only keep items that are in both. Both key
 			// and value must match.
 
-			std::unordered_map<key_type, element_type> keep;
+			std::unordered_map<key_type, value_type> keep;
 			keep.reserve(member_value.size());
+
+			// iterate over the dict
+			for (auto &it : operand) {
+				// Check if key exists
+				auto search = member_value.find(it.first);
+				if (search != std::end(member_value)) {
+					// Check if values are equal
+					auto item_value = member_value[it.first];
+					if (item_value == it.second) {
+						keep.insert(it);
+					}
+				}
+			}
+
+			member_value.clear();
+
+			// Reinsert matching values
+			for (auto &value : keep) {
+				member_value.insert(value);
+			}
 
 			break;
 		}
@@ -109,9 +131,31 @@ void Dict::apply_value(const Value &value, nyan_op operation) {
 			break;
 		}
 
-		case nyan_op::INTERSECT_ASSIGN:
-			// TODO
+		case nyan_op::INTERSECT_ASSIGN: {
+			// only keep items that are in both. Both key
+			// and value must match.
+
+			std::unordered_map<key_type, value_type> keep;
+			keep.reserve(member_value.size());
+
+			// iterate over the dict
+			for (auto &it : operand) {
+				// Check if key exists
+				auto search = member_value.find(it);
+				if (search != std::end(member_value)) {
+					keep.insert(std::make_pair(it, member_value[it]));
+				}
+			}
+
+			member_value.clear();
+
+			// Reinsert matching values
+			for (auto &value : keep) {
+				member_value.insert(value);
+			}
+
 			break;
+		}
 
 		default:
 			throw InternalError{"unknown dict value application"};

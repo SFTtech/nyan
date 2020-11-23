@@ -89,9 +89,6 @@ ValueHolder Value::from_ast(const Type &target_type,
                             const ASTMemberValue &astmembervalue,
                             const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value) {
 
-	// TODO: someday values may be nested more than one level.
-	//       then this function must be boosted a bit.
-
 	if (not target_type.is_container()) {
 		// don't allow more than one value for a single-value type
 		if (astmembervalue.get_values().size() > 1) {
