@@ -35,16 +35,16 @@ nyan Type | C++ Equivalent | Operators               | Description
 `bool`    | `bool`         | `=`,`&=`,`\|=`          | Boolean value.
 `text`    | `std:string`   | `=`,`+=`                | String of characters.
 `file`    | `std:string`   | `=`                     | Path to a file.
+`object`  | -              | `=`                     | Reference to a nyan object.
 
 
 ### Complex Types
 
 nyan Type     | C++ Equivalent       | Operators                | Description
 --------------|----------------------|--------------------------|-----------------------------------
-`set`         | `std::set`           | `=`,`+=`,`-=`,`&=`,`\|=` | Set of primitive values or nyan objects.
-`ordered_set` | `std::ordered_set`   | `=`,`+=`,`-=`,`&=`,`\|=` | Ordered set of primitive values or nyan objects.
-`dict`        | `std::unordered_map` | `=`,`+=`,`-=`,`&=`,`\|=` | Key-value pairs of primitive values or nyan objects.
-`object`      | -                    | `=`                      | Reference to a nyan object.
+`set`         | `std::set`           | `=`,`+=`,`-=`,`&=`,`\|=` | Set of primitive values.
+`ordered_set` | `std::ordered_set`   | `=`,`+=`,`-=`,`&=`,`\|=` | Ordered set of primitive values.
+`dict`        | `std::unordered_map` | `=`,`+=`,`-=`,`&=`,`\|=` | Key-value pairs of primitive values.
 
 
 ### Type Modifiers
@@ -286,6 +286,54 @@ Patch<SomeObject>():
 ```
 
 
+### `object`
+
+A member with type `object` can store a nyan object reference.
+This reference must not be abstract (i.e. all members have
+a value defined). Furthermore, it must be type-compatible to the
+defined type.
+
+```python
+OtherObject():
+    pass
+
+ChildObject(OtherObject):
+    pass
+
+SomeObject():
+    a : OtherObject                # only declaration
+    b : OtherObject = OtherObject  # declaration and initialization with OtherObject
+    c : OtherObject = ChildObject  # declaration and initialization with ChildObject
+```
+
+
+#### Operators
+
+The following operators can be used when inheriting from or patching a nyan object.
+
+Operator   | Operation      | Examples        | Description
+-----------|----------------|-----------------|------------------------------------
+`=`        | Assignment     | `a = Object`    | Assigns the operand value to the member.
+
+
+#### Usage Examples
+
+
+```python
+OtherObject():
+    pass
+
+ChildObject(OtherObject):
+    pass
+
+SomeObject():
+    a : OtherObject = OtherObject
+
+Patch<SomeObject>():
+    a = ChildObject       # result: a = ChildObject (reassignment)
+```
+
+
 ### `set`
 
 A member with type `set` can store a collection of items with a predefined
@@ -494,53 +542,6 @@ Patch<SomeObject>():
     d &= {ChildObject, OtherObject}  # result: e = {ChildObject: 5}     (intersection)
 ```
 
-
-### `object`
-
-A member with type `object` can store a nyan object reference.
-This reference must not be abstract (i.e. all members have
-a value defined). Furthermore, it must be type-compatible to the
-defined type.
-
-```python
-OtherObject():
-    pass
-
-ChildObject(OtherObject):
-    pass
-
-SomeObject():
-    a : OtherObject                # only declaration
-    b : OtherObject = OtherObject  # declaration and initialization with OtherObject
-    c : OtherObject = ChildObject  # declaration and initialization with ChildObject
-```
-
-
-#### Operators
-
-The following operators can be used when inheriting from or patching a nyan object.
-
-Operator   | Operation      | Examples        | Description
------------|----------------|-----------------|------------------------------------
-`=`        | Assignment     | `a = Object`    | Assigns the operand value to the member.
-
-
-#### Usage Examples
-
-
-```python
-OtherObject():
-    pass
-
-ChildObject(OtherObject):
-    pass
-
-SomeObject():
-    a : OtherObject = OtherObject
-
-Patch<SomeObject>():
-    a = ChildObject       # result: a = ChildObject (reassignment)
-```
 
 
 ## Type Modifiers
