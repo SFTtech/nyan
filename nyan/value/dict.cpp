@@ -67,9 +67,21 @@ const BasicType &Dict::get_type() const {
 	return type;
 }
 
-bool Dict::contains(const ValueHolder &value) const {
+
+bool Dict::add(const element_type &value) {
+	return std::get<1>(this->values.insert(value));
+}
+
+
+bool Dict::contains(const key_type &value) const {
 	return (this->values.find(value) != std::end(this->values));
 }
+
+
+bool Dict::remove(const key_type &value) {
+	return (1 == this->values.erase(value));
+}
+
 
 void Dict::apply_value(const Value &value, nyan_op operation) {
 	auto dict_applier = [](auto &member_value, auto operand, nyan_op operation) {
