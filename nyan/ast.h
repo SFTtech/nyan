@@ -100,20 +100,20 @@ class ASTMemberValue : public ASTBase {
 
 public:
 	ASTMemberValue();
-	ASTMemberValue(container_t type,
+	ASTMemberValue(composite_t type,
 	               TokenStream &tokens);
 	ASTMemberValue(const IDToken &value);
 
 	bool exists() const;
 
 	const std::vector<ValueToken> &get_values() const;
-	const container_t &get_container_type() const;
+	const composite_t &get_composite_type() const;
 
 	void strb(std::ostringstream &builder, int indentlevel=0) const override;
 
 protected:
 	bool does_exist;
-	container_t container_type;
+	composite_t composite_type;
 
 	std::vector<ValueToken> values;
 };

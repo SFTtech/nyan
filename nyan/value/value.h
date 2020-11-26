@@ -60,8 +60,8 @@ public:
 
 	/**
 	 * Return the basic type of this value.
-	 * This means the primitive and the container type are provided,
-	 * but not container element types and object targets, because
+	 * This means the primitive and the composite type are provided,
+	 * but not composite element types and object targets, because
 	 * types are not inferred for values.
 	 */
 	virtual const BasicType &get_type() const = 0;

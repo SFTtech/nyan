@@ -13,29 +13,39 @@ namespace nyan {
 
 ValueToken::ValueToken(const IDToken &token)
     :
-	container_type{container_t::SINGLE} {
+	container_type{composite_t::NONE} {
 
     this->tokens.push_back(token);
 }
 
 
-ValueToken::ValueToken(container_t type,
-                       std::vector<IDToken> &tokens) 
+ValueToken::ValueToken(composite_t type,
+                       std::vector<IDToken> &tokens)
     :
-	container_type{type},
 	tokens{tokens} {
 
+	const static std::unordered_set<composite_t> container_types{
+        composite_t::SET,
+        composite_t::ORDEREDSET,
+        composite_t::DICT
+	};
+
+    if (container_types.find(type) == container_types.end()) {
+        throw InternalError{"unknown container value type"};
+    }
+
+    this->container_type = type;
 }
 
 
 std::string ValueToken::str() const {
 	switch (this->container_type) {
-    case container_t::SINGLE:
-    case container_t::SET:
-    case container_t::ORDEREDSET:
+    case composite_t::NONE:
+    case composite_t::SET:
+    case composite_t::ORDEREDSET:
         return this->tokens.at(0).str();
 
-    case container_t::DICT:
+    case composite_t::DICT:
         return this->tokens.at(0).str() + ": " + this->tokens.at(1).str();
 
     default:
@@ -66,12 +76,12 @@ size_t ValueToken::get_length() const {
 	}
 
 	switch (this->container_type) {
-    case container_t::SINGLE:
-    case container_t::SET:
-    case container_t::ORDEREDSET:
+    case composite_t::NONE:
+    case composite_t::SET:
+    case composite_t::ORDEREDSET:
         return this->tokens.at(0).get_length();
 
-    case container_t::DICT:
+    case composite_t::DICT:
         // key token length + value token length + separating ": " length
         return this->tokens.at(0).get_length() +
                this->tokens.at(1).get_length() + 2;
@@ -87,7 +97,7 @@ const std::vector<IDToken> &ValueToken::get_value() const {
 }
 
 
-const container_t &ValueToken::get_container_type() const {
+const composite_t &ValueToken::get_container_type() const {
 	return this->container_type;
 }
 

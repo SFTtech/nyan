@@ -91,7 +91,7 @@ const std::unordered_set<nyan_op> &Text::allowed_operations(const Type &with_typ
 const BasicType &Text::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::TEXT,
-		container_t::SINGLE,
+		composite_t::NONE,
 	};
 
 	return type;

@@ -139,7 +139,7 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 
 	if (typeid(Float&) == typeid(value)) {
 		const Float &change = dynamic_cast<const Float &>(value);
-		
+
 		if (not (this->is_infinite() or change.is_infinite())) {
 			applier(this->value, change.get(), operation);
 		}
@@ -413,7 +413,7 @@ template<>
 const BasicType &Int::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::INT,
-		container_t::SINGLE
+		composite_t::NONE
 	};
 	return type;
 }
@@ -423,7 +423,7 @@ template<>
 const BasicType &Float::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::FLOAT,
-		container_t::SINGLE
+		composite_t::NONE
 	};
 
 	return type;
