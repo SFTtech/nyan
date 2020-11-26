@@ -89,11 +89,11 @@ const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(const Type &wi
 	};
 
 
-	switch (with_type.get_container_type()) {
-	case container_t::ORDEREDSET:
+	switch (with_type.get_composite_type()) {
+	case composite_t::ORDEREDSET:
 		return orderedset_ops;
 
-	case container_t::SET:
+	case composite_t::SET:
 		return set_ops;
 
 	default:
@@ -105,7 +105,7 @@ const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(const Type &wi
 const BasicType &OrderedSet::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::CONTAINER,
-		container_t::ORDEREDSET,
+		composite_t::ORDEREDSET,
 	};
 
 	return type;

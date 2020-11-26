@@ -27,7 +27,7 @@ public:
     /**
      * Constructor for value tokens in a container.
      */
-	ValueToken(container_t type,
+	ValueToken(composite_t type,
                std::vector<IDToken> &tokens);
 
 	std::string str() const;
@@ -38,10 +38,10 @@ public:
 	size_t get_length() const;
 
 	const std::vector<IDToken> &get_value() const;
-	const container_t &get_container_type() const;
+	const composite_t &get_container_type() const;
 
 protected:
-	container_t container_type;
+	composite_t container_type;
 
 	std::vector<IDToken> tokens;
 };

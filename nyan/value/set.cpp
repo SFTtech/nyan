@@ -90,11 +90,11 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
-	switch (with_type.get_container_type()) {
-	case container_t::SET:
+	switch (with_type.get_composite_type()) {
+	case composite_t::SET:
 		return set_ops;
 
-	case container_t::ORDEREDSET:
+	case composite_t::ORDEREDSET:
 		return orderedset_ops;
 
 	default:
@@ -106,7 +106,7 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type
 const BasicType &Set::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::CONTAINER,
-		container_t::SET,
+		composite_t::SET,
 	};
 
 	return type;

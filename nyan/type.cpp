@@ -34,7 +34,7 @@ Type::Type(const ASTMemberType &ast_type,
 	if (this->basic_type.is_container()) {
 		if (not ast_type.has_args) {
 			throw ASTError{
-				"container content type not specified",
+				"container element type not specified",
 				ast_type.name, false
 			};
 		}
@@ -49,7 +49,7 @@ Type::Type(const ASTMemberType &ast_type,
 		);
 
 		// Element type is more complex for dicts
-		if (basic_type.container_type == container_t::DICT) {
+		if (basic_type.composite_type == composite_t::DICT) {
 			types.emplace_back(
 				ast_type.args.at(1).value,
 				scope,
@@ -66,7 +66,7 @@ Type::Type(const ASTMemberType &ast_type,
 
 	this->basic_type = {
 		primitive_t::OBJECT,
-		container_t::SINGLE
+		composite_t::NONE
 	};
 
 	this->target = scope.find(ns, ast_type.name, type_info);
@@ -113,8 +113,19 @@ bool Type::is_container() const {
 }
 
 
-bool Type::is_container(container_t type) const {
-	return this->get_container_type() == type;
+bool Type::is_container(composite_t type) const {
+	return (this->basic_type.is_container() and
+			this->get_composite_type() == type);
+}
+
+bool Type::is_modifier() const {
+	return this->basic_type.is_modifier();
+}
+
+
+bool Type::is_modifier(composite_t type) const {
+	return (this->basic_type.is_modifier() and
+			this->get_composite_type() == type);
 }
 
 
@@ -133,8 +144,8 @@ const BasicType &Type::get_basic_type() const {
 }
 
 
-const container_t &Type::get_container_type() const {
-	return this->basic_type.container_type;
+const composite_t &Type::get_composite_type() const {
+	return this->basic_type.composite_type;
 }
 
 
@@ -157,15 +168,15 @@ std::string Type::str() const {
 			return this->target;
 		}
 
-		if (this->get_container_type() == container_t::SINGLE) {
+		if (this->get_composite_type() == composite_t::NONE) {
 			throw InternalError{
-				"single value encountered when expecting container"
+				"single value encountered when expecting composite"
 			};
 		}
 
 		std::ostringstream builder;
 
-		builder << container_type_to_string(this->get_container_type())
+		builder << composite_type_to_string(this->get_composite_type())
 		        << "(";
 
 		for (auto &elem_type : *this->get_element_type()) {

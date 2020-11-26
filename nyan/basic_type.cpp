@@ -22,8 +22,9 @@ bool BasicType::is_fundamental() const {
 	case primitive_t::INT:
 	case primitive_t::FLOAT:
 		return true;
-	case primitive_t::CONTAINER:
 	case primitive_t::OBJECT:
+	case primitive_t::CONTAINER:
+	case primitive_t::MODIFIER:
 		return false;
 	}
 
@@ -31,14 +32,48 @@ bool BasicType::is_fundamental() const {
 }
 
 
+bool BasicType::is_composite() const {
+	return (this->composite_type != composite_t::NONE);
+}
+
+
 bool BasicType::is_container() const {
-	return (this->container_type != container_t::SINGLE);
+	switch (this->composite_type) {
+	case composite_t::SET:
+	case composite_t::ORDEREDSET:
+	case composite_t::DICT:
+		return true;
+	case composite_t::NONE:
+	case composite_t::ABSTRACT:
+	case composite_t::CHILDREN:
+	case composite_t::OPTIONAL:
+		return false;
+	}
+
+	throw InternalError{"unknown composite type"};
+}
+
+
+bool BasicType::is_modifier() const {
+	switch (this->composite_type) {
+	case composite_t::ABSTRACT:
+	case composite_t::CHILDREN:
+	case composite_t::OPTIONAL:
+		return true;
+	case composite_t::NONE:
+	case composite_t::SET:
+	case composite_t::ORDEREDSET:
+	case composite_t::DICT:
+		return false;
+	}
+
+	throw InternalError{"unknown composite type"};
 }
 
 
 bool BasicType::operator ==(const BasicType &other) const {
 	return (this->primitive_type == other.primitive_type and
-	        this->container_type == other.container_type);
+	        this->composite_type == other.composite_type);
 }
 
 
@@ -54,15 +89,21 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 	};
 
 	// container type name map
-	static const std::unordered_map<std::string, container_t> container_types = {
-		{"set", container_t::SET},
-		{"orderedset", container_t::ORDEREDSET},
-		{"dict", container_t::DICT}
+	static const std::unordered_map<std::string, composite_t> container_types = {
+		{"set", composite_t::SET},
+		{"orderedset", composite_t::ORDEREDSET},
+		{"dict", composite_t::DICT}
 	};
 
+	// modifier type name map
+	static const std::unordered_map<std::string, composite_t> composite_types = {
+		{"abstract", composite_t::ABSTRACT},
+		{"children", composite_t::CHILDREN},
+		{"optional", composite_t::OPTIONAL}
+	};
 
 	primitive_t type = primitive_t::OBJECT;
-	container_t container_type = container_t::SINGLE;
+	composite_t composite_type = composite_t::NONE;
 
 	switch (tok.get_type()) {
 		// type names are always identifiers:
@@ -76,7 +117,14 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 		auto it1 = container_types.find(tok.get_first());
 		if (it1 != std::end(container_types)) {
 			type = primitive_t::CONTAINER;
-			container_type = it1->second;
+			composite_type = it1->second;
+			break;
+		}
+
+		auto it2 = composite_types.find(tok.get_first());
+		if (it2 != std::end(composite_types)) {
+			type = primitive_t::MODIFIER;
+			composite_type = it2->second;
 		}
 		break;
 	}
@@ -84,7 +132,7 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 		throw ASTError{"expected some type name but there is", tok};
 	}
 
-	return BasicType{type, container_type};
+	return BasicType{type, composite_type};
 }
 
 

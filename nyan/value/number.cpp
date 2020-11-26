@@ -413,7 +413,7 @@ template<>
 const BasicType &Int::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::INT,
-		container_t::SINGLE
+		composite_t::NONE
 	};
 	return type;
 }
@@ -423,7 +423,7 @@ template<>
 const BasicType &Float::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::FLOAT,
-		container_t::SINGLE
+		composite_t::NONE
 	};
 
 	return type;

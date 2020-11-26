@@ -45,7 +45,7 @@ public:
 	     const MetaInfo &type_info);
 
 	/**
-	 * Called when a container type is created from AST.
+	 * Called when a composite type is created from AST.
 	 */
 	Type(const IDToken &token,
 	     const NamespaceFinder &scope,
@@ -62,6 +62,11 @@ public:
 	bool is_fundamental() const;
 
 	/**
+	 * Return if this type is a composite of multiple types.
+	 */
+	bool is_composite() const;
+
+	/**
 	 * Return if this type is a container that stores multiple values.
 	 */
 	bool is_container() const;
@@ -69,7 +74,17 @@ public:
 	/**
 	 * Test if is a container of the given type.
 	 */
-	bool is_container(container_t type) const;
+	bool is_container(composite_t type) const;
+
+	/**
+	 * Return if this type is a modifier.
+	 */
+	bool is_modifier() const;
+
+	/**
+	 * Test if is a modifier of the given type.
+	 */
+	bool is_modifier(composite_t type) const;
 
 	/**
 	 * Test if the basic type matches the given type, i. e. it's the same.
@@ -78,7 +93,7 @@ public:
 
 	/**
 	 * Check if this type can be in the given other type.
-	 * This will of course only suceed if other is a container.
+	 * This will of course only suceed if other is a composite.
 	 */
 	bool can_be_in(const Type &other) const;
 
@@ -88,22 +103,22 @@ public:
 	const fqon_t &get_target() const;
 
 	/**
-	 * Return the basic type, namely the primitive and container type.
+	 * Return the basic type, namely the primitive and composite type.
 	 */
 	const BasicType &get_basic_type() const;
 
 	/**
-	 * Return the container variant of this type.
+	 * Return the composite type of this type.
 	 */
-	const container_t &get_container_type() const;
+	const composite_t &get_composite_type() const;
 
 	/**
-	 * Return the basic type of this Type.
+	 * Return the primitive type of this Type.
 	 */
 	const primitive_t &get_primitive_type() const;
 
 	/**
-	 * Get the container element type, i. e. the inner type
+	 * Get the composite element type, i. e. the inner type
 	 * that specifies the type of each element.
 	 */
 	const std::vector<Type> *get_element_type() const;
@@ -116,12 +131,12 @@ public:
 protected:
 	/**
 	 * The basic type of this Type.
-	 * Stores the primitive type and the container type.
+	 * Stores the primitive type and the composite type.
 	 */
 	BasicType basic_type;
 
 	/**
-	 * If this type is a container, the element type is stored here.
+	 * If this type is a composite, the element type is stored here.
 	 */
 	std::shared_ptr<std::vector<Type>> element_type;
 

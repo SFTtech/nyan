@@ -454,9 +454,9 @@ ASTMember::ASTMember(const Token &name,
 		if (not token->is_endmarker() and
 		    next_token->type == token_type::LBRACE) {
 
-			container_t ctype;
+			composite_t ctype;
 			if (token->get() == "o") {
-				ctype = container_t::ORDEREDSET;
+				ctype = composite_t::ORDEREDSET;
 			}
 			else {
 				throw ASTError{"unhandled set type", *token};
@@ -469,7 +469,7 @@ ASTMember::ASTMember(const Token &name,
 
 			if (token->type == token_type::LBRACE) {
 				// default => it's a standard set
-				container_t ctype = container_t::SET;
+				composite_t ctype = composite_t::SET;
 
 				// Look ahead to check if it's a dict
 				// TODO: This is really inconvenient
@@ -478,9 +478,9 @@ ASTMember::ASTMember(const Token &name,
 							or token->type == token_type::COMMA)) {
 					token = tokens.next();
 					look_ahead++;
-					
+
 					if (token->type == token_type::COLON) {
-						ctype = container_t::DICT;
+						ctype = composite_t::DICT;
 						break;
 					}
 				}
@@ -597,23 +597,23 @@ ASTMemberValue::ASTMemberValue()
 ASTMemberValue::ASTMemberValue(const IDToken &value)
 	:
 	does_exist{true},
-	container_type{container_t::SINGLE} {
+	composite_type{composite_t::NONE} {
 
 	this->values.emplace_back(value);
 }
 
 
-ASTMemberValue::ASTMemberValue(container_t type,
+ASTMemberValue::ASTMemberValue(composite_t type,
                                TokenStream &tokens)
 	:
 	does_exist{true},
-	container_type{type} {
+	composite_type{type} {
 
 	token_type end_token;
 
-	switch (this->container_type) {
-	case container_t::SET:
-	case container_t::ORDEREDSET: {
+	switch (this->composite_type) {
+	case composite_t::SET:
+	case composite_t::ORDEREDSET: {
 		end_token = token_type::RBRACE;
 
 		comma_list(
@@ -625,7 +625,7 @@ ASTMemberValue::ASTMemberValue(container_t type,
 			}
 		);
 	} break;
-	case container_t::DICT: {
+	case composite_t::DICT: {
 		end_token = token_type::RBRACE;
 
 		comma_list(
@@ -648,7 +648,7 @@ ASTMemberValue::ASTMemberValue(container_t type,
 				// value
 				id_tokens.emplace_back(*next_token, stream);
 
-				this->values.emplace_back(container_type, id_tokens);
+				this->values.emplace_back(composite_type, id_tokens);
 			}
 		);
 	} break;
@@ -670,8 +670,8 @@ const std::vector<ValueToken> &ASTMemberValue::get_values() const {
 }
 
 
-const container_t &ASTMemberValue::get_container_type() const {
-	return this->container_type;
+const composite_t &ASTMemberValue::get_composite_type() const {
+	return this->composite_type;
 }
 
 
@@ -814,16 +814,16 @@ void ASTMemberTypeArgument::strb(std::ostringstream &builder, int /*indentlevel*
 }
 
 void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) const {
-	switch (this->container_type) {
-	case container_t::SINGLE:
+	switch (this->composite_type) {
+	case composite_t::NONE:
 		builder << this->values[0].str();
 		return;
 
-	case container_t::SET:
-	case container_t::DICT:
+	case composite_t::SET:
+	case composite_t::DICT:
 		builder << "{"; break;
 
-	case container_t::ORDEREDSET:
+	case composite_t::ORDEREDSET:
 		builder << "o{"; break;
 
 	default:
@@ -839,10 +839,10 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 		comma_active = true;
 	}
 
-	switch (this->container_type) {
-	case container_t::SET:
-	case container_t::ORDEREDSET:
-	case container_t::DICT:
+	switch (this->composite_type) {
+	case composite_t::SET:
+	case composite_t::ORDEREDSET:
+	case composite_t::DICT:
 		builder << "}"; break;
 
 	default:
