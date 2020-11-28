@@ -30,33 +30,30 @@ Type::Type(const ASTMemberType &ast_type,
 		return;
 	}
 
-	// container type like set(something)
-	if (this->basic_type.is_container()) {
-		if (not ast_type.has_args) {
+	// composite type like set(something)
+	if (this->basic_type.is_composite()) {
+		auto expected_element_types = BasicType::expected_nested_types(basic_type);
+		if (not (expected_element_types == ast_type.nested_types.size())) {
 			throw ASTError{
-				"container element type not specified",
+				std::string("only ")
+				+ std::to_string(ast_type.nested_types.size())
+				+ " container element types specified, expected "
+				+ std::to_string(expected_element_types),
 				ast_type.name, false
 			};
 		}
 
 		std::vector<Type> types;
 
-		types.emplace_back(
-			ast_type.args.at(0).value,
-			scope,
-			ns,
-			type_info
-		);
-
-		// Element type is more complex for dicts
-		if (basic_type.composite_type == composite_t::DICT) {
+		for (unsigned int i = 0; i < expected_element_types; i++) {
 			types.emplace_back(
-				ast_type.args.at(1).value,
+				ast_type.nested_types.at(i),
 				scope,
 				ns,
 				type_info
 			);
 		}
+
 		this->element_type = std::make_unique<std::vector<Type>>(types);
 
 		return;
@@ -94,6 +91,7 @@ Type::Type(const IDToken &token,
 	case primitive_t::INT:
 	case primitive_t::FLOAT:
 	case primitive_t::TEXT:
+	case primitive_t::BOOLEAN:
 		// no target needs to be saved
 		break;
 

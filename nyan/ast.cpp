@@ -551,19 +551,48 @@ ASTMemberType::ASTMemberType(const Token &name,
 
 	// now there may follow type arguments, e.g. set(arg, key=val)
 	auto token = tokens.next();
+
+	// Check how many type arguments are required at minimum
+	BasicType member_type = BasicType::from_type_token(this->name);
+	auto num_expected_types = BasicType::expected_nested_types(member_type);
+
 	if (token->type == token_type::LPAREN) {
-		comma_list(
-			token_type::RPAREN,
-			tokens,
-			[this] (const Token & /*token*/, TokenStream &stream) {
-				stream.reinsert_last();
-				this->args.emplace_back(stream);
-			}
+		auto num_read_types = comma_list(
+								token_type::RPAREN,
+								tokens,
+								num_expected_types,
+								[this] (const Token &token, TokenStream &stream) {
+									this->nested_types.emplace_back(token, stream);
+								}
 		);
+		if (num_read_types < num_expected_types) {
+			throw ASTError(
+				std::string("expected at least ")
+				+ std::to_string(num_expected_types)
+				+ " arguments for "
+				+ composite_type_to_string(member_type.composite_type)
+				+ " declaration, but only "
+				+ std::to_string(num_read_types)
+				+ " could be found",
+				*token, false
+			);
+		}
+
 		if (this->args.size() > 0) {
 			this->has_args = true;
 		}
-	} else {
+	}
+	else if (num_expected_types > 0) {
+		throw ASTError(
+			std::string("expected at least ")
+			+ std::to_string(num_expected_types)
+			+ " arguments for "
+			+ composite_type_to_string(member_type.composite_type)
+			+ " declaration",
+			*token, false
+		);
+	}
+	else {
 		tokens.reinsert_last();
 	}
 }
