@@ -20,13 +20,36 @@
 
 namespace nyan {
 
+/**
+ * Walks through a comma separated list and calls a user-provided
+ * function on a list item. Stops when either the specified end token
+ * is reached or the number of read items is equal to the set limit.
+ *
+ * @param end End delimiter of the comma seperated list.
+ * @param tokens TokenStream that is walked through.
+ * @param limit Maximum number of list items that should be processed.
+ * @param func Function called on the list item.
+ * @return Number of list items processed.
+ */
+unsigned int comma_list(token_type end,
+                		TokenStream &tokens,
+			        	unsigned int limit,
+                		const std::function<void(const Token &, TokenStream &)> &func);
+
 
 /**
- * Add tokens to the value list until the end token is reached.
+ * Walks through a comma separated list and calls a user-provided
+ * function on a list item. Stops when the specified end token
+ * is reached.
+ *
+ * @param end End delimiter of the comma seperated list.
+ * @param tokens TokenStream that is walked through.
+ * @param func Function called on the list item.
+ * @return Number of list items processed.
  */
-void comma_list(token_type end,
-                TokenStream &tokens,
-                const std::function<void(const Token &, TokenStream &)> &func);
+unsigned int comma_list(token_type end,
+                		TokenStream &tokens,
+                		const std::function<void(const Token &, TokenStream &)> &func);
 
 
 /**
@@ -86,7 +109,20 @@ protected:
 	bool does_exist;
 	IDToken name;
 
+	/**
+	 * Element types of a composite type member, e.g. int in set(int)
+	 */
+	std::vector<ASTMemberType> nested_types;
+
+	/**
+	 * True, if the member type has at least one argument.
+	 */
 	bool has_args;
+
+	/**
+	 * Type arguments.
+	 * TODO: Whitelist arguments depending on member type.
+	 */
 	std::vector<ASTMemberTypeArgument> args;
 };
 
