@@ -96,7 +96,7 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 	};
 
 	// modifier type name map
-	static const std::unordered_map<std::string, composite_t> composite_types = {
+	static const std::unordered_map<std::string, composite_t> modifier_types = {
 		{"abstract", composite_t::ABSTRACT},
 		{"children", composite_t::CHILDREN},
 		{"optional", composite_t::OPTIONAL}
@@ -121,8 +121,8 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 			break;
 		}
 
-		auto it2 = composite_types.find(tok.get_first());
-		if (it2 != std::end(composite_types)) {
+		auto it2 = modifier_types.find(tok.get_first());
+		if (it2 != std::end(modifier_types)) {
 			type = primitive_t::MODIFIER;
 			composite_type = it2->second;
 		}
@@ -134,6 +134,5 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 
 	return BasicType{type, composite_type};
 }
-
 
 } // namespace nyan

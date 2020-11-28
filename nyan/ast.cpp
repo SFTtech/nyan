@@ -1,8 +1,9 @@
-// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "ast.h"
 
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 #include "compiler.h"
@@ -12,16 +13,17 @@
 
 namespace nyan {
 
-
-void comma_list(token_type end,
-                TokenStream &tokens,
-                const std::function<void(const Token &, TokenStream &)> &func) {
+unsigned int comma_list(token_type end,
+                        TokenStream &tokens,
+                        unsigned int limit,
+                        const std::function<void(const Token &, TokenStream &)> &func) {
 
 	auto token = tokens.next();
 	bool comma_expected = false;
 
 	// add identifiers until the expected end token is reached.
-	while (true) {
+	unsigned int index = 0;
+	while (index < limit) {
 		if (token->type == token_type::ENDLINE) {
 			token = tokens.next();
 			continue;
@@ -47,10 +49,23 @@ void comma_list(token_type end,
 		func(*token, tokens);
 
 		comma_expected = true;
+		index++;
 
 		// now the container is over, or a comma must follow
 		token = tokens.next();
 	}
+
+	return index;
+}
+
+
+unsigned int comma_list(token_type end,
+                        TokenStream &tokens,
+                        const std::function<void(const Token &, TokenStream &)> &func) {
+	return comma_list(end,
+	                  tokens,
+	                  std::numeric_limits<int>::max(),
+	                  func);
 }
 
 

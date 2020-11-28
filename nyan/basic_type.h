@@ -115,13 +115,46 @@ public:
 
 
 	/**
-	 * Test if the given type token declares a valid primitive_t,
-	 * returns it. Also returns the composite type.
+	 * Test if the given type token declares a valid primitive
+	 * and composite type.
 	 * A type token is e.g. "int" or "float" or "SomeObject".
 	 * If it is e.g. "set", type will be CONTAINER and the composite type SET.
-	 * throws ASTError if it fails.
+	 *
+	 * @param token An IDToken that contains a type identifier or a nyan object name.
+	 * @return BasicType declared by the token.
+	 * @throw ASTError if it fails.
 	 */
 	static BasicType from_type_token(const IDToken &token);
+
+
+	/**
+	 * Returns how many nested types are required when declaring a given
+	 * type.
+	 *
+	 * @param type The tested type.
+	 * @return Number of required nested types.
+	 */
+	static int expected_nested_types(const BasicType &type) {
+		if (type.is_fundamental()) {
+			return 0;
+		}
+
+		switch (type.composite_type) {
+		// containers
+		case composite_t::SET:        return 1;
+		case composite_t::ORDEREDSET: return 1;
+		case composite_t::DICT:       return 2;
+
+		// modifiers
+		case composite_t::ABSTRACT:   return 1;
+		case composite_t::CHILDREN:   return 1;
+		case composite_t::OPTIONAL:   return 1;
+
+		// else, must be an object
+		default:
+			return 0;
+		}
+	}
 };
 
 
