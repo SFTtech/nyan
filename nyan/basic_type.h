@@ -134,7 +134,7 @@ public:
 	 * @param type The tested type.
 	 * @return Number of required nested types.
 	 */
-	static int expected_nested_types(const BasicType &type) {
+	static unsigned int expected_nested_types(const BasicType &type) {
 		if (type.is_fundamental()) {
 			return 0;
 		}
