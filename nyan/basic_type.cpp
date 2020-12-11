@@ -21,6 +21,7 @@ bool BasicType::is_fundamental() const {
 	case primitive_t::FILENAME:
 	case primitive_t::INT:
 	case primitive_t::FLOAT:
+	case primitive_t::NONE:
 		return true;
 	case primitive_t::OBJECT:
 	case primitive_t::CONTAINER:
@@ -33,7 +34,7 @@ bool BasicType::is_fundamental() const {
 
 
 bool BasicType::is_composite() const {
-	return (this->composite_type != composite_t::NONE);
+	return (this->composite_type != composite_t::SINGLE);
 }
 
 
@@ -43,7 +44,7 @@ bool BasicType::is_container() const {
 	case composite_t::ORDEREDSET:
 	case composite_t::DICT:
 		return true;
-	case composite_t::NONE:
+	case composite_t::SINGLE:
 	case composite_t::ABSTRACT:
 	case composite_t::CHILDREN:
 	case composite_t::OPTIONAL:
@@ -60,7 +61,7 @@ bool BasicType::is_modifier() const {
 	case composite_t::CHILDREN:
 	case composite_t::OPTIONAL:
 		return true;
-	case composite_t::NONE:
+	case composite_t::SINGLE:
 	case composite_t::SET:
 	case composite_t::ORDEREDSET:
 	case composite_t::DICT:
@@ -103,7 +104,7 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 	};
 
 	primitive_t type = primitive_t::OBJECT;
-	composite_t composite_type = composite_t::NONE;
+	composite_t composite_type = composite_t::SINGLE;
 
 	switch (tok.get_type()) {
 		// type names are always identifiers:

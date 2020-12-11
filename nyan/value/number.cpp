@@ -390,6 +390,10 @@ template <typename T>
 const std::unordered_set<nyan_op> &
 Number<T>::allowed_operations(const Type &with_type) const {
 
+	const static std::unordered_set<nyan_op> none_ops{
+		nyan_op::ASSIGN,
+	};
+
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
@@ -403,6 +407,10 @@ Number<T>::allowed_operations(const Type &with_type) const {
 	case primitive_t::FLOAT:
 	case primitive_t::INT:
 		return ops;
+
+	case primitive_t::NONE:
+		return none_ops;
+
 	default:
 		return no_nyan_ops;
 	}
@@ -413,7 +421,7 @@ template<>
 const BasicType &Int::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::INT,
-		composite_t::NONE
+		composite_t::SINGLE
 	};
 	return type;
 }
@@ -423,7 +431,7 @@ template<>
 const BasicType &Float::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::FLOAT,
-		composite_t::NONE
+		composite_t::SINGLE
 	};
 
 	return type;

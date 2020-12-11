@@ -32,7 +32,15 @@ public:
 
 	std::string str() const;
 
+
 	bool exists() const;
+
+	/**
+	 * Checks if this ValueToken contains the None value.
+	 *
+	 * @return true if this ValueToken stores None, else false.
+	 */
+	bool is_none() const;
 
 	const Location &get_start_location() const;
 	size_t get_length() const;

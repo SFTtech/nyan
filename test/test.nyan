@@ -7,6 +7,10 @@ Dummy():
 
 First():
     # a first object!
+    wat : abstract(First) = Second
+    wat2 : abstract(children(First)) = Second
+    wat3 : optional(First) = Second
+    wat4 : set(children(First)) = {Second}
     member : int = 15
     test : text = "rofl lol"
     bla : file = "wtf.h4x"
@@ -20,6 +24,7 @@ FirstPatch<First>():
 
 Second(First):
     member *= 5.5
+    # nap : int
 
 NestingBase(First):
 

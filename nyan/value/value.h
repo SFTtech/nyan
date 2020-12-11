@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <string>
@@ -29,7 +29,9 @@ public:
 	 */
 	static ValueHolder from_ast(const Type &target_type,
 	                            const ASTMemberValue &val,
-	                            const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value);
+	                            std::vector<std::pair<fqon_t, Location>> *objs_in_values,
+	                            const std::function<fqon_t(const IDToken &)> &get_fqon,
+	                            const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin);
 
 	/**
 	 * Return a copy of this Value.

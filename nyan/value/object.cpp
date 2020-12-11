@@ -64,10 +64,12 @@ const std::unordered_set<nyan_op> &ObjectValue::allowed_operations(const Type &w
 		nyan_op::ASSIGN,
 	};
 
-	if (with_type.get_primitive_type() == primitive_t::OBJECT) {
+	switch (with_type.get_primitive_type()) {
+	case primitive_t::OBJECT:
+	case primitive_t::NONE:
 		return ops;
-	}
-	else {
+
+	default:
 		return no_nyan_ops;
 	}
 }
@@ -76,7 +78,7 @@ const std::unordered_set<nyan_op> &ObjectValue::allowed_operations(const Type &w
 const BasicType &ObjectValue::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::OBJECT,
-		composite_t::NONE,
+		composite_t::SINGLE,
 	};
 
 	return type;

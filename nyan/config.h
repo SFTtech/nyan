@@ -11,7 +11,6 @@
 #include <limits>
 #include <string>
 
-
 namespace nyan {
 
 /** number of spaces per indent **/

@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -25,6 +25,7 @@ public:
 	 */
 	Member(override_depth_t depth,
 	       nyan_op operation,
+	       Type declared_type,
 	       ValueHolder &&value);
 
 	Member(const Member &other);
@@ -68,6 +69,11 @@ protected:
 	 * operation specified for this member.
 	 */
 	nyan_op operation = nyan_op::INVALID;
+
+	/**
+	 * Type from the member declaration.
+	 */
+	Type declared_type;
 
 	/**
 	 * Value stored in this member.
