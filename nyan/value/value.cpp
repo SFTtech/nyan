@@ -85,10 +85,39 @@ static ValueHolder value_from_id_token(const Type &target_type,
 }
 
 
+static std::vector<ValueHolder> value_from_value_token(const std::vector<Type> &target_types,
+                                          			   const ValueToken &value_token,
+                                          			   const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value) {
+	if (unlikely(target_types.size() != value_token.get_value().size())) {
+		throw TypeError(
+				value_token.get_start_location(),
+				std::string("ValueToken has ")
+				+ std::to_string(value_token.get_value().size())
+				+ " elements, but only "
+				+ std::to_string(target_types.size())
+				+ " have been requested"
+			);
+	}
+
+	std::vector<ValueHolder> values;
+	values.reserve(value_token.get_value().size());
+
+	for (unsigned int i = 0; i < value_token.get_value().size(); i++) {
+		values.push_back(value_from_id_token(
+				target_types.at(i),
+				value_token.get_value().at(i),
+				get_obj_value
+			)
+		);
+	}
+
+	return values;
+}
+
+
 ValueHolder Value::from_ast(const Type &target_type,
                             const ASTMemberValue &astmembervalue,
                             const std::function<fqon_t(const Type &, const IDToken &)> &get_obj_value) {
-
 	if (not target_type.is_container()) {
 		// don't allow more than one value for a single-value type
 		if (astmembervalue.get_values().size() > 1) {
@@ -98,9 +127,10 @@ ValueHolder Value::from_ast(const Type &target_type,
 			};
 		}
 
-		return value_from_id_token(target_type,
-		                           astmembervalue.get_values()[0].get_value()[0],
-		                           get_obj_value);
+		std::vector<Type> target_types = {target_type};
+		return value_from_value_token(target_types,
+		                           	  astmembervalue.get_values()[0],
+		                           	  get_obj_value)[0];
 	}
 
 	composite_t composite_type = astmembervalue.get_composite_type();
@@ -121,11 +151,11 @@ ValueHolder Value::from_ast(const Type &target_type,
 			throw InternalError{"container element type is nonexisting"};
 		}
 
-		const Type target_type = element_type->at(0);
 		for (auto &value_token : astmembervalue.get_values()) {
 			values.push_back(
-				value_from_id_token(target_type, value_token.get_value()[0],
-									get_obj_value)
+				value_from_value_token(*element_type,
+									   value_token,
+									   get_obj_value)[0]
 			);
 		}
 
@@ -150,14 +180,14 @@ ValueHolder Value::from_ast(const Type &target_type,
 			throw InternalError{"container element type is nonexisting"};
 		}
 
-		const Type key_type = element_type->at(0);
-		const Type value_type = element_type->at(1);
 		for (auto &value_token : astmembervalue.get_values()) {
-			ValueHolder key = value_from_id_token(key_type, value_token.get_value()[0],
-												  get_obj_value);
-			ValueHolder value = value_from_id_token(value_type, value_token.get_value()[1],
-													get_obj_value);
-			items.insert(std::make_pair(key, value));
+			std::vector<ValueHolder> keyval = value_from_value_token(
+				*element_type,
+				value_token,
+				get_obj_value
+			);
+
+			items.insert(std::make_pair(keyval[0], keyval[1]));
 		}
 
 		return {std::make_shared<Dict>(std::move(items))};
