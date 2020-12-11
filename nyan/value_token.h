@@ -34,6 +34,11 @@ public:
 
 	bool exists() const;
 
+	/**
+	 * Checks if this value contains the None value.
+	 */
+	bool is_None() const;
+
 	const Location &get_start_location() const;
 	size_t get_length() const;
 

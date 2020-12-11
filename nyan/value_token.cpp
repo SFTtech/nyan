@@ -13,7 +13,7 @@ namespace nyan {
 
 ValueToken::ValueToken(const IDToken &token)
     :
-	container_type{composite_t::NONE} {
+	container_type{composite_t::SINGLE} {
 
     this->tokens.push_back(token);
 }
@@ -40,7 +40,7 @@ ValueToken::ValueToken(composite_t type,
 
 std::string ValueToken::str() const {
 	switch (this->container_type) {
-    case composite_t::NONE:
+    case composite_t::SINGLE:
     case composite_t::SET:
     case composite_t::ORDEREDSET:
         return this->tokens.at(0).str();
@@ -56,6 +56,20 @@ std::string ValueToken::str() const {
 
 bool ValueToken::exists() const {
 	return this->tokens.size() > 0;
+}
+
+
+bool ValueToken::is_None() const {
+	if (this->tokens.size() != 1) {
+        return false;
+    }
+
+    IDToken id_token = this->tokens[0];
+    if (id_token.get_components().size() != 1) {
+        return false;
+    }
+
+    return id_token.get_components()[0].get() == "None";
 }
 
 
@@ -76,7 +90,7 @@ size_t ValueToken::get_length() const {
 	}
 
 	switch (this->container_type) {
-    case composite_t::NONE:
+    case composite_t::SINGLE:
     case composite_t::SET:
     case composite_t::ORDEREDSET:
         return this->tokens.at(0).get_length();
