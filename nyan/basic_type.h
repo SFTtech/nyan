@@ -1,4 +1,4 @@
-// Copyright 2016-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include "config.h"
@@ -74,6 +74,8 @@ public:
 
 	/**
 	 * Return whether the type is object.
+	 *
+	 * @return true if the basic type is an object, else false.
 	 */
 	bool is_object() const;
 
@@ -82,6 +84,8 @@ public:
 	 * Return whether the given type is fundamental.
 	 * Primitive types are int, float, text, etc.
 	 * Non-primitive types are objects, containers and modifiers.
+	 *
+	 * @return true if the basic type is fundamental, else false.
 	 */
 	bool is_fundamental() const;
 
@@ -89,6 +93,8 @@ public:
 	/**
 	 * Test if this basic type is a composite.
 	 * that is, the composite type is not SINGLE.
+	 *
+	 * @return true if the basic type is a composite, else false.
 	 */
 	bool is_composite() const;
 
@@ -97,6 +103,8 @@ public:
 	 * Test if this basic type is a container.
 	 * that is, the composite type is one of the container
 	 * types SET, ORDEREDSET or DICT.
+	 *
+	 * @return true if the basic type is a container, else false.
 	 */
 	bool is_container() const;
 
@@ -105,14 +113,18 @@ public:
 	 * Test if this basic type is a modifier.
 	 * that is, the composite type is one of the modifier
 	 * types ABSTRACT, CHILDREN or OPTIONAL.
+	 *
+	 * @return true if the basic type is a modifier, else false.
 	 */
 	bool is_modifier() const;
 
 
 	/**
 	 * Equality comparison.
+	 *
+	 * @return true if the basic types are exactly the same, else false.
 	 */
-	bool operator ==(const BasicType &other) const;
+	bool operator==(const BasicType &other) const;
 
 
 	/**
@@ -122,8 +134,9 @@ public:
 	 * If it is e.g. "set", type will be CONTAINER and the composite type SET.
 	 *
 	 * @param token An IDToken that contains a type identifier or a nyan object name.
+	 *
 	 * @return BasicType declared by the token.
-	 * @throw ASTError if it fails.
+	 * @throw ASTError if no typename could be found.
 	 */
 	static BasicType from_type_token(const IDToken &token);
 
@@ -133,6 +146,7 @@ public:
 	 * type.
 	 *
 	 * @param type The tested type.
+	 *
 	 * @return Number of required nested types.
 	 */
 	static unsigned int expected_nested_types(const BasicType &type) {
@@ -141,17 +155,23 @@ public:
 		}
 
 		switch (type.composite_type) {
-		// containers
-		case composite_t::SET:        return 1;
-		case composite_t::ORDEREDSET: return 1;
-		case composite_t::DICT:       return 2;
+			// containers
+		case composite_t::SET:
+			return 1;
+		case composite_t::ORDEREDSET:
+			return 1;
+		case composite_t::DICT:
+			return 2;
 
-		// modifiers
-		case composite_t::ABSTRACT:   return 1;
-		case composite_t::CHILDREN:   return 1;
-		case composite_t::OPTIONAL:   return 1;
+			// modifiers
+		case composite_t::ABSTRACT:
+			return 1;
+		case composite_t::CHILDREN:
+			return 1;
+		case composite_t::OPTIONAL:
+			return 1;
 
-		// else, must be an object
+			// else, must be an object
 		default:
 			return 0;
 		}
@@ -161,18 +181,31 @@ public:
 
 /**
  * Get a string representation of a basic nyan type.
+ *
+ * @param type A primitive type.
+ *
+ * @return String representation of the type.
  */
 constexpr const char *type_to_string(primitive_t type) {
 	switch (type) {
-	case primitive_t::BOOLEAN:       return "bool";
-	case primitive_t::TEXT:          return "text";
-	case primitive_t::FILENAME:      return "file";
-	case primitive_t::INT:           return "int";
-	case primitive_t::FLOAT:         return "float";
-	case primitive_t::OBJECT:        return "object";
-	case primitive_t::NONE:          return "none";
-	case primitive_t::CONTAINER:     return "container";
-	case primitive_t::MODIFIER:      return "modifier";
+	case primitive_t::BOOLEAN:
+		return "bool";
+	case primitive_t::TEXT:
+		return "text";
+	case primitive_t::FILENAME:
+		return "file";
+	case primitive_t::INT:
+		return "int";
+	case primitive_t::FLOAT:
+		return "float";
+	case primitive_t::OBJECT:
+		return "object";
+	case primitive_t::NONE:
+		return "none";
+	case primitive_t::CONTAINER:
+		return "container";
+	case primitive_t::MODIFIER:
+		return "modifier";
 	}
 
 	return "unhandled primitive_t";
@@ -181,16 +214,27 @@ constexpr const char *type_to_string(primitive_t type) {
 
 /**
  * Get a string represenation for a nyan composite type.
+ *
+ * @param type A composite type.
+ *
+ * @return String representation of the type.
  */
 constexpr const char *composite_type_to_string(composite_t type) {
 	switch (type) {
-	case composite_t::SINGLE:        return "single_value";
-	case composite_t::SET:           return "set";
-	case composite_t::ORDEREDSET:    return "orderedset";
-	case composite_t::DICT:          return "dict";
-	case composite_t::ABSTRACT:      return "abstract";
-	case composite_t::CHILDREN:      return "children";
-	case composite_t::OPTIONAL:      return "optional";
+	case composite_t::SINGLE:
+		return "single_value";
+	case composite_t::SET:
+		return "set";
+	case composite_t::ORDEREDSET:
+		return "orderedset";
+	case composite_t::DICT:
+		return "dict";
+	case composite_t::ABSTRACT:
+		return "abstract";
+	case composite_t::CHILDREN:
+		return "children";
+	case composite_t::OPTIONAL:
+		return "optional";
 	}
 
 	return "unhandled composite_t";

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "basic_type.h"
 
@@ -72,7 +72,7 @@ bool BasicType::is_modifier() const {
 }
 
 
-bool BasicType::operator ==(const BasicType &other) const {
+bool BasicType::operator==(const BasicType &other) const {
 	return (this->primitive_type == other.primitive_type and
 	        this->composite_type == other.composite_type);
 }
@@ -107,7 +107,7 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 	composite_t composite_type = composite_t::SINGLE;
 
 	switch (tok.get_type()) {
-		// type names are always identifiers:
+	// type names are always identifiers:
 	case token_type::ID: {
 		auto it0 = primitive_types.find(tok.get_first());
 		if (it0 != std::end(primitive_types)) {

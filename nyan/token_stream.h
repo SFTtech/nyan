@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -25,19 +25,43 @@ public:
 
 	~TokenStream();
 
+	/**
+	 * Advance one step in the stream and get the pointer to
+	 * the token the streamnow points to.
+	 *
+	 * @return Next token in the stream.
+	 */
 	const tok_t *next();
 
+	/**
+	 * Check if the end of the stream has been reached, i.e. there
+	 * are no more tokens after the current token.
+	 *
+	 * @return true if there are no more tokens in the stream, else false.
+	 */
 	bool full() const;
 
+	/**
+	 * Check if there are tokens left in the stream.
+	 *
+	 * @return true if there are more tokens in the stream, else false.
+	 */
 	bool empty() const;
 
 	/**
-	 * Reinserts the tokens previously returned by next in reverse order.
+	 * Reinserts the token previously returned by next().
 	 */
 	void reinsert_last();
 
 protected:
+	/**
+	 * List of tokens in the stream.
+	 */
 	const container_t &container;
+
+	/**
+	 * Iterator used for advancing/regressing in the stream.
+	 */
 	container_t::const_iterator iter;
 };
 

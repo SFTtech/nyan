@@ -1,4 +1,4 @@
-// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "meta_info.h"
 
@@ -9,11 +9,11 @@
 
 namespace nyan {
 
-ObjectInfo &MetaInfo::add_object(const fqon_t &name, ObjectInfo &&obj) {
+ObjectInfo &MetaInfo::add_object(const fqon_t &name, ObjectInfo &&obj_info) {
 	// copy location so we can use it after obj was moved.
-	Location loc = obj.get_location();
+	Location loc = obj_info.get_location();
 
-	auto ret = this->object_info.insert({name, std::move(obj)});
+	auto ret = this->object_info.insert({name, std::move(obj_info)});
 	if (ret.second == false) {
 		throw LangError{
 			loc,

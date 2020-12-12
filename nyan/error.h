@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -48,7 +48,7 @@ public:
 	 *    is called for every symbol in the backtrace,
 	 *    starting with the top-most frame.
 	 * @param reversed
-	 *    if true, the most recent call is given last.
+	 *	  if true, the most recent call is given last.
 	 */
 	void get_symbols(std::function<void (const backtrace_symbol *)> cb,
 	                 bool reversed=true) const;
@@ -85,11 +85,15 @@ public:
 	/**
 	 * String representation of this exception, as
 	 * specialized by a child exception.
+	 *
+	 * @return String representation of this exception.
 	 */
 	virtual std::string str() const;
 
 	/**
 	 * Returns the message's content.
+	 *
+	 * @return Char array containing the error message.
 	 */
 	const char *what() const noexcept override;
 
@@ -118,23 +122,31 @@ public:
 	/**
 	 * Get the type name of of the exception.
 	 * Use it to display the name of a child exception.
+	 *
+	 * @return String with the exception type.
 	 */
 	virtual std::string type_name() const;
 
 	/**
 	 * Return the backtrace where the exception was thrown.
 	 * nullptr if no backtrace was collected.
+	 *
+	 * @return Backtrace to the exception's origin.
 	 */
 	Backtrace *get_backtrace() const;
 
 	/**
 	 * Directly return the message stored in the exception.
+	 *
+	 * @return String containing the error message.
 	 */
 	const std::string &get_msg() const;
 
 	/**
 	 * Enable invocation of software breakpoint
 	 * when this Error is constructed.
+	 *
+	 * @param enable If true, enable a breakpoint, else disable it.
 	 */
 	static void enable_break(bool enable);
 
@@ -168,18 +180,27 @@ protected:
 
 /**
  * Output stream concat for nyanerrors.
+ *
+ * @param os Output stream the error is appended to.
+ * @param e Error whose message is appended to the output stream.
  */
 std::ostream &operator <<(std::ostream &os, const Error &e);
 
 
 /**
  * Output stream concat for backtrace symbols.
+ *
+ * @param os Output stream the backtrace symbol is appended to.
+ * @param bt_sym Backtrace symbol which is appended to the output stream.
  */
 std::ostream &operator <<(std::ostream &os, const backtrace_symbol &bt_sym);
 
 
 /**
  * Output stream concat for backtraces.
+ *
+ * @param os Output stream the backtrace is appended to.
+ * @param bt Backtrace which is appended to the output stream.
  */
 std::ostream &operator <<(std::ostream &os, const Backtrace &bt);
 

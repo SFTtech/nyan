@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "type.h"
 
@@ -125,7 +125,7 @@ bool Type::is_container() const {
 
 bool Type::is_container(composite_t type) const {
 	return (this->basic_type.is_container() and
-			this->get_composite_type() == type);
+	        this->get_composite_type() == type);
 }
 
 bool Type::is_modifier() const {
@@ -135,7 +135,7 @@ bool Type::is_modifier() const {
 
 bool Type::is_modifier(composite_t type) const {
 	return (this->basic_type.is_modifier() and
-			this->get_composite_type() == type);
+	        this->get_composite_type() == type);
 }
 
 
@@ -147,6 +147,7 @@ bool Type::is_hashable() const {
 		return true;
 	}
 	else if (this->is_modifier()) {
+		// check the subtype
 		// TODO: This could be wrong if other modifiers are added
 		return std::all_of(this->element_type.get()->cbegin(),
 		                   this->element_type.get()->cend(),
@@ -162,65 +163,6 @@ bool Type::is_hashable() const {
 
 bool Type::is_basic_type_match(const BasicType &type) const {
 	return (this->basic_type == type);
-}
-
-
-bool Type::can_contain(const MetaInfo & meta_info,
-                       const Type &other,
-                       const unsigned int pos,
-                       std::set<composite_t> modflags) const {
-	if (not this->is_composite()) {
-		return false;
-	}
-
-	if (this->element_type.get()->size() - 1 < pos) {
-		// pos must not be larger than the number of element types
-		return false;
-	}
-
-	if (this->is_modifier()) {
-		modflags.insert(this->get_composite_type());
-	}
-
-	Type subtype = this->element_type.get()->at(pos);
-	if (subtype.is_fundamental()) {
-		return subtype.is_basic_type_match(other.get_basic_type());
-	}
-	else if (subtype.is_object()) {
-		return subtype.can_hold(meta_info, other.get_fqon(), modflags);
-	}
-	else if (subtype.is_modifier()) {
-		return subtype.can_contain(meta_info, other, 0, modflags);
-	}
-	else if (subtype.is_container()) {
-		// TODO: no hashable containers yet, so a container subtype would not work
-		return false;
-	}
-
-	return false;
-}
-
-
-bool Type::can_hold(const MetaInfo &meta_info,
-                    const fqon_t &other,
-                    std::set<composite_t> modflags) const {
-	if (util::contains(modflags, composite_t::CHILDREN)) {
-		//
-		if (other == this->get_fqon()) {
-			return false;
-		}
-	}
-
-	const ObjectInfo *obj_info = meta_info.get_object(other);
-	if (unlikely(obj_info == nullptr)) {
-		throw InternalError{"object info could not be retrieved"};
-	}
-
-	const auto &obj_lin = obj_info->get_linearization();
-
-	// check if the type of the value is okay
-	// (i.e. it's in the linearization)
-	return util::contains(obj_lin, this->get_fqon());
 }
 
 

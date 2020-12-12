@@ -1,4 +1,4 @@
-// Copyright 2019-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2019-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include "error.h"
@@ -35,9 +35,24 @@ public:
 	                const std::string &real_type, const std::string &wrong_type);
 
 protected:
-	fqon_t name;
+	/**
+	 * Name (identifier) of the object the member is part of.
+	 */
+	fqon_t objname;
+
+	/**
+	 * Name (identifier) of the member.
+	 */
 	memberid_t member;
+
+	/**
+	 * Type that the member should have assigned.
+	 */
 	std::string real_type;
+
+	/**
+	 * Type that the member has actually assigned.
+	 */
 	std::string wrong_type;
 };
 
@@ -50,7 +65,10 @@ public:
 	ObjectNotFoundError(const fqon_t &objname);
 
 protected:
-	fqon_t name;
+	/**
+	 * Name (identifier) of the object.
+	 */
+	fqon_t objname;
 };
 
 
@@ -63,7 +81,14 @@ public:
 	                    const memberid_t &membername);
 
 protected:
-	fqon_t obj_name;
+	/**
+	 * Name (identifier) of the object the member is part of.
+	 */
+	fqon_t objname;
+
+	/**
+	 * Name (identifier) of the member.
+	 */
 	memberid_t name;
 };
 

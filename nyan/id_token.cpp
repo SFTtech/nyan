@@ -1,4 +1,4 @@
-// Copyright 2017-2018 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #include "id_token.h"
 
 #include <string>

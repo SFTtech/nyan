@@ -72,12 +72,9 @@ bool ValueToken::is_none() const {
 	return id_token.get_components()[0].get() == "None";
 }
 
-
 const Location &ValueToken::get_start_location() const {
 	if (unlikely(not this->exists())) {
-		throw InternalError{
-			"this ValueToken doesn't exist, but you queried its location"
-			};
+		throw InternalError{"this ValueToken doesn't exist, but you queried its location"};
 	}
 
 	return this->tokens.at(0).get_start_location();
@@ -98,7 +95,7 @@ size_t ValueToken::get_length() const {
 	case composite_t::DICT:
 		// key token length + value token length + separating ": " length
 		return this->tokens.at(0).get_length() +
-			this->tokens.at(1).get_length() + 2;
+		this->tokens.at(1).get_length() + 2;
 
 	default:
 		throw InternalError{"unknown container value type"};

@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
@@ -24,18 +24,30 @@ public:
 	virtual ~Parser() = default;
 
 	/**
-	 * Parse a file and return its AST.
+	 * Parse a nyan file and return its AST (abstact syntax tree).
+	 *
+	 * @param file Shared pointer to a nyan data file.
+	 *
+	 * @return AST of the nyan file.
 	 */
 	AST parse(const std::shared_ptr<File> &file);
 
 protected:
 	/**
-	 * Create the token stream from a file.
+	 * Get the token stream of a nyan file.
+	 *
+	 * @param file Shared pointer to a nyan data file.
+	 *
+	 * @return List of tokens in the file.
 	 */
 	std::vector<Token> tokenize(const std::shared_ptr<File> &file) const;
 
 	/**
-	 * Create the abstact syntax tree from a token stream.
+	 * Create an AST (abstact syntax tree) from a token list.
+	 *
+	 * @param tokens List of tokens.
+	 *
+	 * @return AST of the token list.
 	 */
 	AST create_ast(const std::vector<Token> &tokens) const;
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -58,107 +58,124 @@ public:
 	virtual ~Type() = default;
 
 	/**
-	 * Return if this type is an object.
+	 * Check if this type is an object.
+	 *
+	 * @return true if the basic type is an object, else false.
 	 */
 	bool is_object() const;
 
 	/**
-	 * Return if this type is fundamental (simple non-pointer value).
+	 * Check if this type is fundamental (simple non-pointer value).
+	 *
+	 * @return true if the basic type is fundamental, else false.
 	 */
 	bool is_fundamental() const;
 
 	/**
-	 * Return if this type is a composite of multiple types.
+	 * Check if this type is a composite of multiple types.
+	 *
+	 * @return true if the basic type is a composite, else false.
 	 */
 	bool is_composite() const;
 
 	/**
-	 * Return if this type is a container that stores multiple values.
+	 * Check if this type is a container that stores multiple values.
+	 *
+	 * @return true if the basic type is a container, else false.
 	 */
 	bool is_container() const;
 
 	/**
-	 * Test if this is a container of the given type.
+	 * Check if this type is a container of a given type.
+	 *
+	 * @param type Composite type that is compared to this type's basic type.
+	 *
+	 * @return true if the composite types matches, else false.
 	 */
 	bool is_container(composite_t type) const;
 
 	/**
-	 * Return if this type is a modifier.
+	 * Check if this type is a modifier.
+	 *
+	 * @return true if the basic type is a modifier, else false.
 	 */
 	bool is_modifier() const;
 
 	/**
-	 * Test if is a modifier of the given type.
+	 * Check if this type is a modifier of a given type.
+	 *
+	 * @param type Composite type that is compared to this type's basic type.
+	 *
+	 * @return true if the composite types matches, else false.
 	 */
 	bool is_modifier(composite_t type) const;
 
 	/**
-	 * Return if a value of this type is hashable.
+	 * Check if a value of this type is hashable.
+	 *
+	 * @return true if values are hashable, else false.
 	 */
 	bool is_hashable() const;
 
 	/**
-	 * Test if the basic type matches the given type, i. e. it's the same.
+	 * Check if the basic type matches the given basic type, i.e. it's the same.
+	 *
+	 * @param type Basic type that is compared to this type's basic type.
+	 *
+	 * @return true if the basic types match, else false.
 	 */
 	bool is_basic_type_match(const BasicType &type) const;
 
 	/**
-	 * Check if this type can contain the given other type.
-	 * This will only succeed if this type is a composite.
+	 * Get the object fqon of the type.
 	 *
-	 * @param meta_info Meta-information of the database. Used for finding object linearization.
-	 * @param other Contained type candidate.
-	 * @param pos Position of the element type in this type that other is compared with.
-	 */
-	bool can_contain(const MetaInfo &meta_info,
-	                 const Type &other,
-	                 const unsigned int pos = 0,
-	                 std::set<composite_t> modflags = {}) const;
-
-	/**
-	 * Check if this type is compatible to the given other type.
-	 * This will only succeed if both types are objects.
-	 *
-	 * @param meta_info Meta-information of the database. Used for finding object linearization.
-	 * @param other fqon of the object
-	 */
-	bool can_hold(const MetaInfo &meta_info,
-	              const fqon_t &other,
-	              std::set<composite_t> modflags = {}) const;
-
-	/**
-	 * Return the object fqon.
+	 * @return Identifier of the object if this type is an object, else nullptr.
 	 */
 	const fqon_t &get_fqon() const;
 
 	/**
-	 * Return the basic type, namely the primitive and composite type.
+	 * Get the basic type of this type, namely the primitive and composite type.
+	 *
+	 * @return Basic type of this type.
 	 */
 	const BasicType &get_basic_type() const;
 
 	/**
-	 * Return the composite type of this type.
+	 * Get the composite type of this type.
+	 *
+	 * @return Composite type of this type.
 	 */
 	const composite_t &get_composite_type() const;
 
 	/**
-	 * Return the primitive type of this Type.
+	 * Get the primitive type of this type.
+	 *
+	 * @return Primitive type of this type.
 	 */
 	const primitive_t &get_primitive_type() const;
 
 	/**
-	 * Get the composite element type, i. e. the inner type
-	 * that specifies the type of each element.
+	 * Get the composite element type of this type, i.e. the inner type
+	 * that specifies the type of each item in a value.
+	 *
+	 * @return Pointer to the list with the element types of this type.
 	 */
 	const std::vector<Type> *get_element_type() const;
 
 	/**
-	 * Return a string representation of this type.
+	 * Get the string representation of this type.
+	 *
+	 * @return String representation of this type.
 	 */
 	std::string str() const;
 
 	/**
-	 * Checks if two types are the same.
+	 * Checks if two types are equal. Their basic type, element types
+	 * and fqon must match.
+	 *
+	 * @param other Type that is compared with this type.
+	 *
+	 * @return true if the types are equal, else false.
 	 */
 	bool operator ==(const Type &other) const;
 

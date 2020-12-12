@@ -20,6 +20,16 @@
 namespace nyan {
 
 
+/**
+ * Create a ValueHolder from an IDToken.
+ *
+ * @param target_types Target type of the value.
+ * @param id_token IDToken from which values are extracted.
+ * @param get_fqon Function for retrieving an object identifier from
+ *     an IDToken.
+ *
+ * @return A ValueHolder with the created value.
+ */
 static ValueHolder value_from_id_token(const Type &target_type,
                                        const IDToken &id_token,
                                        const std::function<fqon_t(const IDToken &)> &get_fqon) {
@@ -85,18 +95,29 @@ static ValueHolder value_from_id_token(const Type &target_type,
 }
 
 
+/**
+ * Create ValueHolders from a ValueToken.
+ *
+ * @param target_types List of target types of the values in the token. Must have
+ *     the same size as the value token.
+ * @param value_token Value token from which values are extracted.
+ * @param get_fqon Function for retrieving an object identifier from
+ *     an IDToken.
+ *
+ * @return A list of ValueHolders with the created values.
+ */
 static std::vector<ValueHolder> value_from_value_token(const std::vector<Type> &target_types,
                                                        const ValueToken &value_token,
                                                        const std::function<fqon_t(const IDToken &)> &get_fqon) {
 	if (unlikely(target_types.size() != value_token.get_value().size())) {
 		throw TypeError(
-				value_token.get_start_location(),
-				std::string("ValueToken has ")
-				+ std::to_string(value_token.get_value().size())
-				+ " elements, but only "
-				+ std::to_string(target_types.size())
-				+ " have been requested"
-			);
+			value_token.get_start_location(),
+			std::string("ValueToken has ")
+			+ std::to_string(value_token.get_value().size())
+			+ " elements, but only "
+			+ std::to_string(target_types.size())
+			+ " have been requested"
+		);
 	}
 
 	std::vector<ValueHolder> values;
@@ -109,10 +130,10 @@ static std::vector<ValueHolder> value_from_value_token(const std::vector<Type> &
 
 	for (unsigned int i = 0; i < value_token.get_value().size(); i++) {
 		values.push_back(value_from_id_token(
-				target_types.at(i),
-				value_token.get_value().at(i),
-				get_fqon
-			)
+			                 target_types.at(i),
+			                 value_token.get_value().at(i),
+			                 get_fqon
+		                 )
 		);
 	}
 
@@ -120,9 +141,18 @@ static std::vector<ValueHolder> value_from_value_token(const std::vector<Type> &
 }
 
 
+/**
+ * Handle modifiers of the member type, i.e. perform necessary modifications
+ * and checks on the created value.
+ *
+ * @param modifiers List of modifier ordered by inner mod --> outer mod.
+ * @param value_holder Value that is modified/checked.
+ * @param objs_in_values Pointer to the list of object identifiers in
+ *     values at load time.
+ */
 static void handle_modifiers(const std::vector<Type> &modifiers,
                              const ValueHolder &value_holder,
-							 std::vector<std::pair<fqon_t, Location>> *objs_in_values) {
+                             std::vector<std::pair<fqon_t, Location>> *objs_in_values) {
 	bool contains_optional = false;
 	for (auto &mod: modifiers) {
 		auto modifier_type = mod.get_composite_type();
@@ -172,6 +202,8 @@ static void handle_modifiers(const std::vector<Type> &modifiers,
 		}
 	}
 }
+
+
 ValueHolder Value::from_ast(const Type &target_type,
                             const ASTMemberValue &astmembervalue,
                             std::vector<std::pair<fqon_t, Location>> *objs_in_values,

@@ -17,7 +17,6 @@ unsigned int comma_list(token_type end,
                         TokenStream &tokens,
                         unsigned int limit,
                         const std::function<void(const Token &, TokenStream &)> &func) {
-
 	auto token = tokens.next();
 	bool comma_expected = false;
 
@@ -140,7 +139,8 @@ ASTArgument::ASTArgument(TokenStream &tokens) {
 	if (token->type == token_type::ID) {
 		this->arg = IDToken{*token, tokens};
 		token = tokens.next();
-	} else {
+	}
+	else {
 		throw ASTError("expected argument keyword, encountered", *token);
 	}
 
@@ -148,7 +148,8 @@ ASTArgument::ASTArgument(TokenStream &tokens) {
 		if (token->is_content()) {
 			this->params.emplace_back(*token, tokens);
 			token = tokens.next();
-		} else {
+		}
+		else {
 			throw ASTError("expected parameter value, encountered", *token);
 		}
 	}
@@ -170,7 +171,8 @@ ASTImport::ASTImport(TokenStream &tokens) {
 
 	if (token->type == token_type::ID) {
 		this->namespace_name = IDToken{*token, tokens};
-	} else {
+	}
+	else {
 		throw ASTError("expected namespace name to import, encountered", *token);
 	}
 
@@ -206,10 +208,8 @@ const Token &ASTImport::get_alias() const {
 
 
 ASTObject::ASTObject(const Token &name,
-                     TokenStream &tokens)
-	:
+                     TokenStream &tokens) :
 	name{name} {
-
 	auto token = tokens.next();
 
 	if (token->type == token_type::LANGLE) {
@@ -224,7 +224,8 @@ ASTObject::ASTObject(const Token &name,
 
 	if (token->type == token_type::LPAREN) {
 		this->ast_parents(tokens);
-	} else {
+	}
+	else {
 		throw ASTError("create the object with (), i got", *token);
 	}
 
@@ -268,11 +269,10 @@ void ASTObject::ast_inheritance_mod(TokenStream &tokens) {
 	comma_list(
 		token_type::RBRACKET,
 		tokens,
-		[this] (const Token & /*token*/, TokenStream &stream) {
+		[this](const Token & /*token*/, TokenStream &stream) {
 			stream.reinsert_last();
 			this->inheritance_change.emplace_back(stream);
-		}
-	);
+		});
 }
 
 
@@ -280,48 +280,40 @@ void ASTObject::ast_parents(TokenStream &tokens) {
 	comma_list(
 		token_type::RPAREN,
 		tokens,
-		[this] (const Token &token, TokenStream &stream) {
-
+		[this](const Token &token, TokenStream &stream) {
 			if (token.type != token_type::ID) {
 				throw ASTError{
-					"expected inheritance parent identifier, but there is", token
+					"expected inheritance parent identifier, but there is",
+					token
 				};
 			}
 
 			this->parents.emplace_back(token, stream);
-		}
-	);
+		});
 }
 
 
 void ASTObject::ast_members(TokenStream &tokens) {
 	auto token = tokens.next();
 
-	while (token->type != token_type::DEDENT and
-	       token->type != token_type::ENDFILE) {
-
+	while (token->type != token_type::DEDENT and token->type != token_type::ENDFILE) {
 		// content entry of the object
 		if (token->type == token_type::ID) {
-
 			// determine if this is a member or a nested object.
 			bool object_next = false;
 			auto lookahead = tokens.next();
 
-			if (lookahead->type == token_type::OPERATOR or
-			    lookahead->type == token_type::COLON) {
-
+			if (lookahead->type == token_type::OPERATOR or lookahead->type == token_type::COLON) {
 				object_next = false;
 			}
-			else if (lookahead->type == token_type::LANGLE or
-			    lookahead->type == token_type::LBRACKET or
-			    lookahead->type == token_type::LPAREN) {
-
+			else if (lookahead->type == token_type::LANGLE or lookahead->type == token_type::LBRACKET or lookahead->type == token_type::LPAREN) {
 				object_next = true;
 			}
 			else {
 				// don't think this will ever happen, right?
 				throw ASTError("could not identify member or nested object defintion "
-				               "after", *token);
+				               "after",
+				               *token);
 			}
 
 			tokens.reinsert_last();
@@ -333,18 +325,19 @@ void ASTObject::ast_members(TokenStream &tokens) {
 				this->members.emplace_back(*token, tokens);
 			}
 		}
-		else if (token->type == token_type::PASS or
-		         token->type == token_type::ELLIPSIS) {
+		else if (token->type == token_type::PASS or token->type == token_type::ELLIPSIS) {
 			// "empty" member entry.
 			token = tokens.next();
 			if (token->type != token_type::ENDLINE) {
 				throw ASTError("expected newline after pass or '...', "
-				               "but got", *token);
+				               "but got",
+				               *token);
 			}
 		}
 		else {
 			throw ASTError("expected member or object identifier, "
-			               "instead got", *token);
+			               "instead got",
+			               *token);
 		}
 
 		token = tokens.next();
@@ -363,7 +356,6 @@ const std::vector<ASTObject> &ASTObject::get_objects() const {
 
 
 ASTInheritanceChange::ASTInheritanceChange(TokenStream &tokens) {
-
 	bool had_operator = false;
 	bool had_target = false;
 	auto token = tokens.next();
@@ -389,15 +381,16 @@ ASTInheritanceChange::ASTInheritanceChange(TokenStream &tokens) {
 		token = tokens.next();
 	}
 
-	if (unlikely(not (had_operator or had_target))) {
+	if (unlikely(not(had_operator or had_target))) {
 		throw ASTError{"expected inheritance operator or identifier, there is", *token};
 	}
 
 	if (token->type == token_type::OPERATOR) {
 		if (unlikely(had_operator)) {
 			throw ASTError{
-				"inheritance modifier already had operator at front", *token, false
-			};
+				"inheritance modifier already had operator at front",
+				*token,
+				false};
 		}
 
 		had_operator = true;
@@ -434,7 +427,6 @@ const IDToken &ASTInheritanceChange::get_target() const {
 
 ASTMember::ASTMember(const Token &name,
                      TokenStream &tokens) {
-
 	this->name = IDToken{name, tokens};
 
 	auto token = tokens.next();
@@ -447,7 +439,8 @@ ASTMember::ASTMember(const Token &name,
 		if (token->type == token_type::ID) {
 			this->type = ASTMemberType{*token, tokens};
 			had_def_or_decl = true;
-		} else {
+		}
+		else {
 			throw ASTError{"expected type name, instead got", *token};
 		}
 
@@ -466,9 +459,7 @@ ASTMember::ASTMember(const Token &name,
 		auto next_token = tokens.next();
 
 		// look ahead if this is a set type configuration
-		if (not token->is_endmarker() and
-		    next_token->type == token_type::LBRACE) {
-
+		if (not token->is_endmarker() and next_token->type == token_type::LBRACE) {
 			composite_t ctype;
 			if (token->get() == "o") {
 				ctype = composite_t::ORDEREDSET;
@@ -489,8 +480,8 @@ ASTMember::ASTMember(const Token &name,
 				// Look ahead to check if it's a dict
 				// TODO: This is really inconvenient
 				int look_ahead = 0;
-				while (not (token->type == token_type::RBRACE
-							or token->type == token_type::COMMA)) {
+				while (not(token->type == token_type::RBRACE
+				           or token->type == token_type::COMMA)) {
 					token = tokens.next();
 					look_ahead++;
 
@@ -535,18 +526,15 @@ ASTMember::ASTMember(const Token &name,
 }
 
 
-ASTMemberType::ASTMemberType()
-	:
+ASTMemberType::ASTMemberType() :
 	does_exist{false},
 	has_args{false} {}
 
 
 ASTMemberType::ASTMemberType(const Token &name,
-                             TokenStream &tokens)
-	:
+                             TokenStream &tokens) :
 	does_exist{true},
 	has_args{false} {
-
 	this->name = IDToken{name, tokens};
 
 	// now there may follow type arguments, e.g. set(arg, key=val)
@@ -558,13 +546,12 @@ ASTMemberType::ASTMemberType(const Token &name,
 
 	if (token->type == token_type::LPAREN) {
 		auto num_read_types = comma_list(
-								token_type::RPAREN,
-								tokens,
-								num_expected_types,
-								[this] (const Token &token, TokenStream &stream) {
-									this->nested_types.emplace_back(token, stream);
-								}
-		);
+			token_type::RPAREN,
+			tokens,
+			num_expected_types,
+			[this](const Token &token, TokenStream &stream) {
+				this->nested_types.emplace_back(token, stream);
+			});
 		if (num_read_types < num_expected_types) {
 			throw ASTError(
 				std::string("expected at least ")
@@ -574,8 +561,8 @@ ASTMemberType::ASTMemberType(const Token &name,
 				+ " declaration, but only "
 				+ std::to_string(num_read_types)
 				+ " could be found",
-				*token, false
-			);
+				*token,
+				false);
 		}
 
 		if (this->args.size() > 0) {
@@ -589,8 +576,8 @@ ASTMemberType::ASTMemberType(const Token &name,
 			+ " arguments for "
 			+ composite_type_to_string(member_type.composite_type)
 			+ " declaration",
-			*token, false
-		);
+			*token,
+			false);
 	}
 	else {
 		tokens.reinsert_last();
@@ -603,8 +590,7 @@ bool ASTMemberType::exists() const {
 }
 
 
-ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens)
-	:
+ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens) :
 	has_key{false} {
 	auto token = tokens.next();
 	if (token->type != token_type::ID) {
@@ -625,7 +611,8 @@ ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens)
 		if (unlikely(token->type != token_type::ID)) {
 			throw ASTError("expected argument value, but got", *token);
 		}
-	} else {
+	}
+	else {
 		tokens.reinsert_last();
 	}
 
@@ -633,26 +620,21 @@ ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens)
 }
 
 
-ASTMemberValue::ASTMemberValue()
-	:
+ASTMemberValue::ASTMemberValue() :
 	does_exist{false} {}
 
 
-ASTMemberValue::ASTMemberValue(const IDToken &value)
-	:
+ASTMemberValue::ASTMemberValue(const IDToken &value) :
 	does_exist{true},
 	composite_type{composite_t::SINGLE} {
-
 	this->values.emplace_back(value);
 }
 
 
 ASTMemberValue::ASTMemberValue(composite_t type,
-                               TokenStream &tokens)
-	:
+                               TokenStream &tokens) :
 	does_exist{true},
 	composite_type{type} {
-
 	token_type end_token;
 
 	switch (this->composite_type) {
@@ -663,11 +645,10 @@ ASTMemberValue::ASTMemberValue(composite_t type,
 		comma_list(
 			end_token,
 			tokens,
-			[this] (const Token &token, TokenStream &stream) {
+			[this](const Token &token, TokenStream &stream) {
 				const IDToken id_token = IDToken(token, stream);
 				this->values.emplace_back(id_token);
-			}
-		);
+			});
 	} break;
 	case composite_t::DICT: {
 		end_token = token_type::RBRACE;
@@ -675,7 +656,7 @@ ASTMemberValue::ASTMemberValue(composite_t type,
 		comma_list(
 			end_token,
 			tokens,
-			[this] (const Token &token, TokenStream &stream) {
+			[this](const Token &token, TokenStream &stream) {
 				std::vector<IDToken> id_tokens;
 
 				// key
@@ -693,8 +674,7 @@ ASTMemberValue::ASTMemberValue(composite_t type,
 				id_tokens.emplace_back(*next_token, stream);
 
 				this->values.emplace_back(composite_type, id_tokens);
-			}
-		);
+			});
 	} break;
 
 	default:
@@ -865,10 +845,12 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 
 	case composite_t::SET:
 	case composite_t::DICT:
-		builder << "{"; break;
+		builder << "{";
+		break;
 
 	case composite_t::ORDEREDSET:
-		builder << "o{"; break;
+		builder << "o{";
+		break;
 
 	default:
 		throw InternalError{"unhandled container type"};
@@ -887,7 +869,8 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 	case composite_t::SET:
 	case composite_t::ORDEREDSET:
 	case composite_t::DICT:
-		builder << "}"; break;
+		builder << "}";
+		break;
 
 	default:
 		throw InternalError{"unhandled container type"};
@@ -895,14 +878,10 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 }
 
 
-
-
 ASTError::ASTError(const std::string &msg,
                    const Token &token,
-                   bool add_token)
-	:
+                   bool add_token) :
 	LangError{Location{token}, ""} {
-
 	if (add_token) {
 		std::ostringstream builder;
 		builder << msg << ": "
@@ -917,10 +896,8 @@ ASTError::ASTError(const std::string &msg,
 
 ASTError::ASTError(const std::string &msg,
                    const IDToken &token,
-                   bool add_token)
-	:
+                   bool add_token) :
 	LangError{Location{token}, ""} {
-
 	if (add_token) {
 		std::ostringstream builder;
 		builder << msg << ": "

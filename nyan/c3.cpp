@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "c3.h"
 
@@ -43,7 +43,8 @@ linearize_recurse(const fqon_t &name,
 			+ util::strjoin(", ", *seen)
 			+ "}"
 		};
-	} else {
+	}
+	else {
 		seen->insert(name);
 	}
 

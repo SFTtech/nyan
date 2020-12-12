@@ -35,10 +35,10 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 		auto new_view_state = std::make_shared<State>(base_view_state);
 
 		this->states.push_back({
-			std::move(view),
-			std::move(new_view_state),
-			{}
-		});
+				std::move(view),
+				std::move(new_view_state),
+				{}
+			});
 	};
 
 	// first, perform transaction on the requested view
@@ -50,29 +50,29 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 	// recursively visit all of the view's children and their children
 	// lol C++
 	std::function<void(const std::shared_ptr<View>&)> recurse =
-	[&create_state_mod, &recurse] (const std::shared_ptr<View> &view) {
-		bool view_has_stale_children = false;
+		[&create_state_mod, &recurse] (const std::shared_ptr<View> &view) {
+			bool view_has_stale_children = false;
 
-		// also apply the transaction in all childs of the view.
-		for (auto &target_child_view_weakptr :
-		     view->get_children()) {
+			// also apply the transaction in all childs of the view.
+			for (auto &target_child_view_weakptr :
+			     view->get_children()) {
 
-			auto target_child_view = target_child_view_weakptr.lock();
-			if (not target_child_view) {
-				// child view no longer there, so we skip it.
-				view_has_stale_children = true;
-				continue;
+				auto target_child_view = target_child_view_weakptr.lock();
+				if (not target_child_view) {
+					// child view no longer there, so we skip it.
+					view_has_stale_children = true;
+					continue;
+				}
+
+				recurse(target_child_view);
+
+				create_state_mod(std::move(target_child_view));
 			}
 
-			recurse(target_child_view);
-
-			create_state_mod(std::move(target_child_view));
-		}
-
-		if (view_has_stale_children) {
-			view->cleanup_stale_children();
-		}
-	};
+			if (view_has_stale_children) {
+				view->cleanup_stale_children();
+			}
+		};
 
 	recurse(main_view);
 }

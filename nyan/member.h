@@ -36,24 +36,31 @@ public:
 	~Member() = default;
 
 	/**
-	 * Provide the operation stored in the member.
+	 * Get the operation performed by this member.
+	 *
+	 * @return Operation of the member.
 	 */
 	nyan_op get_operation() const;
 
 	/**
-	 * Return the value stored in this member.
+	 * Get the value stored in this member.
+	 *
+	 * @return Value of the member.
 	 */
 	const Value &get_value() const;
 
 	/**
-	 * Apply another member to this one.
-	 * This applies the member with its operation
-	 * to this member.
+	 * Apply another member, using its operation, to this member.
+	 *
+	 * @param change Member applied to this member.
 	 */
 	void apply(const Member &change);
 
 	/**
-	 * String representation of this member.
+	 * Get the string representation of this member's initialization part,
+	 * i.e. operation and value.
+	 *
+	 * @return String containing the member initialization in nyan format.
 	 */
 	std::string str() const;
 
@@ -66,7 +73,7 @@ protected:
 	override_depth_t override_depth = 0;
 
 	/**
-	 * operation specified for this member.
+	 * Operation specified for this member.
 	 */
 	nyan_op operation = nyan_op::INVALID;
 
