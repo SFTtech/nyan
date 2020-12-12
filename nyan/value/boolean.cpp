@@ -114,7 +114,7 @@ const std::unordered_set<nyan_op> &Boolean::allowed_operations(const Type &with_
 const BasicType &Boolean::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::BOOLEAN,
-		composite_t::NONE,
+		composite_t::SINGLE,
 	};
 
 	return type;

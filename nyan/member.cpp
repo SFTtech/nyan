@@ -13,10 +13,12 @@ namespace nyan {
 
 Member::Member(override_depth_t depth,
                nyan_op operation,
+               Type declared_type,
                ValueHolder &&value)
 	:
 	override_depth{depth},
 	operation{operation},
+	declared_type{declared_type},
 	value{std::move(value)} {}
 
 
@@ -24,6 +26,7 @@ Member::Member(const Member &other)
 	:
 	override_depth{other.override_depth},
 	operation{other.operation},
+	declared_type{other.declared_type},
 	value{other.value->copy()} {}
 
 
@@ -31,6 +34,7 @@ Member::Member(Member &&other) noexcept
 	:
 	override_depth{std::move(other.override_depth)},
 	operation{std::move(other.operation)},
+	declared_type{std::move(other.declared_type)},
 	value{std::move(other.value)} {}
 
 

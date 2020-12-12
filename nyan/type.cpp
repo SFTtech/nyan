@@ -3,6 +3,7 @@
 #include "type.h"
 
 #include "ast.h"
+#include "compiler.h"
 #include "error.h"
 #include "id_token.h"
 #include "meta_info.h"
@@ -63,10 +64,10 @@ Type::Type(const ASTMemberType &ast_type,
 
 	this->basic_type = {
 		primitive_t::OBJECT,
-		composite_t::NONE
+		composite_t::SINGLE
 	};
 
-	this->target = scope.find(ns, ast_type.name, type_info);
+	this->obj_ref = scope.find(ns, ast_type.name, type_info);
 }
 
 
@@ -85,14 +86,15 @@ Type::Type(const IDToken &token,
 
 	switch (this->get_primitive_type()) {
 	case primitive_t::OBJECT:
-		this->target = scope.find(ns, token, type_info);
+		this->obj_ref = scope.find(ns, token, type_info);
 		break;
 
 	case primitive_t::INT:
 	case primitive_t::FLOAT:
 	case primitive_t::TEXT:
 	case primitive_t::BOOLEAN:
-		// no target needs to be saved
+	case primitive_t::NONE:
+		// no obj_ref needs to be saved
 		break;
 
 	default:
@@ -101,8 +103,18 @@ Type::Type(const IDToken &token,
 }
 
 
+bool Type::is_object() const {
+	return this->basic_type.is_object();
+}
+
+
 bool Type::is_fundamental() const {
 	return this->basic_type.is_fundamental();
+}
+
+
+bool Type::is_composite() const {
+	return this->basic_type.is_composite();
 }
 
 
@@ -127,13 +139,93 @@ bool Type::is_modifier(composite_t type) const {
 }
 
 
+bool Type::is_hashable() const {
+	if (this->is_fundamental()) {
+		return true;
+	}
+	else if (this->basic_type.is_object()) {
+		return true;
+	}
+	else if (this->is_modifier()) {
+		// TODO: This could be wrong if other modifiers are added
+		return std::all_of(this->element_type.get()->cbegin(),
+						   this->element_type.get()->cend(),
+						   [] (const Type &type) {
+							   return type.is_hashable();
+						   });
+	}
+
+	// containers are non-hashable
+	return false;
+}
+
+
 bool Type::is_basic_type_match(const BasicType &type) const {
 	return (this->basic_type == type);
 }
 
 
-const fqon_t &Type::get_target() const {
-	return this->target;
+bool Type::can_contain(const MetaInfo & meta_info,
+					   const Type &other,
+					   const unsigned int pos,
+					   std::set<composite_t> modflags) const {
+	if (not this->is_composite()) {
+		return false;
+	}
+
+	if (this->element_type.get()->size() - 1 < pos) {
+		// pos must not be larger than the number of element types
+		return false;
+	}
+
+	if (this->is_modifier()) {
+		modflags.insert(this->get_composite_type());
+	}
+
+	Type subtype = this->element_type.get()->at(pos);
+	if (subtype.is_fundamental()) {
+		return subtype.is_basic_type_match(other.get_basic_type());
+	}
+	else if (subtype.is_object()) {
+		return subtype.can_hold(meta_info, other.get_fqon(), modflags);
+	}
+	else if (subtype.is_modifier()) {
+		return subtype.can_contain(meta_info, other, 0, modflags);
+	}
+	else if (subtype.is_container()) {
+		// TODO: no hashable containers yet, so a container subtype would not work
+		return false;
+	}
+
+	return false;
+}
+
+
+bool Type::can_hold(const MetaInfo &meta_info,
+					const fqon_t &other,
+					std::set<composite_t> modflags) const {
+	if (util::contains(modflags, composite_t::CHILDREN)) {
+		//
+		if (other == this->get_fqon()) {
+			return false;
+		}
+	}
+
+	const ObjectInfo *obj_info = meta_info.get_object(other);
+	if (unlikely(obj_info == nullptr)) {
+		throw InternalError{"object info could not be retrieved"};
+	}
+
+	const auto &obj_lin = obj_info->get_linearization();
+
+	// check if the type of the value is okay
+	// (i.e. it's in the linearization)
+	return util::contains(obj_lin, this->get_fqon());
+}
+
+
+const fqon_t &Type::get_fqon() const {
+	return this->obj_ref;
 }
 
 
@@ -163,10 +255,10 @@ std::string Type::str() const {
 	}
 	else {
 		if (this->get_primitive_type() == primitive_t::OBJECT) {
-			return this->target;
+			return this->obj_ref;
 		}
 
-		if (this->get_composite_type() == composite_t::NONE) {
+		if (this->get_composite_type() == composite_t::SINGLE) {
 			throw InternalError{
 				"single value encountered when expecting composite"
 			};
@@ -185,6 +277,27 @@ std::string Type::str() const {
 
 		return builder.str();
 	}
+}
+
+bool Type::operator ==(const Type &other) const {
+	if (not this->is_basic_type_match(other.get_basic_type())) {
+		return false;
+	}
+
+	for (unsigned int i = 0; i < other.get_element_type()->size(); i++) {
+		if (not (this->get_element_type()->at(i) == other.get_element_type()->at(i))) {
+			return false;
+		}
+	}
+
+	if (this->is_object()) {
+		// For objects the fqons must be equal
+		if (this->get_fqon() != other.get_fqon()) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 } // namespace nyan

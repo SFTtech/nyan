@@ -76,7 +76,7 @@ const std::unordered_set<nyan_op> &ObjectValue::allowed_operations(const Type &w
 const BasicType &ObjectValue::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::OBJECT,
-		composite_t::NONE,
+		composite_t::SINGLE,
 	};
 
 	return type;

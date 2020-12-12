@@ -25,6 +25,7 @@ public:
 	 */
 	Member(override_depth_t depth,
 	       nyan_op operation,
+		   Type declared_type,
 	       ValueHolder &&value);
 
 	Member(const Member &other);
@@ -68,6 +69,11 @@ protected:
 	 * operation specified for this member.
 	 */
 	nyan_op operation = nyan_op::INVALID;
+
+	/**
+	 * Type from the member declaration.
+	 */
+	Type declared_type;
 
 	/**
 	 * Value stored in this member.

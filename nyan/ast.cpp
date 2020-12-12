@@ -641,7 +641,7 @@ ASTMemberValue::ASTMemberValue()
 ASTMemberValue::ASTMemberValue(const IDToken &value)
 	:
 	does_exist{true},
-	composite_type{composite_t::NONE} {
+	composite_type{composite_t::SINGLE} {
 
 	this->values.emplace_back(value);
 }
@@ -861,7 +861,7 @@ void ASTMemberTypeArgument::strb(std::ostringstream &builder, int /*indentlevel*
 
 void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) const {
 	switch (this->composite_type) {
-	case composite_t::NONE:
+	case composite_t::SINGLE:
 		builder << this->values[0].str();
 		return;
 

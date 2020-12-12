@@ -23,6 +23,7 @@ enum class primitive_t {
 	INT,
 	FLOAT,
 	OBJECT,
+	NONE,
 	CONTAINER,
 	MODIFIER,
 };
@@ -30,11 +31,11 @@ enum class primitive_t {
 
 /**
  * Available member composite types (containers or modifiers).
- * NONE means it's not a composite.
+ * SINGLE means it's not a composite.
  */
 enum class composite_t {
 	// primitive value
-	NONE,
+	SINGLE,
 
 	// Containers
 	SET,
@@ -87,7 +88,7 @@ public:
 
 	/**
 	 * Test if this basic type is a composite.
-	 * that is, the composite type is not NONE.
+	 * that is, the composite type is not SINGLE.
 	 */
 	bool is_composite() const;
 
@@ -169,6 +170,7 @@ constexpr const char *type_to_string(primitive_t type) {
 	case primitive_t::INT:           return "int";
 	case primitive_t::FLOAT:         return "float";
 	case primitive_t::OBJECT:        return "object";
+	case primitive_t::NONE:          return "none";
 	case primitive_t::CONTAINER:     return "container";
 	case primitive_t::MODIFIER:      return "modifier";
 	}
@@ -182,7 +184,7 @@ constexpr const char *type_to_string(primitive_t type) {
  */
 constexpr const char *composite_type_to_string(composite_t type) {
 	switch (type) {
-	case composite_t::NONE:          return "single_value";
+	case composite_t::SINGLE:        return "single_value";
 	case composite_t::SET:           return "set";
 	case composite_t::ORDEREDSET:    return "orderedset";
 	case composite_t::DICT:          return "dict";

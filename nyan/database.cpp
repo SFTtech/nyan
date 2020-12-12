@@ -576,44 +576,35 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 			throw InternalError{"member has value but no operator"};
 		}
 
-		// create the member with operation and value
+		// create the member with operation, type and value
 		Member &new_member = members.emplace(
 			memberid,
 			Member{
 				0,          // TODO: get override depth from AST (the @-count)
 				operation,
+				*member_type,
 				Value::from_ast(
-					*member_type, astmember.value,
+					*member_type, astmember.value, objs_in_values,
 					// function to determine object names used in values:
-					[&scope, &objname, this, &objs_in_values]
-					(const Type &target_type,
-					 const IDToken &token) -> fqon_t {
-
+					[&scope, &objname, &member_type, this, &objs_in_values]
+					(const IDToken &token) -> fqon_t {
 						// find the desired object in the scope of the object
 						fqon_t obj_id = scope.find(objname, token, this->meta_info);
-
-						ObjectInfo *obj_info = this->meta_info.get_object(obj_id);
-						if (unlikely(obj_info == nullptr)) {
-							throw InternalError{"object info could not be retrieved"};
-						}
-
-						const auto &obj_lin = obj_info->get_linearization();
-
-						// check if the type of the value is okay
-						// (i.e. it's in the linearization)
-						if (unlikely(not util::contains(obj_lin, target_type.get_target()))) {
-
-							throw TypeError{
-								token,
-								"value (resolved as "s + obj_id
-								+ ") does not match type " + target_type.get_target()
-							};
-						}
 
 						// remember to check if this object can be used as value
 						objs_in_values->push_back({obj_id, Location{token}});
 
 						return obj_id;
+					},
+					// function to retrieve an object's linearization
+					[&scope, &objname, &member_type, this, &objs_in_values]
+					(const fqon_t &fqon) -> std::vector<fqon_t> {
+						const ObjectInfo *obj_info = meta_info.get_object(fqon);
+						if (unlikely(obj_info == nullptr)) {
+							throw InternalError{"object info could not be retrieved"};
+						}
+
+						return obj_info->get_linearization();
 					}
 				)
 			}
@@ -622,7 +613,14 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 		// let the value determine if it can work together
 		// with the member type.
 		const Value &new_value = new_member.get_value();
-		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(*member_type);
+
+		// Remove the outer modifiers of the type as they
+		// are not relevant for allowed operations
+		Type unpacked_type = *member_type;
+		while (unpacked_type.is_modifier()) {
+			unpacked_type = unpacked_type.get_element_type()->at(0);
+		}
+		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(unpacked_type);
 
 		if (unlikely(allowed_ops.find(operation) == std::end(allowed_ops))) {
 			// TODO: show location of operation, not the member name

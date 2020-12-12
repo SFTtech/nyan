@@ -70,6 +70,7 @@ add_library(nyan SHARED
 	value/container.cpp
 	value/dict.cpp
 	value/file.cpp
+	value/none.cpp
 	value/number.cpp
 	value/object.cpp
 	value/orderedset.cpp
