@@ -130,10 +130,24 @@ static void handle_modifiers(const std::vector<Type> &modifiers,
 		if (modifier_type == composite_t::OPTIONAL) {
 			contains_optional = true;
 		}
+	}
+
+	if (typeid(*value_holder.get_value()) == typeid(None&) and not contains_optional) {
+		throw InternalError{"NoneValue is content, but no optional modifier was found"};
+	}
+
+	for (auto &mod: modifiers) {
+		auto modifier_type = mod.get_composite_type();
+
+		if (modifier_type == composite_t::OPTIONAL) {
+			contains_optional = true;
+		}
 
 		if (modifier_type == composite_t::CHILDREN) {
 			if (unlikely(typeid(*value_holder.get_value()) != typeid(ObjectValue&))) {
-				throw InternalError{"children type requires ObjectValue as content"};
+				if (not contains_optional) {
+					throw InternalError{"children type requires ObjectValue as content"};
+				}
 			}
 
 			// Check if object fqon is a child (i.e. not the same fqon as  the member type)
@@ -147,7 +161,9 @@ static void handle_modifiers(const std::vector<Type> &modifiers,
 
 		if (modifier_type == composite_t::ABSTRACT) {
 			if (unlikely(typeid(*value_holder.get_value()) != typeid(ObjectValue&))) {
-				throw InternalError{"abstract type requires ObjectValue as content"};
+				if (not contains_optional) {
+					throw InternalError{"abstract type requires ObjectValue as content"};
+				}
 			}
 
 			// Remove last element here, so the object is not checked
@@ -155,11 +171,6 @@ static void handle_modifiers(const std::vector<Type> &modifiers,
 			objs_in_values->pop_back();
 		}
 	}
-
-	if (typeid(*value_holder.get_value()) == typeid(None&) and not contains_optional) {
-		throw InternalError{"NoneValue is content, but no optional modifier was found"};
-	}
-
 }
 ValueHolder Value::from_ast(const Type &target_type,
                             const ASTMemberValue &astmembervalue,
@@ -205,7 +216,7 @@ ValueHolder Value::from_ast(const Type &target_type,
 		return value;
 	}
 
-	composite_t composite_type = astmembervalue.get_composite_type();
+	composite_t composite_type = current_type.get_composite_type();
 
 	// For sets/orderedsets (with primitive values)
 	std::vector<ValueHolder> values;
@@ -218,17 +229,30 @@ ValueHolder Value::from_ast(const Type &target_type,
 		values.reserve(astmembervalue.get_values().size());
 
 		// convert all tokens to values
-		const std::vector<Type> *element_type = target_type.get_element_type();
+		const std::vector<Type> *element_type = current_type.get_element_type();
 		if (unlikely(element_type == nullptr)) {
 			throw InternalError{"container element type is nonexisting"};
 		}
 
+		Type cur_elem_type = element_type->at(0);
+		std::vector<Type> elem_modifiers;
+		while (cur_elem_type.is_modifier()) {
+			elem_modifiers.insert(elem_modifiers.begin(), cur_elem_type);
+			cur_elem_type = cur_elem_type.get_element_type()->at(0);
+		}
+
+		std::vector<Type> target_types{cur_elem_type};
 		for (auto &value_token : astmembervalue.get_values()) {
-			values.push_back(
-				value_from_value_token(*element_type,
-									   value_token,
-									   get_fqon)[0]
-			);
+			ValueHolder value = value_from_value_token(
+				target_types,
+				value_token,
+				get_fqon
+			)[0];
+
+			handle_modifiers(elem_modifiers, value, objs_in_values);
+
+			values.push_back(value);
+
 		}
 
 		switch (composite_type) {
@@ -252,12 +276,31 @@ ValueHolder Value::from_ast(const Type &target_type,
 			throw InternalError{"container element type is nonexisting"};
 		}
 
+		Type cur_elem_type_key = element_type->at(0);
+		std::vector<Type> elem_modifiers_key;
+		while (cur_elem_type_key.is_modifier()) {
+			elem_modifiers_key.insert(elem_modifiers_key.begin(), cur_elem_type_key);
+			cur_elem_type_key = cur_elem_type_key.get_element_type()->at(0);
+		}
+
+		Type cur_elem_type_value = element_type->at(1);
+		std::vector<Type> elem_modifiers_value;
+		while (cur_elem_type_value.is_modifier()) {
+			elem_modifiers_value.insert(elem_modifiers_value.begin(), cur_elem_type_value);
+			cur_elem_type_value = cur_elem_type_value.get_element_type()->at(0);
+		}
+
+		std::vector<Type> target_types{cur_elem_type_key, cur_elem_type_value};
+
 		for (auto &value_token : astmembervalue.get_values()) {
 			std::vector<ValueHolder> keyval = value_from_value_token(
-				*element_type,
+				target_types,
 				value_token,
 				get_fqon
 			);
+
+			handle_modifiers(elem_modifiers_key, keyval[0], objs_in_values);
+			handle_modifiers(elem_modifiers_value, keyval[1], objs_in_values);
 
 			items.insert(std::make_pair(keyval[0], keyval[1]));
 		}

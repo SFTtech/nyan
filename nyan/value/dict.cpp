@@ -229,9 +229,9 @@ void Dict::apply_value(const Value &value, nyan_op operation) {
 
 const std::unordered_set<nyan_op> &Dict::allowed_operations(const Type &with_type) const {
 
-	if (not with_type.is_container()) {
-		return no_nyan_ops;
-	}
+	const static std::unordered_set<nyan_op> none_ops{
+		nyan_op::ASSIGN,
+	};
 
 	const static std::unordered_set<nyan_op> set_ops{
 		nyan_op::SUBTRACT_ASSIGN,
@@ -244,6 +244,14 @@ const std::unordered_set<nyan_op> &Dict::allowed_operations(const Type &with_typ
 		nyan_op::UNION_ASSIGN,
 		nyan_op::INTERSECT_ASSIGN,
 	};
+
+	if (with_type.get_primitive_type() == primitive_t::NONE) {
+		return none_ops;
+	}
+
+	if (not with_type.is_container()) {
+		return no_nyan_ops;
+	}
 
 	switch (with_type.get_composite_type()) {
 	case composite_t::SET:

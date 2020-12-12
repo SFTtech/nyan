@@ -10,7 +10,7 @@ First():
     wat : abstract(First) = Second
     wat2 : abstract(children(First)) = Second
     wat3 : optional(First) = Second
-    # wat4 : set(children(First)) = None
+    wat4 : set(children(First)) = {Second}
     member : int = 15
     test : text = "rofl lol"
     bla : file = "wtf.h4x"

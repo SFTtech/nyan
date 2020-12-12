@@ -79,10 +79,18 @@ const std::unordered_set<nyan_op> &Text::allowed_operations(const Type &with_typ
 		nyan_op::ADD_ASSIGN,
 	};
 
-	if (with_type.get_primitive_type() == primitive_t::TEXT) {
+	const static std::unordered_set<nyan_op> none_ops{
+		nyan_op::ASSIGN,
+	};
+
+	switch (with_type.get_primitive_type()) {
+	case primitive_t::TEXT:
 		return ops;
-	}
-	else {
+
+	case primitive_t::NONE:
+		return none_ops;
+
+	default:
 		return no_nyan_ops;
 	}
 }
