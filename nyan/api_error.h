@@ -11,7 +11,7 @@ namespace nyan {
  */
 class APIError : public Error {
 public:
-	APIError(const std::string &msg);
+    APIError(const std::string &msg);
 };
 
 
@@ -22,7 +22,7 @@ public:
  */
 class InvalidObjectError : public APIError {
 public:
-	InvalidObjectError();
+    InvalidObjectError();
 };
 
 
@@ -31,14 +31,29 @@ public:
  */
 class MemberTypeError : public APIError {
 public:
-	MemberTypeError(const fqon_t &objname, const memberid_t &member,
-	                const std::string &real_type, const std::string &wrong_type);
+    MemberTypeError(const fqon_t &objname, const memberid_t &member,
+                    const std::string &real_type, const std::string &wrong_type);
 
 protected:
-	fqon_t name;
-	memberid_t member;
-	std::string real_type;
-	std::string wrong_type;
+    /**
+     * Name (identifier) of the object the member is part of.
+     */
+    fqon_t objname;
+
+    /**
+     * Name (identifier) of the member.
+     */
+    memberid_t member;
+
+    /**
+     * Type that the member should have assigned.
+     */
+    std::string real_type;
+
+    /**
+     * Type that the member has actually assigned.
+     */
+    std::string wrong_type;
 };
 
 
@@ -47,10 +62,13 @@ protected:
  */
 class ObjectNotFoundError : public APIError {
 public:
-	ObjectNotFoundError(const fqon_t &objname);
+    ObjectNotFoundError(const fqon_t &objname);
 
 protected:
-	fqon_t name;
+    /**
+     * Name (identifier) of the object.
+     */
+    fqon_t objname;
 };
 
 
@@ -59,12 +77,19 @@ protected:
  */
 class MemberNotFoundError : public APIError {
 public:
-	MemberNotFoundError(const fqon_t &objname,
-	                    const memberid_t &membername);
+    MemberNotFoundError(const fqon_t &objname,
+                        const memberid_t &membername);
 
 protected:
-	fqon_t obj_name;
-	memberid_t name;
+    /**
+     * Name (identifier) of the object the member is part of.
+     */
+    fqon_t objname;
+
+    /**
+     * Name (identifier) of the member.
+     */
+    memberid_t name;
 };
 
 } // namespace nyan
