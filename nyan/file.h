@@ -70,7 +70,7 @@ public:
     /**
      * Return the size of the file content.
      *
-     * @return Size of the file content string in bytes.
+     * @return Size of the file content string in characters.
      */
     size_t size() const;
 
