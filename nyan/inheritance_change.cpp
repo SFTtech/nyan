@@ -5,18 +5,18 @@
 namespace nyan {
 
 InheritanceChange::InheritanceChange(inher_change_t type, fqon_t &&target)
-	:
-	type{type},
-	target{std::move(target)} {}
+    :
+    type{type},
+    target{std::move(target)} {}
 
 
 inher_change_t InheritanceChange::get_type() const {
-	return this->type;
+    return this->type;
 }
 
 
 const fqon_t &InheritanceChange::get_target() const {
-	return this->target;
+    return this->target;
 }
 
 } // namespace nyan

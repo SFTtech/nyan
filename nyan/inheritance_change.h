@@ -12,14 +12,34 @@ namespace nyan {
  */
 class InheritanceChange {
 public:
-	InheritanceChange(inher_change_t type, fqon_t &&target);
+    InheritanceChange(inher_change_t type, fqon_t &&target);
 
-	inher_change_t get_type() const;
-	const fqon_t &get_target() const;
+    /**
+     * Get the type of inheritance change, i.e.whether the new parent is appended to
+     * the front or the back of the linearization.
+     *
+     * @return The inheritance change type.
+     */
+    inher_change_t get_type() const;
+
+    /**
+     * Get the object to which the inheritance change is applied.
+     *
+     * @return Identifier of the target object.
+     */
+    const fqon_t &get_target() const;
 
 protected:
-	inher_change_t type;
-	fqon_t target;
+
+    /**
+     * Inheritance change type.
+     */
+    inher_change_t type;
+
+    /**
+     * Identifier of the target object.
+     */
+    fqon_t target;
 };
 
 
