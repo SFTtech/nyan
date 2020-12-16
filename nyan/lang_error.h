@@ -15,16 +15,35 @@ namespace nyan {
  */
 class LangError : public Error {
 public:
-	LangError(const Location &location, const std::string &msg,
-	          std::vector<std::pair<Location, std::string>> &&reasons={});
+    LangError(const Location &location, const std::string &msg,
+              std::vector<std::pair<Location, std::string>> &&reasons={});
 
-	std::string str() const override;
+    /**
+     * String representation of this error.
+     *
+     * @return String representation of this error.
+     */
+    std::string str() const override;
 
-	virtual std::string show_problem_origin() const;
+    /**
+     * Get a string that visualizes the error in the output using
+     * the location and reasons for the error.
+     *
+     * @return String containing a pretty error message.
+     */
+    virtual std::string show_problem_origin() const;
 
 protected:
-	Location location;
-	std::vector<std::pair<Location, std::string>> reasons;
+
+    /**
+     * Location of the error in a file.
+     */
+    Location location;
+
+    /**
+     * Map of reasons for the error by location in the file.
+     */
+    std::vector<std::pair<Location, std::string>> reasons;
 };
 
 
@@ -33,24 +52,33 @@ protected:
  */
 class TypeError : public LangError {
 public:
-	TypeError(const Location &location, const std::string &msg);
+    TypeError(const Location &location, const std::string &msg);
 
-	virtual ~TypeError() = default;
+    virtual ~TypeError() = default;
 };
 
 
 /**
- * Exception for name access problems.
+ * Exception for name access problems and naming conflicts.
  */
 class NameError : public LangError {
 public:
-	NameError(const Location &location,
-	          const std::string &msg, const std::string &name="");
+    NameError(const Location &location,
+              const std::string &msg, const std::string &name="");
 
-	std::string str() const override;
+    /**
+     * String representation of this error.
+     *
+     * @return String representation of this error.
+     */
+    std::string str() const override;
 
 protected:
-	std::string name;
+
+    /**
+     * Name that the entitycausing this error conflicts with.
+     */
+    std::string name;
 };
 
 
@@ -59,8 +87,8 @@ protected:
  */
 class TokenizeError : public LangError {
 public:
-	TokenizeError(const Location &location,
-	              const std::string &msg);
+    TokenizeError(const Location &location,
+                  const std::string &msg);
 };
 
 } // namespace nyan

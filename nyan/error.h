@@ -86,7 +86,7 @@ public:
      * String representation of this exception, as
      * specialized by a child exception.
      *
-     * @return String represantation of this exception.
+     * @return String representation of this exception.
      */
     virtual std::string str() const;
 
