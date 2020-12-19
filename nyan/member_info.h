@@ -66,9 +66,9 @@ public:
     bool is_initial_def() const;
 
     /**
-     * Get the string representation of this member.
+     * Get the string representation of this member's declaration.
      *
-     * @return String containing the member definition in nyan format.
+     * @return String containing the member declaration in nyan format.
      */
     std::string str() const;
 
