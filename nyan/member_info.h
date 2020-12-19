@@ -16,34 +16,77 @@ class Type;
  */
 class MemberInfo {
 public:
-	explicit MemberInfo(const Location &location);
-	~MemberInfo() = default;
+    explicit MemberInfo(const Location &location);
+    ~MemberInfo() = default;
 
-	Type &set_type(std::shared_ptr<Type> &&type, bool initial);
-	Type &set_type(const std::shared_ptr<Type> &type, bool initial);
-	const std::shared_ptr<Type> &get_type() const;
+    /**
+     * Set the type of this member. Moves the shared pointer storing the
+     * type.
+     *
+     * @param type Shared pointer to the Type.
+     * @param initial Set to true if the member defined the type, false if the member is a
+     * 	    patch member or inherited.
+     *
+     * @return Type of the member.
+     */
+    Type &set_type(std::shared_ptr<Type> &&type, bool initial);
 
-	const Location &get_location() const;
+    /**
+     * Set the type of this member. Copies the shared pointer storing the
+     * type.
+     *
+     * @param type Shared pointer to the Type.
+     * @param initial Set to true if the member defined the type, false if the
+     *      member is a patch member or inherited.
+     *
+     * @return Type of the member.
+     */
+    Type &set_type(const std::shared_ptr<Type> &type, bool initial);
 
-	bool is_initial_def() const;
+    /**
+     * Returns the type of this member.
+     *
+     * @return Type of the member.
+     */
+    const std::shared_ptr<Type> &get_type() const;
 
-	std::string str() const;
+    /**
+     * Returns the position of this member in a file.
+     *
+     * @return Location of the member.
+     */
+    const Location &get_location() const;
+
+    /**
+     * Checks if this member contains the initial type definition, i.e. it
+     * is not a patch member or inherited.
+     *
+     * @return true if the member is the initial definition, else false.
+     */
+    bool is_initial_def() const;
+
+    /**
+     * Get the string representation of this member.
+     *
+     * @return String containing the member definition in nyan format.
+     */
+    std::string str() const;
 
 protected:
-	/**
-	 * Location where the member was defined.
-	 */
-	Location location;
+    /**
+     * Location where the member was defined.
+     */
+    Location location;
 
-	/**
-	 * is this member definition the initial one?
-	 */
-	bool initial_def;
+    /**
+     * Determines whether this member definition is the initial one.
+     */
+    bool initial_def;
 
-	/**
-	 * Type of the member.
-	 */
-	std::shared_ptr<Type> type;
+    /**
+     * Type of the member.
+     */
+    std::shared_ptr<Type> type;
 };
 
 
