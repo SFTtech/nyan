@@ -12,47 +12,47 @@ const std::unordered_set<nyan_op> no_nyan_ops;
 
 
 nyan_op op_from_string(const std::string &str) {
-	static const std::unordered_map<std::string, nyan_op> str_to_op{
-		{"=", nyan_op::ASSIGN},
-		{"+", nyan_op::ADD},
-		{"-", nyan_op::SUBTRACT},
-		{"*", nyan_op::MULTIPLY},
-		{"/", nyan_op::DIVIDE},
-		{"+=", nyan_op::ADD_ASSIGN},
-		{"-=", nyan_op::SUBTRACT_ASSIGN},
-		{"*=", nyan_op::MULTIPLY_ASSIGN},
-		{"/=", nyan_op::DIVIDE_ASSIGN},
-		{"|=", nyan_op::UNION_ASSIGN},
-		{"&=", nyan_op::INTERSECT_ASSIGN},
-	};
+    static const std::unordered_map<std::string, nyan_op> str_to_op{
+        {"=", nyan_op::ASSIGN},
+        {"+", nyan_op::ADD},
+        {"-", nyan_op::SUBTRACT},
+        {"*", nyan_op::MULTIPLY},
+        {"/", nyan_op::DIVIDE},
+        {"+=", nyan_op::ADD_ASSIGN},
+        {"-=", nyan_op::SUBTRACT_ASSIGN},
+        {"*=", nyan_op::MULTIPLY_ASSIGN},
+        {"/=", nyan_op::DIVIDE_ASSIGN},
+        {"|=", nyan_op::UNION_ASSIGN},
+        {"&=", nyan_op::INTERSECT_ASSIGN},
+    };
 
-	auto it = str_to_op.find(str);
+    auto it = str_to_op.find(str);
 
-	if (it == std::end(str_to_op)) {
-		return nyan_op::INVALID;
-	} else {
-		return it->second;
-	}
+    if (it == std::end(str_to_op)) {
+        return nyan_op::INVALID;
+    } else {
+        return it->second;
+    }
 }
 
 
 nyan_op op_from_token(const Token &token) {
-	if (token.type == token_type::OPERATOR) {
-		return op_from_string(token.get());
-	}
-	else {
-		throw ASTError("expected operator, but got", token);
-	}
+    if (token.type == token_type::OPERATOR) {
+        return op_from_string(token.get());
+    }
+    else {
+        throw ASTError("expected operator, but got", token);
+    }
 }
 
 
 Operator::Operator(const Token &token)
-	:
-	op{op_from_token(token)} {}
+    :
+    op{op_from_token(token)} {}
 
 
 const nyan_op &Operator::get() {
-	return this->op;
+    return this->op;
 }
 
 

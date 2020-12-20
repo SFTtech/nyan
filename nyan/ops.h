@@ -15,18 +15,18 @@ class Token;
  * Operation identifiers for all builtin member types
  */
 enum class nyan_op {
-	INVALID,
-	ADD,
-	ADD_ASSIGN,
-	ASSIGN,
-	DIVIDE,
-	DIVIDE_ASSIGN,
-	INTERSECT_ASSIGN,
-	MULTIPLY,
-	MULTIPLY_ASSIGN,
-	SUBTRACT,
-	SUBTRACT_ASSIGN,
-	UNION_ASSIGN,
+    INVALID,
+    ADD,
+    ADD_ASSIGN,
+    ASSIGN,
+    DIVIDE,
+    DIVIDE_ASSIGN,
+    INTERSECT_ASSIGN,
+    MULTIPLY,
+    MULTIPLY_ASSIGN,
+    SUBTRACT,
+    SUBTRACT_ASSIGN,
+    UNION_ASSIGN,
 };
 
 
@@ -34,10 +34,9 @@ enum class nyan_op {
  * Inheritance modification operations.
  */
 enum class inher_change_t {
-	ADD_FRONT,
-	ADD_BACK
+    ADD_FRONT,
+    ADD_BACK
 };
-
 
 
 /**
@@ -51,51 +50,65 @@ extern const std::unordered_set<nyan_op> no_nyan_ops;
 
 
 /**
- * Return the operator
+ * Get a string representation of a nyan operation.
+ *
+ * @param op Nyan operation.
+ *
+ * @return Char array with the string representation of the nyan operation.
+ */
+constexpr const char *op_to_string(nyan_op op) {
+    switch (op) {
+    case nyan_op::ADD:                return "+";
+    case nyan_op::ADD_ASSIGN:         return "+=";
+    case nyan_op::ASSIGN:             return "=";
+    case nyan_op::DIVIDE:             return "/";
+    case nyan_op::DIVIDE_ASSIGN:      return "/=";
+    case nyan_op::INTERSECT_ASSIGN:   return "&=";
+    case nyan_op::INVALID:            return "=INVALID=";
+    case nyan_op::MULTIPLY:           return "*";
+    case nyan_op::MULTIPLY_ASSIGN:    return "*=";
+    case nyan_op::SUBTRACT:           return "-";
+    case nyan_op::SUBTRACT_ASSIGN:    return "-=";
+    case nyan_op::UNION_ASSIGN:       return "|=";
+    }
+    return "unhandled nyan_op";
+}
+
+
+/**
+ * Get a nyan operation from a string of an operator.
+ *
+ * @param str String with an operator.
+ *
+ * @return A nyan operation.
  */
 nyan_op op_from_string(const std::string &str);
 
 
 /**
- * Return the string representation of a nyan operator.
- */
-constexpr const char *op_to_string(nyan_op op) {
-	switch (op) {
-	case nyan_op::ADD:                return "+";
-	case nyan_op::ADD_ASSIGN:         return "+=";
-	case nyan_op::ASSIGN:             return "=";
-	case nyan_op::DIVIDE:             return "/";
-	case nyan_op::DIVIDE_ASSIGN:      return "/=";
-	case nyan_op::INTERSECT_ASSIGN:   return "&=";
-	case nyan_op::INVALID:            return "=INVALID=";
-	case nyan_op::MULTIPLY:           return "*";
-	case nyan_op::MULTIPLY_ASSIGN:    return "*=";
-	case nyan_op::SUBTRACT:           return "-";
-	case nyan_op::SUBTRACT_ASSIGN:    return "-=";
-	case nyan_op::UNION_ASSIGN:       return "|=";
-	}
-	return "unhandled nyan_op";
-}
-
-
-/**
- * Create the nyan_op from a token.
+ * Get a nyan operation from a token of an operator.
+ *
+ * @param str Token with an operator string.
+ *
+ * @return A nyan operation.
  */
 nyan_op op_from_token(const Token &token);
 
 
 /**
  * A nyan operator, to be created from either a token
+ *
+ * TODO: What is this?
  */
 class Operator {
 public:
-	Operator(const Token &token);
-	virtual ~Operator() = default;
+    Operator(const Token &token);
+    virtual ~Operator() = default;
 
-	const nyan_op &get();
+    const nyan_op &get();
 
 protected:
-	const nyan_op op;
+    const nyan_op op;
 };
 
 
@@ -108,9 +121,9 @@ namespace std {
  */
 template<>
 struct hash<nyan::nyan_op> {
-	size_t operator ()(const nyan::nyan_op &x) const {
-		return static_cast<size_t>(x);
-	}
+    size_t operator ()(const nyan::nyan_op &x) const {
+        return static_cast<size_t>(x);
+    }
 };
 
 } // namespace std
