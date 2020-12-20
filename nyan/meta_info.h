@@ -33,7 +33,8 @@ public:
     ObjectInfo &add_object(const fqon_t &name, ObjectInfo &&obj_info);
 
     /**
-     * Get the all metadata information objects stored in the database.
+     * Get the all metadata information objects for objects
+     * stored in the database.
      *
      * @return Map of metadata information objects by object identifier.
      */

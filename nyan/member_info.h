@@ -51,7 +51,7 @@ public:
     const std::shared_ptr<Type> &get_type() const;
 
     /**
-     * Returns the position of this member in a file.
+     * Get the position of this member in a file.
      *
      * @return Location of the member.
      */
