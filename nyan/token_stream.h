@@ -18,27 +18,51 @@ class Token;
  */
 class TokenStream {
 public:
-	using tok_t = Token;
-	using container_t = std::vector<tok_t>;
+    using tok_t = Token;
+    using container_t = std::vector<tok_t>;
 
-	TokenStream(const container_t &container);
+    TokenStream(const container_t &container);
 
-	~TokenStream();
+    ~TokenStream();
 
-	const tok_t *next();
+    /**
+     * Advance one step in the stream and get the pointer to
+     * the token the streamnow points to.
+     *
+     * @return Next token in the stream.
+     */
+    const tok_t *next();
 
-	bool full() const;
+    /**
+     * Check if the end of the stream has been reached, i.e. there
+     * are no more tokens after the current token.
+     *
+     * @return true if there are no more tokens in the stream, else false.
+     */
+    bool full() const;
 
-	bool empty() const;
+    /**
+     * Check if there are tokens left in the stream.
+     *
+     * @return true if there are more tokens in the stream, else false.
+     */
+    bool empty() const;
 
-	/**
-	 * Reinserts the tokens previously returned by next in reverse order.
-	 */
-	void reinsert_last();
+    /**
+     * Reinserts the token previously returned by next().
+     */
+    void reinsert_last();
 
 protected:
-	const container_t &container;
-	container_t::const_iterator iter;
+    /**
+     * List of tokens in the stream.
+     */
+    const container_t &container;
+
+    /**
+     * Iterator used for advancing/regressing in the stream.
+     */
+    container_t::const_iterator iter;
 };
 
 } // namespace nyan
