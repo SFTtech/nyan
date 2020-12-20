@@ -17,43 +17,55 @@ class View;
  */
 class ObjectNotifierHandle {
 public:
-	ObjectNotifierHandle(const update_cb_t &func);
+    ObjectNotifierHandle(const update_cb_t &func);
 
-	void fire(order_t t, const fqon_t &fqon, const ObjectState &state) const;
+    /**
+     * Calls the user provided function of the notifier.
+     *
+     * @param t Time of update.
+     * @param fqon Identifier of the updated object.
+     * @param state New object state.
+     */
+    void fire(order_t t, const fqon_t &fqon, const ObjectState &state) const;
 
 protected:
-	/**
-	 * The user function which is called when the object is changed.
-	 */
-	update_cb_t func;
+    /**
+     * The user function which is called when the object is changed.
+     */
+    update_cb_t func;
 };
 
 
 class ObjectNotifier {
 public:
 
-	ObjectNotifier(const fqon_t &fqon,
-	               const update_cb_t &func,
-	               const std::shared_ptr<View> &view);
-	~ObjectNotifier();
+    ObjectNotifier(const fqon_t &fqon,
+                   const update_cb_t &func,
+                   const std::shared_ptr<View> &view);
+    ~ObjectNotifier();
 
-	const std::shared_ptr<ObjectNotifierHandle> &get_handle() const;
+    /**
+     * Get the callback handle for the object notifier.
+     *
+     * @return Shared pointer to the ObjectNotifierHandle.
+     */
+    const std::shared_ptr<ObjectNotifierHandle> &get_handle() const;
 
 protected:
-	/**
-	 * Which object the notifier is for.
-	 */
-	fqon_t fqon;
+    /**
+     * Which object the notifier is for.
+     */
+    fqon_t fqon;
 
-	/**
-	 * View this notifier is active in.
-	 */
-	std::shared_ptr<View> view;
+    /**
+     * View this notifier is active in.
+     */
+    std::shared_ptr<View> view;
 
-	/**
-	 * Stores the actual callback handle.
-	 */
-	std::shared_ptr<ObjectNotifierHandle> handle;
+    /**
+     * Stores the actual callback handle.
+     */
+    std::shared_ptr<ObjectNotifierHandle> handle;
 };
 
 

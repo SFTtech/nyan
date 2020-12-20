@@ -25,16 +25,16 @@ public:
      * This only updates the change history,
      * not the linearizations or the child tracking.
      *
-     * @param t Order of insertion.
+     * @param t Time of insertion.
      */
     void insert_change(const order_t t);
 
     /**
-     * Get the order of the last change before a given order.
+     * Get the time of the last change before a given time.
      *
-     * @param t Order for which a preceeding order is searched in the object history.
+     * @param t Search changes before this point in time
      *
-     * @return Order of the last change if there is one, else empty std::optional.
+     * @return Time of the last change if there is one, else empty std::optional.
      */
     std::optional<order_t> last_change_before(order_t t) const;
 
