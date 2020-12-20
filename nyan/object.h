@@ -310,7 +310,7 @@ protected:
     std::shared_ptr<View> origin;
 
     /**
-     * The name of this object.
+     * Identifier of the object.
      */
     fqon_t name;
 };

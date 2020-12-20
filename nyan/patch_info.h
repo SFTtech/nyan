@@ -12,18 +12,28 @@ namespace nyan {
  */
 class PatchInfo {
 public:
-	explicit PatchInfo(fqon_t &&target);
-	~PatchInfo() = default;
+    explicit PatchInfo(fqon_t &&target);
+    ~PatchInfo() = default;
 
-	const fqon_t &get_target() const;
+    /**
+     * Get the identifier of the patch target.
+     *
+     * @return Identifier of the patch target.
+     */
+    const fqon_t &get_target() const;
 
-	std::string str() const;
+    /**
+     * Get the string representation of the metadata information.
+     *
+     * @return String representation of the metadata information.
+     */
+    std::string str() const;
 
 protected:
-	/**
-	 * Patch target name.
-	 */
-	fqon_t target;
+    /**
+     * Identifier of the patch target.
+     */
+    fqon_t target;
 };
 
 
