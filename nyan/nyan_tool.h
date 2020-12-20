@@ -11,15 +11,15 @@ namespace nyan {
  * boolean flags to be set by cmdline options
  */
 enum class option_flag {
-	ECHO,
-	TEST_PARSER
+    ECHO,
+    TEST_PARSER
 };
 
 /**
  * string arguments to be set by cmdline options
  */
 enum class option_param {
-	FILE
+    FILE
 };
 
 using flags_t = std::unordered_map<option_flag, bool>;
@@ -46,9 +46,9 @@ namespace std {
  */
 template<>
 struct hash<nyan::option_flag> {
-	size_t operator ()(const nyan::option_flag &x) const {
-		return static_cast<size_t>(x);
-	}
+    size_t operator ()(const nyan::option_flag &x) const {
+        return static_cast<size_t>(x);
+    }
 };
 
 /**
@@ -56,9 +56,9 @@ struct hash<nyan::option_flag> {
  */
 template<>
 struct hash<nyan::option_param> {
-	size_t operator ()(const nyan::option_param &x) const {
-		return static_cast<size_t>(x);
-	}
+    size_t operator ()(const nyan::option_param &x) const {
+        return static_cast<size_t>(x);
+    }
 };
 
 } // namespace std
