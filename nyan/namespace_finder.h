@@ -27,14 +27,14 @@ public:
     NamespaceFinder(AST &&ast);
 
     /**
-     * Imports another namespace.
+     * Imports another namespace into the finder.
      *
      * @param ns Namespace that should be imported.
      */
     void add_import(const Namespace &ns);
 
     /**
-     * Imports another namespace by using an alias.
+     * Imports another namespace into the finder by using an alias.
      *
      * @param alias Token with the name of the alias.
      * @param ns Namespace that should be imported.
@@ -59,12 +59,12 @@ public:
     fqon_t expand_alias(const IDToken &name) const;
 
     /**
-     * Search for the object identifier of an object reference
+     * Search for the object/member identifier of an object/member reference
      * in a given namespace.
      *
-     * @param name IDToken with an object reference.
+     * @param name IDToken with an object/member reference.
      *
-     * @return Identifier of the object.
+     * @return Identifier of the object/member.
      */
     fqon_t find(const Namespace &current,
                 const IDToken &search,
@@ -86,7 +86,7 @@ public:
 
 public:
     /**
-     * Abstract syntax tree of the namespace.
+     * Abstract syntax tree of the namespace of this finder.
      */
     AST ast;
 

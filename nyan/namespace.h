@@ -13,36 +13,70 @@ class IDToken;
 
 
 class Namespace {
-	friend struct std::hash<Namespace>;
+    friend struct std::hash<Namespace>;
 
 public:
-	explicit Namespace(const fqon_t &token);
-	explicit Namespace(const IDToken &token);
-	Namespace(const Namespace &other, const std::string &addend);
+    explicit Namespace(const fqon_t &token);
+    explicit Namespace(const IDToken &token);
+    Namespace(const Namespace &other, const std::string &addend);
 
-	virtual ~Namespace() = default;
+    virtual ~Namespace() = default;
 
-	void pop_last();
-	bool empty() const;
+    void pop_last();
+    bool empty() const;
 
-	/**
-	 * Append the given name to this namespace.
-	 * Return the combined fqon.
-	 * Skip n components of the given name before appending.
-	 */
-	fqon_t combine(const IDToken &name, size_t skip=0) const;
+    /**
+     * Append the given object/member reference to the namespace identifier to
+     * get its identifier.
+     *
+     * @param name IDToken with an object/member reference.
+     * @param skip Number of components at the start of @p name to be skipped.
+     *
+     * @return Identifier of the object/member.
+     */
+    fqon_t combine(const IDToken &name, size_t skip=0) const;
 
-	std::string to_filename() const;
-	static Namespace from_filename(const std::string &filename);
+    /**
+     * Get a (relative) path to a filename for the namespace.
+     *
+     * @return String representation of the path. Uses '/' as path
+     *     component separator.
+     */
+    std::string to_filename() const;
 
-	fqon_t to_fqon() const;
+    /**
+     * Create a namespace from a given filename. Performs a sanity
+     * check on the filename.
+     *
+     * @param filename Name of a file, including the extension.
+     *
+     * @return Namespace for the filename.
+     */
+    static Namespace from_filename(const std::string &filename);
 
-	std::string str() const;
+    /**
+     * Get the identifier of the namespace.
+     *
+     * @return Identifier of the namespace.
+     */
+    fqon_t to_fqon() const;
 
-	bool operator ==(const Namespace &other) const;
+    /**
+     * Get a string representation of the namespace.
+     *
+     * @return String representation of the namespace.
+     */
+    std::string str() const;
+
+    /**
+     * Checks if this namespace is equal to a given namespace.
+     *
+     * @return true if the namespaces are equal, else false.
+     */
+    bool operator ==(const Namespace &other) const;
 
 protected:
-	std::vector<std::string> components;
+    std::vector<std::string> components;
 };
 
 } // namespace nyan
@@ -51,6 +85,6 @@ protected:
 namespace std {
 template <>
 struct hash<nyan::Namespace> {
-	size_t operator ()(const nyan::Namespace &ns) const;
+    size_t operator ()(const nyan::Namespace &ns) const;
 };
 } // namespace std
