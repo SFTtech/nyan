@@ -11,52 +11,52 @@ ValueHolder::ValueHolder() = default;
 
 
 ValueHolder::ValueHolder(std::shared_ptr<Value> &&value)
-	:
-	value{std::move(value)} {}
+    :
+    value{std::move(value)} {}
 
 
 ValueHolder::ValueHolder(const std::shared_ptr<Value> &value)
-	:
-	value{value} {}
+    :
+    value{value} {}
 
 
 Value *ValueHolder::get_value() const {
-	return this->value.get();
+    return this->value.get();
 }
 
 
 const std::shared_ptr<Value> &ValueHolder::get_ptr() const {
-	return this->value;
+    return this->value;
 }
 
 
 void ValueHolder::clear() {
-	this->value = nullptr;
+    this->value = nullptr;
 }
 
 
 bool ValueHolder::exists() const {
-	return this->get_value() != nullptr;
+    return this->get_value() != nullptr;
 }
 
 
 Value &ValueHolder::operator *() const {
-	return *this->get_value();
+    return *this->get_value();
 }
 
 
 Value *ValueHolder::operator ->() const {
-	return this->get_value();
+    return this->get_value();
 }
 
 
 bool ValueHolder::operator ==(const ValueHolder &other) const  {
-	return (*this->get_value() == *other.get_value());
+    return (*this->get_value() == *other.get_value());
 }
 
 
 bool ValueHolder::operator !=(const ValueHolder &other) const {
-	return (*this->get_value() != *other.get_value());
+    return (*this->get_value() != *other.get_value());
 }
 
 
@@ -66,7 +66,7 @@ bool ValueHolder::operator !=(const ValueHolder &other) const {
 namespace std {
 
 size_t hash<nyan::ValueHolder>::operator ()(const nyan::ValueHolder &val) const {
-	return hash<nyan::Value *>{}(val.get_value());
+    return hash<nyan::Value *>{}(val.get_value());
 }
 
 } // namespace std
