@@ -32,153 +32,170 @@ class Token;
 class Type {
 public:
 
-	/**
-	 * Construct type from the AST.
-	 *
-	 * The definition happens in a rechable name scope,
-	 * where the type object is done in a specific namespace.
-	 *
-	 * The target name is searched in the type info database.
-	 */
-	Type(const ASTMemberType &ast_type,
-	     const NamespaceFinder &scope,
-	     const Namespace &ns,
-	     const MetaInfo &type_info);
+    /**
+     * Construct type from the AST.
+     *
+     * The definition happens in a rechable name scope,
+     * where the type object is done in a specific namespace.
+     *
+     * The target name is searched in the type info database.
+     */
+    Type(const ASTMemberType &ast_type,
+         const NamespaceFinder &scope,
+         const Namespace &ns,
+         const MetaInfo &type_info);
 
-	/**
-	 * Called when a composite type is created from AST.
-	 */
-	Type(const IDToken &token,
-	     const NamespaceFinder &scope,
-	     const Namespace &ns,
-	     const MetaInfo &type_info);
+    /**
+     * Called when a composite type is created from AST.
+     */
+    Type(const IDToken &token,
+         const NamespaceFinder &scope,
+         const Namespace &ns,
+         const MetaInfo &type_info);
 
 public:
 
-	virtual ~Type() = default;
+    virtual ~Type() = default;
 
-	/**
-	 * Return if this type is an object.
-	 */
-	bool is_object() const;
+    /**
+     * Check if this type is an object.
+     *
+     * @return true if the basic type is an object, else false.
+     */
+    bool is_object() const;
 
-	/**
-	 * Return if this type is fundamental (simple non-pointer value).
-	 */
-	bool is_fundamental() const;
+    /**
+     * Check if this type is fundamental (simple non-pointer value).
+     *
+     * @return true if the basic type is fundamental, else false.
+     */
+    bool is_fundamental() const;
 
-	/**
-	 * Return if this type is a composite of multiple types.
-	 */
-	bool is_composite() const;
+    /**
+     * Check if this type is a composite of multiple types.
+     *
+     * @return true if the basic type is a composite, else false.
+     */
+    bool is_composite() const;
 
-	/**
-	 * Return if this type is a container that stores multiple values.
-	 */
-	bool is_container() const;
+    /**
+     * Check if this type is a container that stores multiple values.
+     *
+     * @return true if the basic type is a container, else false.
+     */
+    bool is_container() const;
 
-	/**
-	 * Test if this is a container of the given type.
-	 */
-	bool is_container(composite_t type) const;
+    /**
+     * Check if this type is a container of a given type.
+     *
+     * @param type Composite type that is compared to this type's basic type.
+     *
+     * @return true if the composite types matches, else false.
+     */
+    bool is_container(composite_t type) const;
 
-	/**
-	 * Return if this type is a modifier.
-	 */
-	bool is_modifier() const;
+    /**
+     * Check if this type is a modifier.
+     *
+     * @return true if the basic type is a modifier, else false.
+     */
+    bool is_modifier() const;
 
-	/**
-	 * Test if is a modifier of the given type.
-	 */
-	bool is_modifier(composite_t type) const;
+    /**
+     * Check if this type is a modifier of a given type.
+     *
+     * @param type Composite type that is compared to this type's basic type.
+     *
+     * @return true if the composite types matches, else false.
+     */
+    bool is_modifier(composite_t type) const;
 
-	/**
-	 * Return if a value of this type is hashable.
-	 */
-	bool is_hashable() const;
+    /**
+     * Check if a value of this type is hashable.
+     *
+     * @return true if values are hashable, else false.
+     */
+    bool is_hashable() const;
 
-	/**
-	 * Test if the basic type matches the given type, i. e. it's the same.
-	 */
-	bool is_basic_type_match(const BasicType &type) const;
+    /**
+     * Check if the basic type matches the given basic type, i.e. it's the same.
+     *
+     * @param type Basic type that is compared to this type's basic type.
+     *
+     * @return true if the basic types match, else false.
+     */
+    bool is_basic_type_match(const BasicType &type) const;
 
-	/**
-	 * Check if this type can contain the given other type.
-	 * This will only succeed if this type is a composite.
-	 *
-	 * @param meta_info Meta-information of the database. Used for finding object linearization.
-	 * @param other Contained type candidate.
-	 * @param pos Position of the element type in this type that other is compared with.
-	 */
-	bool can_contain(const MetaInfo &meta_info,
-					 const Type &other,
-					 const unsigned int pos = 0,
-					 std::set<composite_t> modflags = {}) const;
+    /**
+     * Get the object fqon of the type.
+     *
+     * @return Identifier of the object if this type is an object, else nullptr.
+     */
+    const fqon_t &get_fqon() const;
 
-	/**
-	 * Check if this type is compatible to the given other type.
-	 * This will only succeed if both types are objects.
-	 *
-	 * @param meta_info Meta-information of the database. Used for finding object linearization.
-	 * @param other fqon of the object
-	 */
-	bool can_hold(const MetaInfo &meta_info,
-				  const fqon_t &other,
-				  std::set<composite_t> modflags = {}) const;
+    /**
+     * Get the basic type of this type, namely the primitive and composite type.
+     *
+     * @return Basic type of this type.
+     */
+    const BasicType &get_basic_type() const;
 
-	/**
-	 * Return the object fqon.
-	 */
-	const fqon_t &get_fqon() const;
+    /**
+     * Get the composite type of this type.
+     *
+     * @return Composite type of this type.
+     */
+    const composite_t &get_composite_type() const;
 
-	/**
-	 * Return the basic type, namely the primitive and composite type.
-	 */
-	const BasicType &get_basic_type() const;
+    /**
+     * Get the primitive type of this type.
+     *
+     * @return Primitive type of this type.
+     */
+    const primitive_t &get_primitive_type() const;
 
-	/**
-	 * Return the composite type of this type.
-	 */
-	const composite_t &get_composite_type() const;
+    /**
+     * Get the composite element type of this type, i.e. the inner type
+     * that specifies the type of each item in a value.
+     *
+     * @return Pointer to the list with the element types of this type.
+     */
+    const std::vector<Type> *get_element_type() const;
 
-	/**
-	 * Return the primitive type of this Type.
-	 */
-	const primitive_t &get_primitive_type() const;
+    /**
+     * Get the string representation of this type.
+     *
+     * @return String representation of this type.
+     */
+    std::string str() const;
 
-	/**
-	 * Get the composite element type, i. e. the inner type
-	 * that specifies the type of each element.
-	 */
-	const std::vector<Type> *get_element_type() const;
-
-	/**
-	 * Return a string representation of this type.
-	 */
-	std::string str() const;
-
-	/**
-	 * Checks if two types are the same.
-	 */
-	bool operator ==(const Type &other) const;
+    /**
+     * Checks if two types are equal. Their basic type, element types
+     * and fqon must match.
+     *
+     * @param other Type that is compared with this type.
+     *
+     * @return true if the types are equal, else false.
+     */
+    bool operator ==(const Type &other) const;
 
 protected:
-	/**
-	 * The basic type of this Type.
-	 * Stores the primitive type and the composite type.
-	 */
-	BasicType basic_type;
+    /**
+     * The basic type of this Type.
+     * Stores the primitive type and the composite type.
+     */
+    BasicType basic_type;
 
-	/**
-	 * If this type is a composite, the element type is stored here.
-	 */
-	std::shared_ptr<std::vector<Type>> element_type;
+    /**
+     * If this type is a composite, the element type is stored here.
+     */
+    std::shared_ptr<std::vector<Type>> element_type;
 
-	/**
-	 * If this type is an object, store the reference here.
-	 * If it is nullptr, any object is covered by this type.
-	 */
-	fqon_t obj_ref;
+    /**
+     * If this type is an object, store the reference here.
+     * If it is nullptr, any object is covered by this type.
+     */
+    fqon_t obj_ref;
 };
 
 } // namespace nyan
