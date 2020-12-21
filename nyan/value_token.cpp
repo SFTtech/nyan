@@ -13,7 +13,7 @@ namespace nyan {
 
 ValueToken::ValueToken(const IDToken &token)
     :
-	container_type{composite_t::SINGLE} {
+    container_type{composite_t::SINGLE} {
 
     this->tokens.push_back(token);
 }
@@ -22,13 +22,13 @@ ValueToken::ValueToken(const IDToken &token)
 ValueToken::ValueToken(composite_t type,
                        std::vector<IDToken> &tokens)
     :
-	tokens{tokens} {
+    tokens{tokens} {
 
-	const static std::unordered_set<composite_t> container_types{
+    const static std::unordered_set<composite_t> container_types{
         composite_t::SET,
         composite_t::ORDEREDSET,
         composite_t::DICT
-	};
+    };
 
     if (container_types.find(type) == container_types.end()) {
         throw InternalError{"unknown container value type"};
@@ -39,7 +39,7 @@ ValueToken::ValueToken(composite_t type,
 
 
 std::string ValueToken::str() const {
-	switch (this->container_type) {
+    switch (this->container_type) {
     case composite_t::SINGLE:
     case composite_t::SET:
     case composite_t::ORDEREDSET:
@@ -55,12 +55,12 @@ std::string ValueToken::str() const {
 
 
 bool ValueToken::exists() const {
-	return this->tokens.size() > 0;
+    return this->tokens.size() > 0;
 }
 
 
 bool ValueToken::is_None() const {
-	if (this->tokens.size() != 1) {
+    if (this->tokens.size() != 1) {
         return false;
     }
 
@@ -74,22 +74,22 @@ bool ValueToken::is_None() const {
 
 
 const Location &ValueToken::get_start_location() const {
-	if (unlikely(not this->exists())) {
-		throw InternalError{
-			"this ValueToken doesn't exist, but you queried its location"
-		};
-	}
+    if (unlikely(not this->exists())) {
+        throw InternalError{
+            "this ValueToken doesn't exist, but you queried its location"
+        };
+    }
 
-	return this->tokens.at(0).get_start_location();
+    return this->tokens.at(0).get_start_location();
 }
 
 
 size_t ValueToken::get_length() const {
-	if (not this->exists()) {
-		return 0;
-	}
+    if (not this->exists()) {
+        return 0;
+    }
 
-	switch (this->container_type) {
+    switch (this->container_type) {
     case composite_t::SINGLE:
     case composite_t::SET:
     case composite_t::ORDEREDSET:
@@ -107,12 +107,12 @@ size_t ValueToken::get_length() const {
 
 
 const std::vector<IDToken> &ValueToken::get_value() const {
-	return this->tokens;
+    return this->tokens;
 }
 
 
 const composite_t &ValueToken::get_container_type() const {
-	return this->container_type;
+    return this->container_type;
 }
 
 
