@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 

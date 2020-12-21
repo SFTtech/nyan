@@ -1,4 +1,4 @@
-// Copyright 2019-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2019-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include "error.h"

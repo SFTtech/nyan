@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <unordered_map>
