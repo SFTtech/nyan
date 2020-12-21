@@ -1,4 +1,4 @@
-// Copyright 2020-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2020-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -101,10 +101,10 @@ public:
 	 */
 	holder_const_iterator values_end() const {
 		auto real_iterator = std::make_unique<
-		DefaultIterator<value_const_iterator,
-		                holder_const_iterator::elem_type>>(
-			                std::end(this->values)
-		                );
+			DefaultIterator<value_const_iterator,
+			                holder_const_iterator::elem_type>>(
+				                std::end(this->values)
+			                );
 
 		return holder_const_iterator{std::move(real_iterator)};
 	}
@@ -126,10 +126,10 @@ protected:
 
 
 	bool equals(const Value &other) const override {
-        auto &other_val = dynamic_cast<const Dict &>(other);
+		auto &other_val = dynamic_cast<const Dict &>(other);
 
-        return values == other_val.values;
-    }
+		return values == other_val.values;
+	}
 
 	/**
 	 * Dict value storage (this is an unordered map).

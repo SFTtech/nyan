@@ -1,4 +1,4 @@
-// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "boolean.h"
 
@@ -75,7 +75,7 @@ std::string Boolean::str() const {
 	}
 	else {
 		return "False";
-	};
+	}
 }
 
 

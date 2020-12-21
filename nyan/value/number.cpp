@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "number.h"
 
@@ -20,8 +20,8 @@ static void check_token(const IDToken &token, std::vector<token_type> expected) 
 	using namespace std::string_literals;
 
 	if (unlikely(not (std::find(expected.begin(),
-						   		expected.end(),
-						    	token.get_type()) != expected.end()))) {
+	                            expected.end(),
+	                            token.get_type()) != expected.end()))) {
 		throw LangError{
 			token,
 			"invalid value for number, expected "s

@@ -138,7 +138,6 @@ protected:
 	 * @param operation Operation used in the application.
 	 */
 	virtual void apply_value(const Value &value, nyan_op operation) = 0;
-
 };
 } // namespace nyan
 

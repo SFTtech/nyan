@@ -1,4 +1,4 @@
-// Copyright 2020-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2020-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include "value.h"

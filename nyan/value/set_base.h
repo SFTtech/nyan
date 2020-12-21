@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -188,10 +188,10 @@ public:
 	 */
 	holder_const_iterator values_end() const override {
 		auto real_iterator = std::make_unique<
-		DefaultIterator<value_const_iterator,
-		                holder_const_iterator::elem_type>>(
-			                std::end(this->values)
-		                );
+			DefaultIterator<value_const_iterator,
+			                holder_const_iterator::elem_type>>(
+				                std::end(this->values)
+			                );
 
 		return holder_const_iterator{std::move(real_iterator)};
 	}
