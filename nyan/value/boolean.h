@@ -13,30 +13,30 @@ namespace nyan {
  */
 class Boolean : public Value {
 public:
-	Boolean(const bool &value);
-	Boolean(const IDToken &token);
+    Boolean(const bool &value);
+    Boolean(const IDToken &token);
 
-	ValueHolder copy() const override;
-	std::string str() const override;
-	std::string repr() const override;
-	size_t hash() const override;
+    ValueHolder copy() const override;
+    std::string str() const override;
+    std::string repr() const override;
+    size_t hash() const override;
 
-	bool get() const {
-		return *this;
-	}
+    bool get() const {
+        return *this;
+    }
 
-	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
-	const BasicType &get_type() const override;
+    const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
+    const BasicType &get_type() const override;
 
-	operator bool() const {
-		return this->value;
-	}
+    operator bool() const {
+        return this->value;
+    }
 
 protected:
-	void apply_value(const Value &value, nyan_op operation) override;
-	bool equals(const Value &other) const override;
+    void apply_value(const Value &value, nyan_op operation) override;
+    bool equals(const Value &other) const override;
 
-	bool value;
+    bool value;
 };
 
 } // namespace nyan

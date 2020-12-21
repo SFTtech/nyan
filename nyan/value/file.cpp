@@ -13,95 +13,95 @@
 namespace nyan {
 
 Filename::Filename(const std::string &path)
-	:
-	path{path} {
+    :
+    path{path} {
 
-	// TODO relative path resolution
+    // TODO relative path resolution
 }
 
 
 Filename::Filename(const IDToken &token)
-	:
-	Filename{token.get_first()} {
+    :
+    Filename{token.get_first()} {
 
-	if (unlikely(token.get_type() != token_type::STRING)) {
-		throw LangError{
-			token,
-			"invalid value for filename"
-		};
-	}
+    if (unlikely(token.get_type() != token_type::STRING)) {
+        throw LangError{
+            token,
+            "invalid value for filename"
+        };
+    }
 }
 
 
 const std::string &Filename::get() const {
-	return this->path;
+    return this->path;
 }
 
 
 ValueHolder Filename::copy() const {
-	return {std::make_shared<Filename>(*this)};
+    return {std::make_shared<Filename>(*this)};
 }
 
 
 void Filename::apply_value(const Value &value, nyan_op operation) {
-	const Filename &change = dynamic_cast<const Filename &>(value);
+    const Filename &change = dynamic_cast<const Filename &>(value);
 
-	// TODO: relative path resolution
+    // TODO: relative path resolution
 
-	switch (operation) {
-	case nyan_op::ASSIGN:
-		this->path = change.path; break;
+    switch (operation) {
+    case nyan_op::ASSIGN:
+        this->path = change.path; break;
 
-	default:
-		throw Error{"unknown operation requested"};
-	}
+    default:
+        throw Error{"unknown operation requested"};
+    }
 }
 
 
 std::string Filename::str() const {
-	return this->path;
+    return this->path;
 }
 
 
 std::string Filename::repr() const {
-	return this->str();
+    return this->str();
 }
 
 
 size_t Filename::hash() const {
-	return std::hash<std::string>{}(this->path);
+    return std::hash<std::string>{}(this->path);
 }
 
 
 bool Filename::equals(const Value &other) const {
-	auto &other_val = dynamic_cast<const Filename &>(other);
-	return this->path == other_val.path;
+    auto &other_val = dynamic_cast<const Filename &>(other);
+    return this->path == other_val.path;
 }
 
 
 const std::unordered_set<nyan_op> &Filename::allowed_operations(const Type &with_type) const {
-	const static std::unordered_set<nyan_op> ops{
-		nyan_op::ASSIGN,
-	};
+    const static std::unordered_set<nyan_op> ops{
+        nyan_op::ASSIGN,
+    };
 
-	switch (with_type.get_primitive_type()) {
-	case primitive_t::FILENAME:
-	case primitive_t::NONE:
-		return ops;
+    switch (with_type.get_primitive_type()) {
+    case primitive_t::FILENAME:
+    case primitive_t::NONE:
+        return ops;
 
-	default:
-		return no_nyan_ops;
-	}
+    default:
+        return no_nyan_ops;
+    }
 }
 
 
 const BasicType &Filename::get_type() const {
-	constexpr static BasicType type{
-		primitive_t::FILENAME,
-		composite_t::SINGLE,
-	};
+    constexpr static BasicType type{
+        primitive_t::FILENAME,
+        composite_t::SINGLE,
+    };
 
-	return type;
+    return type;
 }
 
 

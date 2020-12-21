@@ -13,19 +13,19 @@ class IDToken;
  */
 class None : public Value {
 public:
-	None();
+    None();
 
-	ValueHolder copy() const override;
-	std::string str() const override;
-	std::string repr() const override;
-	size_t hash() const override;
+    ValueHolder copy() const override;
+    std::string str() const override;
+    std::string repr() const override;
+    size_t hash() const override;
 
-	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
-	const BasicType &get_type() const override;
+    const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
+    const BasicType &get_type() const override;
 
 protected:
-	void apply_value(const Value &value, nyan_op operation) override;
-	bool equals(const Value &other) const override;
+    void apply_value(const Value &value, nyan_op operation) override;
+    bool equals(const Value &other) const override;
 
 };
 

@@ -13,24 +13,24 @@ namespace nyan {
  */
 class ObjectValue : public Value {
 public:
-	ObjectValue(const fqon_t &name);
+    ObjectValue(const fqon_t &name);
 
-	ValueHolder copy() const override;
-	std::string str() const override;
-	std::string repr() const override;
-	size_t hash() const override;
+    ValueHolder copy() const override;
+    std::string str() const override;
+    std::string repr() const override;
+    size_t hash() const override;
 
-	/** return the stored fqon */
-	const fqon_t &get() const;
+    /** return the stored fqon */
+    const fqon_t &get() const;
 
-	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
-	const BasicType &get_type() const override;
+    const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
+    const BasicType &get_type() const override;
 
 protected:
-	void apply_value(const Value &value, nyan_op operation) override;
-	bool equals(const Value &other) const override;
+    void apply_value(const Value &value, nyan_op operation) override;
+    bool equals(const Value &other) const override;
 
-	fqon_t name;
+    fqon_t name;
 };
 
 } // namespace nyan
