@@ -6,6 +6,7 @@
 
 #include "compiler.h"
 #include "util.h"
+#include "value/none.h"
 
 
 namespace nyan {
@@ -72,6 +73,9 @@ void Member::apply(const Member &change) {
         this->override_depth = change.override_depth - 1;
         this->operation = change.get_operation();
         this->value = change.get_value().copy();
+    }
+    else if (typeid(change.get_value()) == typeid(None&)) {
+        this->value = {std::make_shared<None>(NYAN_NONE)};
     }
     // else, keep operator as-is and modify the value.
     else {
