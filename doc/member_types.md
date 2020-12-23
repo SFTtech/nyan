@@ -20,8 +20,9 @@ operations that are allowed on them.
     * [2.8 dict](#dict)
     * [2.9 object](#object)
 * [3. Type Modifiers](#type-modifiers-1)
-    * [3.1 optional](#optional)
+    * [3.1´ abstract](#abstract)
     * [3.2 children](#children)
+    * [3.3 optional](#optional)
 * [4. Rules for Operations with Infinity](#rules-for-operations-with-infinity)
 
 ## Quick Reference
@@ -51,8 +52,9 @@ nyan Type     | C++ Equivalent       | Operators                | Description
 
 Type Modifier | nyan Types | Description
 --------------|------------|-----------------------
-`optional`    | All        | The member can be initialized with the placeholder value `None`.
+`abstract`    | `object`   | Can assign abstract object references.
 `children`    | `object`   | Only descendants of the object can be assigned, not the object itself.
+`optional`    | All        | The member can be initialized with the placeholder value `None`.
 
 
 ## Data Types
@@ -291,7 +293,7 @@ Patch<SomeObject>():
 A member with type `object` can store a nyan object reference.
 This reference must not be abstract (i.e. all members have
 a value defined). Furthermore, it must be type-compatible to the
-defined type.
+defined type at load-time.
 
 ```python
 OtherObject():
@@ -543,31 +545,29 @@ Patch<SomeObject>():
 ```
 
 
-
 ## Type Modifiers
 
-### `optional`
 
-A member with type modifier `optional` can have the placeholder value
-`None` assigned. `None` indicates that the member is initialized, but
-has no regular value. `None` can only be assigned and not used as a
-second operand in other operations. Additionally, operations other than
-assignment have no effect on members that have `None` assigned.
+### `abstract`
 
-Members of any data type can have the `optional` modifier. `optional`
-members still need to be initialized with either `None` or a regular
-value to not be abstract.
+`abstract` is a type modifier for the `object` data type. It signifies
+that references to abstract nyan objects can be assigned as member values.
 
 ```python
-SomeObject():
-    a : optional(int)                 # declaration of an int as optional
-    b : optional(float)               # declaration of a float as optional
-    c : optional(set(OtherObject))    # declaration of a set(OtherObject) as optional
-    d : optional(OtherObject)         # declaration of a nyan object reference to OtherObject as optional
-
 OtherObject():
-    a : optional(int) = None                 # declaration and initialization with None
-    b : optional(OtherObject) = OtherObject  # declaration and initialization with regular value
+    # is abstract because member 'x' is abstract
+    x : int
+
+ChildObject(OtherObject):
+    # not abstract because member 'x' now has a value
+    x = 5
+
+SomeObject():
+    a : abstract(OtherObject)                # declaration of a to allow abstract objects with type OtherObject
+    b : abstract(OtherObject) = OtherObject  # declaration of b to allow abstract objects with type OtherObject
+                                             # and initialization with ChildObject
+    c : OtherObject = ChildObject            # ALLOWED (ChildObject is non-abstract)
+    c : OtherObject = OtherObject            # NOT ALLOWED (OtherObject is abstract)
 ```
 
 #### Usage Examples
@@ -575,22 +575,20 @@ OtherObject():
 
 ```python
 OtherObject():
-    pass
+    x : int
 
 ChildObject(OtherObject):
-    pass
+    x = 5
 
 SomeObject():
-    a : optional(int) = 5
-    b : optional(float) = None
-    c : optional(set(OtherObject)) = None
-    d : optional(OtherObject) = OtherObject
+    a : abstract(OtherObject) = OtherObject
+    b : abstract(OtherObject) = ChildObject
+    b : abstract(OtherObject) = ChildObject
 
 Patch<SomeObject>():
-    a = None         # result: a = None        (reassignment)
-    b += 10.0        # result: b = None        (no effect)
-    c = {}           # result: c = {}          (reassignment)
-    d = ChildObject  # result: d = ChildObject (reassignment)
+    a = ChildObject  # result: a = ChildObject (reassignment)
+    b = ChildObject  # result: b = ChildObject (no effect)
+    c = OtherObject  # result: c = OtherObject (reassignment)
 ```
 
 
@@ -639,6 +637,53 @@ Patch<SomeObject>():
     c = OtherObject            # NOT ALLOWED
 ```
 
+
+### `optional`
+
+A member with type modifier `optional` can have the placeholder value
+`None` assigned. `None` indicates that the member is initialized, but
+has no regular value. `None` can only be assigned and not used as a
+second operand in other operations. Additionally, operations other than
+assignment have no effect on members that have `None` assigned.
+
+Members of any data type can have the `optional` modifier. `optional`
+members still need to be initialized with either `None` or a regular
+value to not be abstract.
+
+```python
+SomeObject():
+    a : optional(int)                 # declaration of an int as optional
+    b : optional(float)               # declaration of a float as optional
+    c : optional(set(OtherObject))    # declaration of a set(OtherObject) as optional
+    d : optional(OtherObject)         # declaration of a nyan object reference to OtherObject as optional
+
+OtherObject():
+    a : optional(int) = None                 # declaration and initialization with None
+    b : optional(OtherObject) = OtherObject  # declaration and initialization with regular value
+```
+
+#### Usage Examples
+
+
+```python
+OtherObject():
+    pass
+
+ChildObject(OtherObject):
+    pass
+
+SomeObject():
+    a : optional(int) = 5
+    b : optional(float) = None
+    c : optional(set(OtherObject)) = None
+    d : optional(OtherObject) = OtherObject
+
+Patch<SomeObject>():
+    a = None         # result: a = None        (reassignment)
+    b += 10.0        # result: b = None        (no effect)
+    c = {}           # result: c = {}          (reassignment)
+    d = ChildObject  # result: d = ChildObject (reassignment)
+```
 
 
 ## Rules for Operations with Infinity
