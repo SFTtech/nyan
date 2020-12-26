@@ -20,7 +20,7 @@ operations that are allowed on them.
     * [2.8 dict](#dict)
     * [2.9 object](#object)
 * [3. Type Modifiers](#type-modifiers-1)
-    * [3.1´ abstract](#abstract)
+    * [3.1 abstract](#abstract)
     * [3.2 children](#children)
     * [3.3 optional](#optional)
 * [4. Rules for Operations with Infinity](#rules-for-operations-with-infinity)
@@ -555,19 +555,21 @@ that references to abstract nyan objects can be assigned as member values.
 
 ```python
 OtherObject():
-    # is abstract because member 'x' is abstract
+    # is abstract because member 'x' is not initialized
     x : int
 
 ChildObject(OtherObject):
-    # not abstract because member 'x' now has a value
+    # not abstract because member 'x' is initialized with 5
     x = 5
 
 SomeObject():
     a : abstract(OtherObject)                # declaration of a to allow abstract objects with type OtherObject
     b : abstract(OtherObject) = OtherObject  # declaration of b to allow abstract objects with type OtherObject
+                                             # and initialization with OtherObject
+    c : abstract(OtherObject) = ChildObject  # declaration of b to allow abstract objects with type OtherObject
                                              # and initialization with ChildObject
-    c : OtherObject = ChildObject            # ALLOWED (ChildObject is non-abstract)
-    c : OtherObject = OtherObject            # NOT ALLOWED (OtherObject is abstract)
+    d : OtherObject = ChildObject            # ALLOWED (ChildObject is non-abstract)
+    e : OtherObject = OtherObject            # NOT ALLOWED (OtherObject is abstract)
 ```
 
 #### Usage Examples
@@ -583,12 +585,10 @@ ChildObject(OtherObject):
 SomeObject():
     a : abstract(OtherObject) = OtherObject
     b : abstract(OtherObject) = ChildObject
-    b : abstract(OtherObject) = ChildObject
 
 Patch<SomeObject>():
     a = ChildObject  # result: a = ChildObject (reassignment)
     b = ChildObject  # result: b = ChildObject (no effect)
-    c = OtherObject  # result: c = OtherObject (reassignment)
 ```
 
 
