@@ -15,7 +15,7 @@ namespace nyan {
 
 unsigned int comma_list(token_type end,
                         TokenStream &tokens,
-                        unsigned int limit,
+                        size_t limit,
                         const std::function<void(const Token &, TokenStream &)> &func) {
 	auto token = tokens.next();
 	bool comma_expected = false;
@@ -63,7 +63,7 @@ unsigned int comma_list(token_type end,
                         const std::function<void(const Token &, TokenStream &)> &func) {
 	return comma_list(end,
 	                  tokens,
-	                  std::numeric_limits<int>::max(),
+	                  SIZE_MAX,
 	                  func);
 }
 

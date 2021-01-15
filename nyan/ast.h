@@ -34,7 +34,7 @@ namespace nyan {
  */
 unsigned int comma_list(token_type end,
                         TokenStream &tokens,
-                        unsigned int limit,
+                        size_t limit,
                         const std::function<void(const Token &, TokenStream &)> &func);
 
 
