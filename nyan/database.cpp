@@ -586,7 +586,7 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 				Value::from_ast(
 					*member_type, astmember.value, objs_in_values,
 					// function to determine object names used in values:
-					[&scope, &objname, &member_type, this, &objs_in_values]
+					[&scope, &objname, this, &objs_in_values]
 					(const IDToken &token) -> fqon_t {
 						// find the desired object in the scope of the object
 						fqon_t obj_id = scope.find(objname, token, this->meta_info);
@@ -597,7 +597,7 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 						return obj_id;
 					},
 					// function to retrieve an object's linearization
-					[&scope, &objname, &member_type, this, &objs_in_values]
+					[&objname, this]
 					(const fqon_t &fqon) -> std::vector<fqon_t> {
 						const ObjectInfo *obj_info = meta_info.get_object(fqon);
 						if (unlikely(obj_info == nullptr)) {
