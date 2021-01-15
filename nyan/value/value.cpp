@@ -169,11 +169,13 @@ static void handle_modifiers(const std::vector<Type> &modifiers,
 	for (auto &mod: modifiers) {
 		auto modifier_type = mod.get_composite_type();
 
-		if (modifier_type == composite_t::OPTIONAL) {
+		switch (modifier_type) {
+		case composite_t::OPTIONAL: {
 			contains_optional = true;
+			break;
 		}
 
-		if (modifier_type == composite_t::CHILDREN) {
+		case composite_t::CHILDREN: {
 			if (unlikely(typeid(*value_holder.get_value()) != typeid(ObjectValue&))) {
 				if (not contains_optional) {
 					throw InternalError{"children type requires ObjectValue as content"};
@@ -187,9 +189,10 @@ static void handle_modifiers(const std::vector<Type> &modifiers,
 			if (obj.get() == member_type_fqon) {
 				throw InternalError{"children type does not allow an ObjectValue with same fqon as the member type"};
 			}
+			break;
 		}
 
-		if (modifier_type == composite_t::ABSTRACT) {
+		case composite_t::ABSTRACT: {
 			if (unlikely(typeid(*value_holder.get_value()) != typeid(ObjectValue&))) {
 				if (not contains_optional) {
 					throw InternalError{"abstract type requires ObjectValue as content"};
@@ -199,6 +202,11 @@ static void handle_modifiers(const std::vector<Type> &modifiers,
 			// Remove last element here, so the object is not checked
 			// for non-abstractness later
 			objs_in_values->pop_back();
+			break;
+		}
+
+		default:
+			break;
 		}
 	}
 }
