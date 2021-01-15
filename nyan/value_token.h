@@ -49,7 +49,7 @@ public:
      *
      * @return true if this ValueToken stores None, else false.
      */
-    bool is_None() const;
+    bool is_none() const;
 
     /**
      * Get the starting location of this ValueToken in a file.

@@ -59,7 +59,7 @@ bool ValueToken::exists() const {
 }
 
 
-bool ValueToken::is_None() const {
+bool ValueToken::is_none() const {
     if (this->tokens.size() != 1) {
         return false;
     }

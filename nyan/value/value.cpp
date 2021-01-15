@@ -123,7 +123,7 @@ static std::vector<ValueHolder> value_from_value_token(const std::vector<Type> &
     std::vector<ValueHolder> values;
     values.reserve(value_token.get_value().size());
 
-    if (value_token.is_None()) {
+    if (value_token.is_none()) {
         values.emplace_back(std::make_shared<None>(NYAN_NONE));
         return values;
     }
