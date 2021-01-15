@@ -36,7 +36,7 @@ size_t None::hash() const {
 
 
 bool None::equals(const Value &other) const {
-    // Ceck address equality because we only want identity
+    // Check address equality because we only want identity
     return std::addressof(*this) == std::addressof(other);
 }
 

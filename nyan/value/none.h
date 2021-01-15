@@ -9,7 +9,7 @@ namespace nyan {
 class IDToken;
 
 /**
- * Nyan value to store None (basically a nullptr).
+ * Nyan value to store None (basically a "no value" placeholder).
  */
 class None : public Value {
 public:
