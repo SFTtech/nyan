@@ -224,7 +224,7 @@ ValueHolder Value::from_ast(const Type &target_type,
 			throw TypeError{
 				astmembervalue.get_values()[1].get_start_location(),
 				"storing multiple values in non-container"
-			};
+				};
 		}
 
 		std::vector<Type> target_types{current_type};
@@ -250,13 +250,12 @@ ValueHolder Value::from_ast(const Type &target_type,
 
 	composite_t composite_type = current_type.get_composite_type();
 
-	// For sets/orderedsets (with primitive values)
-	std::vector<ValueHolder> values;
+	switch (composite_type)
+	{
+	case composite_t::ORDEREDSET:
+	case composite_t::SET: {
+		std::vector<ValueHolder> values;
 
-	// For dicts (with key-value pairs)
-	std::unordered_map<ValueHolder, ValueHolder> items;
-
-	if (composite_type == composite_t::SET || composite_type == composite_t::ORDEREDSET) {
 		// process multi-value values (orderedsets etc)
 		values.reserve(astmembervalue.get_values().size());
 
@@ -299,7 +298,10 @@ ValueHolder Value::from_ast(const Type &target_type,
 			throw InternalError{"value creation for unhandled container type"};
 		}
 	}
-	else if (composite_type == composite_t::DICT) {
+
+	case composite_t::DICT: {
+		std::unordered_map<ValueHolder, ValueHolder> items;
+
 		items.reserve(astmembervalue.get_values().size());
 
 		// convert all tokens to values
@@ -339,7 +341,8 @@ ValueHolder Value::from_ast(const Type &target_type,
 
 		return {std::make_shared<Dict>(std::move(items))};
 	}
-	else {
+
+	default:
 		throw InternalError{"value creation for unhandled container type"};
 	}
 }
