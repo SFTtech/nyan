@@ -250,13 +250,12 @@ ValueHolder Value::from_ast(const Type &target_type,
 
     composite_t composite_type = current_type.get_composite_type();
 
-    // For sets/orderedsets (with primitive values)
-    std::vector<ValueHolder> values;
+    switch (composite_type)
+    {
+    case composite_t::ORDEREDSET:
+    case composite_t::SET: {
+        std::vector<ValueHolder> values;
 
-    // For dicts (with key-value pairs)
-    std::unordered_map<ValueHolder, ValueHolder> items;
-
-    if (composite_type == composite_t::SET || composite_type == composite_t::ORDEREDSET) {
         // process multi-value values (orderedsets etc)
         values.reserve(astmembervalue.get_values().size());
 
@@ -299,7 +298,10 @@ ValueHolder Value::from_ast(const Type &target_type,
             throw InternalError{"value creation for unhandled container type"};
         }
     }
-    else if (composite_type == composite_t::DICT) {
+
+    case composite_t::DICT: {
+        std::unordered_map<ValueHolder, ValueHolder> items;
+
         items.reserve(astmembervalue.get_values().size());
 
         // convert all tokens to values
@@ -339,151 +341,11 @@ ValueHolder Value::from_ast(const Type &target_type,
 
         return {std::make_shared<Dict>(std::move(items))};
     }
-    else {
+
+    default:
         throw InternalError{"value creation for unhandled container type"};
     }
 }
-
-
-// ValueHolder Value::from_ast(const Type &target_type,
-//                             const ASTMemberValue &astmembervalue,
-// 							std::vector<std::pair<fqon_t, Location>> *objs_in_values,
-//                             const std::function<fqon_t(const IDToken &)> &get_fqon,
-// 	                        const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin) {
-// 	if (target_type.is_modifier()) {
-// 		composite_t modifier_type = target_type.get_composite_type();
-
-// 		if (modifier_type == composite_t::OPTIONAL) {
-// 			// Check if ValueToken contains None
-// 			if (astmembervalue.get_values()[0].is_None()) {
-// 				return {std::make_shared<None>(NYAN_NONE)};
-// 			}
-// 		}
-
-// 		ValueHolder value = from_ast(target_type.get_element_type()->at(0),
-// 									 astmembervalue,
-// 									 objs_in_values,
-// 									 get_fqon,
-// 									 get_obj_lin);
-
-// 		if (modifier_type == composite_t::CHILDREN) {
-// 			if (unlikely(typeid(*value.get_value()) != typeid(ObjectValue&))) {
-// 				throw InternalError{"children type requires ObjectValue as content"};
-// 			}
-
-// 			// Check if object fqon is a child (i.e. not the same fqon as  the member type)
-// 			ObjectValue obj = dynamic_cast<ObjectValue&>(*value.get_value());
-// 			fqon_t member_type_fqon = target_type.get_element_type()->at(0).get_fqon();
-
-// 			if (obj.get() == member_type_fqon) {
-// 				throw InternalError{"children type does not allow an ObjectValue with same fqon as the member type"};
-// 			}
-// 		}
-
-
-// 		if (modifier_type == composite_t::ABSTRACT) {
-// 			if (unlikely(typeid(*value.get_value()) != typeid(ObjectValue&))) {
-// 				throw InternalError{"abstract type requires ObjectValue as content"};
-// 			}
-
-// 			// Remove last element here, so the object is not checked
-// 			// for non-abstractness later
-// 			objs_in_values->pop_back();
-// 		}
-
-// 		return value;
-// 	}
-
-// 	if (not target_type.is_container()) {
-// 		// don't allow more than one value for a single-value type
-// 		if (astmembervalue.get_values().size() > 1) {
-// 			throw TypeError{
-// 				astmembervalue.get_values()[1].get_start_location(),
-// 				"storing multiple values in non-container"
-// 			};
-// 		}
-
-// 		std::vector<Type> target_types{target_type};
-// 		ValueHolder value = value_from_value_token(target_types,
-// 		                           	  			   astmembervalue.get_values()[0],
-// 		                           	  			   get_fqon)[0];
-
-// 		if (target_type.is_object()) {
-// 			// Check if member type is in object linearization of the value
-// 			ObjectValue obj = dynamic_cast<ObjectValue&>(*value.get_value());
-// 			std::vector<fqon_t> obj_lin = get_obj_lin(obj.get());
-
-// 			if (unlikely(not util::contains(obj_lin, target_type.get_fqon()))) {
-// 				throw InternalError{"object is not in linearization of member type"};
-// 			}
-// 		}
-
-// 		return value;
-// 	}
-
-// 	composite_t composite_type = astmembervalue.get_composite_type();
-
-// 	// For sets/orderedsets (with primitive values)
-// 	std::vector<ValueHolder> values;
-
-// 	// For dicts (with key-value pairs)
-// 	std::unordered_map<ValueHolder, ValueHolder> items;
-
-// 	if (composite_type == composite_t::SET || composite_type == composite_t::ORDEREDSET) {
-// 		// process multi-value values (orderedsets etc)
-// 		values.reserve(astmembervalue.get_values().size());
-
-// 		// convert all tokens to values
-// 		const std::vector<Type> *element_type = target_type.get_element_type();
-// 		if (unlikely(element_type == nullptr)) {
-// 			throw InternalError{"container element type is nonexisting"};
-// 		}
-
-// 		for (auto &value_token : astmembervalue.get_values()) {
-// 			values.push_back(
-// 				value_from_value_token(*element_type,
-// 									   value_token,
-// 									   get_fqon)[0]
-// 			);
-// 		}
-
-// 		switch (composite_type) {
-// 		case composite_t::SET:
-// 			// create a set from the value list
-// 			return {std::make_shared<Set>(std::move(values))};
-
-// 		case composite_t::ORDEREDSET:
-// 			return {std::make_shared<OrderedSet>(std::move(values))};
-
-// 		default:
-// 			throw InternalError{"value creation for unhandled container type"};
-// 		}
-// 	}
-// 	else if (composite_type == composite_t::DICT) {
-// 		items.reserve(astmembervalue.get_values().size());
-
-// 		// convert all tokens to values
-// 		const std::vector<Type> *element_type = target_type.get_element_type();
-// 		if (unlikely(element_type == nullptr)) {
-// 			throw InternalError{"container element type is nonexisting"};
-// 		}
-
-// 		for (auto &value_token : astmembervalue.get_values()) {
-// 			std::vector<ValueHolder> keyval = value_from_value_token(
-// 				*element_type,
-// 				value_token,
-// 				get_fqon
-// 			);
-
-// 			items.insert(std::make_pair(keyval[0], keyval[1]));
-// 		}
-
-// 		return {std::make_shared<Dict>(std::move(items))};
-// 	}
-// 	else {
-// 		throw InternalError{"value creation for unhandled container type"};
-// 	}
-// }
 
 
 void Value::apply(const Member &change) {
