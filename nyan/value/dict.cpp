@@ -90,7 +90,6 @@ void Dict::apply_value(const Value &value, nyan_op operation) {
             member_value.clear();
             // fall through
 
-        // TODO
         case nyan_op::UNION_ASSIGN:
         case nyan_op::ADD_ASSIGN: {
             for (auto &val : operand) {

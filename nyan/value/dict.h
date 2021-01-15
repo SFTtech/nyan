@@ -56,7 +56,7 @@ public:
 
     iterator begin() {
         throw Error{
-            "Dicts are not non-const-iterable. "
+            "Dicts are only const-iterable. "
             "make it const by using e.g. "
             "for (auto &it = std::as_const(dict))"
         };

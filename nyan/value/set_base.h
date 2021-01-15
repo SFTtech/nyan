@@ -108,7 +108,7 @@ public:
 
     iterator begin() override {
         throw Error{
-            "Sets are not non-const-iterable. "
+            "Sets are only const-iterable. "
             "make it const by using e.g. "
             "for (auto &it = std::as_const(container))"
         };
