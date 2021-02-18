@@ -3,6 +3,7 @@
 
 
 #include <functional>
+#include <optional>
 
 #include "value.h"
 
@@ -19,6 +20,9 @@ class IDToken;
 template <typename T>
 class Number : public Value {
 public:
+	/** the actual number is stored as a configurable type */
+	using storage_type = T;
+
 	Number(const IDToken &token);
 	Number(T value)
 		:
@@ -51,10 +55,10 @@ public:
 
 	/**
 	 * Calculates the value that is assigned when one of the operands
-	 * of apply_value() is infinity. This can be either -inf, inf or 0.
-	 * Throws an InternalError if the value would be NaN.
+	 * of apply_value() is infinity. This is Maybe inf, inf or 0.
+	 * In case the result is NaN, return Nothing.
 	 */
-	T handle_infinity(const Number<T> &other, nyan_op operation);
+	std::optional<storage_type> handle_infinity(const Number<T> &other, nyan_op operation);
 
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
@@ -63,7 +67,6 @@ public:
 		return this->value;
 	}
 
-	using storage_type = T;
 protected:
 	void apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override {

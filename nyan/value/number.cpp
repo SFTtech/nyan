@@ -133,7 +133,7 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 			member_value /= operand; break;
 
 		default:
-			throw Error{"unknown operation requested"};
+			throw InternalError{"unknown operation requested"};
 		}
 	};
 
@@ -146,7 +146,12 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 		else {
 			Float left = static_cast<Float>(*this);
 			auto change_value = left.handle_infinity(change, operation);
-			applier(this->value, change_value, nyan_op::ASSIGN);
+			if (change_value.has_value()) {
+				applier(this->value, change_value.value(), nyan_op::ASSIGN);
+			}
+			else {
+				// return false;
+			}
 		}
 	}
 	else if (typeid(Int&) == typeid(value)) {
@@ -158,7 +163,12 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 		else {
 			Int left = static_cast<Int>(*this);
 			auto change_value = left.handle_infinity(change, operation);
-			applier(this->value, change_value, nyan_op::ASSIGN);
+			if (change_value.has_value()) {
+				applier(this->value, change_value.value(), nyan_op::ASSIGN);
+			}
+			else {
+				// return false;
+			}
 		}
 	}
 	else {
@@ -168,8 +178,25 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 }
 
 
-template<>
-Int::storage_type Int::handle_infinity(const Int &other, nyan_op operation) {
+template <typename T>
+std::optional<typename Number<T>::storage_type>
+Number<T>::handle_infinity(const Number<T> &other, nyan_op operation) {
+	auto inf_pos = [] () -> storage_type {
+		if constexpr (std::is_same_v<Number<T>, Int>) {
+			return INT_POS_INF;
+		}
+		else {
+			return FLOAT_POS_INF;
+		}
+	};
+	auto inf_neg = [] () -> storage_type {
+		if constexpr (std::is_same_v<Number<T>, Int>) {
+			return INT_POS_INF;
+		}
+		else {
+			return FLOAT_POS_INF;
+		}
+	};
 
 	// Both values are infinite
 	if (this->is_infinite() and other.is_infinite()) {
@@ -181,28 +208,31 @@ Int::storage_type Int::handle_infinity(const Int &other, nyan_op operation) {
 			if (this->value == other.get()) {
 				return this->value;
 			}
-			throw Error{"adding two inf values with different sign not permitted"};
+			// adding two inf values with different sign not permitted
+			return {};
 		}
 
 		case nyan_op::SUBTRACT_ASSIGN: {
 			if (this->value != other.get()) {
 				return this->value;
 			}
-			throw Error{"subtracting two inf values with different sign not permitted"};
+			// subtracting two inf values with different sign not permitted
+			return {};
 		}
 
 		case nyan_op::MULTIPLY_ASSIGN:{
 			if (this->value == other.get()) {
-				return INT_POS_INF;
+				return inf_pos();
 			}
-			return INT_NEG_INF;
+			return inf_neg();
 		}
 
 		case nyan_op::DIVIDE_ASSIGN:
-			throw Error{"dividing two inf values not permitted"};
+			// dividing two inf values not permitted
+			return {};
 
 		default:
-			throw Error{"unknown operation requested"};
+			throw InternalError{"unknown operation requested"};
 		}
 	}
 	// Only left operand is infinite
@@ -217,26 +247,28 @@ Int::storage_type Int::handle_infinity(const Int &other, nyan_op operation) {
 
 		case nyan_op::MULTIPLY_ASSIGN: {
 			if (other.get() == 0) {
-				throw Error{"multiplying inf with 0 not permitted"};
+				// multiplying inf with 0 not permitted
+				return {};
 			}
 			else if (other.get() > 0) {
 				return this->value;
 			}
 			else if (this->value > 0) {
-				return INT_NEG_INF;
+				return inf_neg();
 			}
-			return INT_POS_INF;
+			return inf_pos();
 		}
 
 		case nyan_op::DIVIDE_ASSIGN:{
 			if (other.get() == 0) {
-				throw Error{"dividing inf by 0 not permitted"};
+				// dividing inf by 0 not permitted
+				return {};
 			}
 			return this->value;
 		}
 
 		default:
-			throw Error{"unknown operation requested"};
+			throw InternalError{"unknown operation requested"};
 		}
 	}
 	// Only right operand is infinite
@@ -248,141 +280,33 @@ Int::storage_type Int::handle_infinity(const Int &other, nyan_op operation) {
 
 		case nyan_op::SUBTRACT_ASSIGN: {
 			if (other.get() > 0) {
-				return INT_NEG_INF;
+				return inf_neg();
 			}
-			return INT_POS_INF;
+			return inf_pos();
 		}
 
 		case nyan_op::MULTIPLY_ASSIGN:{
 			if (this->value == 0) {
-				throw Error{"multiplying inf with 0 not permitted"};
+				// multiplying inf with 0 not permitted
+				return {};
 			}
 			else if (this->value > 0) {
 				return other.get();
 			}
 			else if (other.get() > 0) {
-				return INT_NEG_INF;
+				return inf_neg();
 			}
-			return INT_POS_INF;
+			return inf_pos();
 		}
 
 		case nyan_op::DIVIDE_ASSIGN:
 			return 0;
 
 		default:
-			throw Error{"unknown operation requested"};
+			throw InternalError{"unknown operation requested"};
 		}
 	}
-	throw InternalError("expected at least one infinite operand");
-}
-
-
-template<>
-Float::storage_type Float::handle_infinity(const Float &other, nyan_op operation) {
-
-	// Both values are infinite
-	if (this->is_infinite() and other.is_infinite()) {
-		switch (operation) {
-		case nyan_op::ASSIGN:
-			return other.get();
-
-		case nyan_op::ADD_ASSIGN: {
-			if (this->value == other.get()) {
-				return this->value;
-			}
-			throw Error{"adding two inf values with different sign not permitted"};
-		}
-
-		case nyan_op::SUBTRACT_ASSIGN: {
-			if (this->value != other.get()) {
-				return this->value;
-			}
-			throw Error{"subtracting two inf values with different sign not permitted"};
-		}
-
-		case nyan_op::MULTIPLY_ASSIGN:{
-			if (this->value == other.get()) {
-				return FLOAT_POS_INF;
-			}
-			return INT_NEG_INF;
-		}
-
-		case nyan_op::DIVIDE_ASSIGN:
-			throw Error{"dividing two inf values not permitted"};
-
-		default:
-			throw Error{"unknown operation requested"};
-		}
-	}
-	// Only left operand is infinite
-	else if (this->is_infinite()) {
-		switch (operation) {
-		case nyan_op::ASSIGN:
-			return other.get();
-
-		case nyan_op::ADD_ASSIGN:
-		case nyan_op::SUBTRACT_ASSIGN:
-			return this->value;
-
-		case nyan_op::MULTIPLY_ASSIGN: {
-			if (other.get() == 0) {
-				throw Error{"multiplying inf with 0 not permitted"};
-			}
-			else if (other.get() > 0) {
-				return this->value;
-			}
-			else if (this->value > 0) {
-				return FLOAT_NEG_INF;
-			}
-			return FLOAT_POS_INF;
-		}
-
-		case nyan_op::DIVIDE_ASSIGN:{
-			if (other.get() == 0) {
-				throw Error{"dividing inf by 0 not permitted"};
-			}
-			return this->value;
-		}
-
-		default:
-			throw Error{"unknown operation requested"};
-		}
-	}
-	// Only right operand is infinite
-	else if (other.is_infinite()) {
-		switch (operation) {
-		case nyan_op::ASSIGN:
-		case nyan_op::ADD_ASSIGN:
-			return other.get();
-
-		case nyan_op::SUBTRACT_ASSIGN: {
-			if (other.get() > 0) {
-				return FLOAT_NEG_INF;
-			}
-			return FLOAT_POS_INF;
-		}
-
-		case nyan_op::MULTIPLY_ASSIGN:{
-			if (this->value == 0) {
-				throw Error{"multiplying inf with 0 not permitted"};
-			}
-			else if (this->value > 0) {
-				return other.get();
-			}
-			else if (other.get() > 0) {
-				return FLOAT_NEG_INF;
-			}
-			return FLOAT_POS_INF;
-		}
-
-		case nyan_op::DIVIDE_ASSIGN:
-			return 0;
-
-		default:
-			throw Error{"unknown operation requested"};
-		}
-	}
-	throw InternalError("expected at least one infinite operand");
+	throw InternalError{"expected at least one infinite operand"};
 }
 
 
@@ -437,23 +361,8 @@ const BasicType &Float::get_type() const {
 	return type;
 }
 
-// explicit instantiation of member functions
-template
-void Number<typename Int::storage_type>::apply_value(
-	const Value &value, nyan_op operation);
-
-template
-void Number<typename Float::storage_type>::apply_value(
-	const Value &value, nyan_op operation);
-
-template
-const std::unordered_set<nyan_op> &
-Number<typename Int::storage_type>::allowed_operations(
-	const Type &with_type) const;
-
-template
-const std::unordered_set<nyan_op> &
-Number<typename Float::storage_type>::allowed_operations(
-	const Type &with_type) const;
+// explicit instantiations
+template class Number<value_int_t>; // Int
+template class Number<value_float_t>; // Float
 
 } // namespace nyan
