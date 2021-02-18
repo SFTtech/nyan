@@ -1,4 +1,4 @@
-# Copyright 2017-2017 the nyan authors. See copying.md for legal info.
+# Copyright 2017-2021 the nyan authors. See copying.md for legal info.
 
 # main nyan build configuration file
 
@@ -36,7 +36,7 @@ project(nyan VERSION ${nyan_VERSION} LANGUAGES CXX)
 set(nyan_exports_name "nyanTargets")
 
 # C++ standard requirement
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # CMake policies
