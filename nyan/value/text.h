@@ -40,7 +40,7 @@ public:
 	}
 
 protected:
-	void apply_value(const Value &value, nyan_op operation) override;
+	bool apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override;
 
 	std::string value;

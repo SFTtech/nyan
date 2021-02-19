@@ -15,7 +15,7 @@ ValueHolder None::copy() const {
 }
 
 
-void None::apply_value(const Value &/**value*/, nyan_op /**operation*/) {
+bool None::apply_value(const Value &/**value*/, nyan_op /**operation*/) {
 	throw InternalError("cannot apply to None: assign Value directly to member instead");
 }
 

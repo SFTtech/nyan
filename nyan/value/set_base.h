@@ -200,7 +200,7 @@ protected:
 	/**
 	 * Update this set with another set with the given operation.
 	 */
-	void apply_value(const Value &value, nyan_op operation) override {
+	bool apply_value(const Value &value, nyan_op operation) override {
 		const Container *change = dynamic_cast<const Container *>(&value);
 
 		if (unlikely(change == nullptr)) {
@@ -262,6 +262,8 @@ protected:
 		default:
 			throw InternalError{"unknown set value application"};
 		}
+
+		return true;
 	}
 
 

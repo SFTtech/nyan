@@ -36,7 +36,7 @@ ValueHolder Text::copy() const {
 }
 
 
-void Text::apply_value(const Value &value, nyan_op operation) {
+bool Text::apply_value(const Value &value, nyan_op operation) {
 	const Text &change = dynamic_cast<const Text &>(value);
 
 	switch (operation) {
@@ -49,6 +49,8 @@ void Text::apply_value(const Value &value, nyan_op operation) {
 	default:
 		throw Error{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 

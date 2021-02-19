@@ -50,7 +50,7 @@ ValueHolder Boolean::copy() const {
 }
 
 
-void Boolean::apply_value(const Value &value, nyan_op operation) {
+bool Boolean::apply_value(const Value &value, nyan_op operation) {
 	const Boolean &change = dynamic_cast<const Boolean &>(value);
 
 	switch (operation) {
@@ -66,6 +66,8 @@ void Boolean::apply_value(const Value &value, nyan_op operation) {
 	default:
 		throw Error{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 

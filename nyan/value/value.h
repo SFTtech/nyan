@@ -136,8 +136,10 @@ protected:
 	 *
 	 * @param value Value that is applied.
 	 * @param operation Operation used in the application.
+	 *
+	 * @return true if the application was successful, else false.
 	 */
-	virtual void apply_value(const Value &value, nyan_op operation) = 0;
+	virtual bool apply_value(const Value &value, nyan_op operation) = 0;
 };
 } // namespace nyan
 

@@ -83,7 +83,7 @@ bool Dict::remove(const key_type &value) {
 }
 
 
-void Dict::apply_value(const Value &value, nyan_op operation) {
+bool Dict::apply_value(const Value &value, nyan_op operation) {
 	auto dict_applier = [](auto &member_value, auto operand, nyan_op operation) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
@@ -222,6 +222,8 @@ void Dict::apply_value(const Value &value, nyan_op operation) {
 		throw InternalError("expected Container instance for operation, but got"
 		                    + std::string(typeid(value).name()));
 	}
+
+	return true;
 }
 
 const std::unordered_set<nyan_op> &Dict::allowed_operations(const Type &with_type) const {

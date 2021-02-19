@@ -114,7 +114,7 @@ bool Number<typename Float::storage_type>::is_infinite() const {
 
 
 template <typename T>
-void Number<T>::apply_value(const Value &value, nyan_op operation) {
+bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 	auto applier = [](auto &member_value, auto operand, nyan_op operation) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
@@ -150,7 +150,7 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 				applier(this->value, change_value.value(), nyan_op::ASSIGN);
 			}
 			else {
-				// return false;
+				return false;
 			}
 		}
 	}
@@ -167,7 +167,7 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 				applier(this->value, change_value.value(), nyan_op::ASSIGN);
 			}
 			else {
-				// return false;
+				return false;
 			}
 		}
 	}
@@ -175,6 +175,8 @@ void Number<T>::apply_value(const Value &value, nyan_op operation) {
 		throw InternalError("expected Number instance for operation, but got"
 		                    + std::string(typeid(value).name()));
 	}
+
+	return true;
 }
 
 

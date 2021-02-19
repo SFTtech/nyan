@@ -20,7 +20,7 @@ ValueHolder ObjectValue::copy() const {
 }
 
 
-void ObjectValue::apply_value(const Value &value, nyan_op operation) {
+bool ObjectValue::apply_value(const Value &value, nyan_op operation) {
 	const ObjectValue &change = dynamic_cast<const ObjectValue &>(value);
 
 	switch (operation) {
@@ -30,6 +30,8 @@ void ObjectValue::apply_value(const Value &value, nyan_op operation) {
 	default:
 		throw Error{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 

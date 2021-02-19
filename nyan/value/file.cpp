@@ -43,7 +43,7 @@ ValueHolder Filename::copy() const {
 }
 
 
-void Filename::apply_value(const Value &value, nyan_op operation) {
+bool Filename::apply_value(const Value &value, nyan_op operation) {
 	const Filename &change = dynamic_cast<const Filename &>(value);
 
 	// TODO: relative path resolution
@@ -55,6 +55,8 @@ void Filename::apply_value(const Value &value, nyan_op operation) {
 	default:
 		throw Error{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 
