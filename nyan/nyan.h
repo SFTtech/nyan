@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #pragma once
 
@@ -27,6 +27,7 @@
 #include "value/file.h"
 #include "value/container.h"
 #include "value/number.h"
+#include "value/object.h"
 #include "value/orderedset.h"
 #include "value/set.h"
 #include "value/text.h"
