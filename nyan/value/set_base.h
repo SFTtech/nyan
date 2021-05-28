@@ -107,7 +107,7 @@ public:
 
 
 	iterator begin() override {
-		throw Error{
+		throw APIError{
 			"Sets are only const-iterable. "
 			"make it const by using e.g. "
 			"for (auto &it = std::as_const(container))"
@@ -156,7 +156,7 @@ public:
 
 
 	holder_iterator values_begin() override {
-		throw Error{
+		throw APIError{
 			"Set values holders are not non-const-iterable."
 		};
 	}

@@ -214,4 +214,20 @@ bool contains(const T &container, const V &value) {
  */
 size_t hash_combine(size_t hash1, size_t hash2);
 
+
+/**
+ * Helper function to be used as failure case with constexpr-ifs:
+ *
+ * if constexpr (bla) {
+ *     ...
+ * }
+ * else {
+ *     match_failure();
+ * }
+ */
+template <bool flag = false>
+void match_failure() {
+	static_assert(flag, "no static branch match found");
+}
+
 } // namespace nyan::util

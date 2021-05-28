@@ -50,10 +50,10 @@ Int::Number(const IDToken &token) {
 	try {
 		if (token.get_type() == token_type::INF) {
 			if (token.str() == "inf") {
-				this->value = INT_POS_INF;
+				this->value = this->infinite_pos();
 			}
 			else {
-				this->value = INT_NEG_INF;
+				this->value = this->infinite_neg();
 			}
 		}
 		else {
@@ -82,10 +82,10 @@ Float::Number(const IDToken &token) {
 	try {
 		if (token.get_type() == token_type::INF) {
 			if (token.str() == "inf") {
-				this->value = FLOAT_POS_INF;
+				this->value = this->infinite_pos();
 			}
 			else {
-				this->value = FLOAT_NEG_INF;
+				this->value = this->infinite_neg();
 			}
 		}
 		else {
@@ -101,132 +101,167 @@ Float::Number(const IDToken &token) {
 }
 
 
-template<>
-bool Number<typename Int::storage_type>::is_infinite() const {
-	return (this->value == INT_POS_INF or this->value == INT_NEG_INF);
+template <typename T>
+bool Number<T>::is_infinite() const {
+	return (this->value == this->infinite_pos() or
+	        this->value == this->infinite_neg());
 }
 
+template <typename T>
+bool Number<T>::is_infinite_positive() const {
+	return this->value == this->infinite_pos();
+}
 
-template<>
-bool Number<typename Float::storage_type>::is_infinite() const {
-	return (this->value == FLOAT_POS_INF or this->value == FLOAT_NEG_INF);
+template <typename T>
+bool Number<T>::is_zero() const {
+	return this->value == 0;
+}
+
+template <typename T>
+bool Number<T>::is_positive() const {
+	return this->value > 0;
 }
 
 
 template <typename T>
 bool Number<T>::apply_value(const Value &value, nyan_op operation) {
-	auto applier = [](auto &member_value, auto operand, nyan_op operation) {
+	// apply the given number to `this`
+	auto applier = [this](auto operand, nyan_op operation) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
-			member_value = operand; break;
+			this->value = operand; break;
 
 		case nyan_op::ADD_ASSIGN:
-			member_value += operand; break;
+			this->value += operand; break;
 
 		case nyan_op::SUBTRACT_ASSIGN:
-			member_value -= operand; break;
+			this->value -= operand; break;
 
 		case nyan_op::MULTIPLY_ASSIGN:
-			member_value *= operand; break;
+			this->value *= operand; break;
 
 		case nyan_op::DIVIDE_ASSIGN:
-			member_value /= operand; break;
+			this->value /= operand; break;
 
 		default:
 			throw InternalError{"unknown operation requested"};
 		}
 	};
 
-	if (typeid(Float&) == typeid(value)) {
-		const Float &change = dynamic_cast<const Float &>(value);
-
-		if (not (this->is_infinite() or change.is_infinite())) {
-			applier(this->value, change.get(), operation);
-		}
-		else {
-			Float left = static_cast<Float>(*this);
-			auto change_value = left.handle_infinity(change, operation);
-			if (change_value.has_value()) {
-				applier(this->value, change_value.value(), nyan_op::ASSIGN);
+	// apply the given number to `this`, and convert it before
+	auto apply_number_convert = [&applier](const NumberBase &number, nyan_op operation) {
+		if constexpr (std::is_same_v<Number<T>, Int>) {
+			if (typeid(const Float &) == typeid(number)) {
+				applier(number.as_float(), operation);
+			}
+			else if (typeid(const Int &) == typeid(number)) {
+				applier(number.as_int(), operation);
 			}
 			else {
-				return false;
+				throw InternalError{"unknown number type to be applied"};
 			}
 		}
+		else if constexpr (std::is_same_v<Number<T>, Float>) {
+			applier(number.as_float(), operation);
+		}
+		else {
+			util::match_failure();
+		}
+	};
+
+	// `this` is either float or int, and `value` can also be either.
+
+	const NumberBase *number = dynamic_cast<const NumberBase *>(&value);
+	if (unlikely(number == nullptr)) {
+		throw InternalError("expected Number instance for operation, but got"
+		                    + util::typestring(&value));
 	}
-	else if (typeid(Int&) == typeid(value)) {
-		const Int &change = dynamic_cast<const Int &>(value);
 
-		if (not (this->is_infinite() or change.is_infinite())) {
-			applier(this->value, change.get(), operation);
-		}
-		else {
-			Int left = static_cast<Int>(*this);
-			auto change_value = left.handle_infinity(change, operation);
-			if (change_value.has_value()) {
-				applier(this->value, change_value.value(), nyan_op::ASSIGN);
-			}
-			else {
-				return false;
-			}
-		}
+	// regular numbers without infinity
+	if (not (this->is_infinite() or number->is_infinite())) {
+		apply_number_convert(*number, operation);
 	}
 	else {
-		throw InternalError("expected Number instance for operation, but got"
-		                    + std::string(typeid(value).name()));
+		// handle infinity values
+		auto inf_result = this->handle_infinity(*number, operation);
+
+		if (inf_result.has_value()) {
+			switch (inf_result.value()) {
+			case infinity_action::OTHER:
+				apply_number_convert(*number, nyan_op::ASSIGN);
+				break;
+
+			case infinity_action::THIS:
+				// just keep our value
+				break;
+
+			case infinity_action::INF_POS:
+				this->value = this->infinite_pos();
+				break;
+
+			case infinity_action::INF_NEG:
+				this->value = this->infinite_neg();
+				break;
+
+			case infinity_action::ZERO:
+				this->value = 0;
+				break;
+			}
+		}
+		else {
+			// the operation failed, so the whole patch transaction has to abort
+			// or we figure out some other way to handle infinity failures
+			// TODO: remove the exception once transactions can fail properly
+			throw Error{"invalid infinity application"};
+			return false;
+		}
 	}
 
 	return true;
 }
 
 
+// TODO: instead of an optional, we should return error messages..
+// but for that we should already have some kind of in-transaction-error-callback
+// mechanism
 template <typename T>
-std::optional<typename Number<T>::storage_type>
-Number<T>::handle_infinity(const Number<T> &other, nyan_op operation) {
-	auto inf_pos = [] () -> storage_type {
-		if constexpr (std::is_same_v<Number<T>, Int>) {
-			return INT_POS_INF;
+std::optional<typename Number<T>::infinity_action>
+Number<T>::handle_infinity(const NumberBase &other, nyan_op operation) {
+
+	auto inf_by_other = [&other](bool invert=false) {
+		if (other.is_infinite_positive() ^ invert) {
+			return infinity_action::INF_POS;
 		}
-		else {
-			return FLOAT_POS_INF;
-		}
-	};
-	auto inf_neg = [] () -> storage_type {
-		if constexpr (std::is_same_v<Number<T>, Int>) {
-			return INT_POS_INF;
-		}
-		else {
-			return FLOAT_POS_INF;
-		}
+		return infinity_action::INF_NEG;
 	};
 
 	// Both values are infinite
 	if (this->is_infinite() and other.is_infinite()) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
-			return other.get();
+			return inf_by_other();
 
 		case nyan_op::ADD_ASSIGN: {
-			if (this->value == other.get()) {
-				return this->value;
+			if (this->is_infinite_positive() == other.is_infinite_positive()) {
+				return inf_by_other();
 			}
 			// adding two inf values with different sign not permitted
 			return {};
 		}
 
 		case nyan_op::SUBTRACT_ASSIGN: {
-			if (this->value != other.get()) {
-				return this->value;
+			if (this->is_infinite_positive() == other.is_infinite_positive()) {
+				return inf_by_other();
 			}
 			// subtracting two inf values with different sign not permitted
 			return {};
 		}
 
-		case nyan_op::MULTIPLY_ASSIGN:{
-			if (this->value == other.get()) {
-				return inf_pos();
+		case nyan_op::MULTIPLY_ASSIGN: {
+			if (this->is_infinite_positive() ^ other.is_infinite_positive()) {
+				return infinity_action::INF_NEG;
 			}
-			return inf_neg();
+			return infinity_action::INF_POS;
 		}
 
 		case nyan_op::DIVIDE_ASSIGN:
@@ -241,32 +276,28 @@ Number<T>::handle_infinity(const Number<T> &other, nyan_op operation) {
 	else if (this->is_infinite()) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
-			return other.get();
+			return infinity_action::OTHER;
 
 		case nyan_op::ADD_ASSIGN:
 		case nyan_op::SUBTRACT_ASSIGN:
-			return this->value;
+			return infinity_action::THIS;
 
 		case nyan_op::MULTIPLY_ASSIGN: {
-			if (other.get() == 0) {
+			if (other.is_zero()) {
 				// multiplying inf with 0 not permitted
 				return {};
 			}
-			else if (other.get() > 0) {
-				return this->value;
-			}
-			else if (this->value > 0) {
-				return inf_neg();
-			}
-			return inf_pos();
+
+			// other_inf xor !this_inf
+			return inf_by_other(not this->is_positive());
 		}
 
-		case nyan_op::DIVIDE_ASSIGN:{
-			if (other.get() == 0) {
+		case nyan_op::DIVIDE_ASSIGN: {
+			if (other.is_zero()) {
 				// dividing inf by 0 not permitted
 				return {};
 			}
-			return this->value;
+			return infinity_action::THIS;
 		}
 
 		default:
@@ -278,31 +309,22 @@ Number<T>::handle_infinity(const Number<T> &other, nyan_op operation) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
 		case nyan_op::ADD_ASSIGN:
-			return other.get();
+			return inf_by_other();
 
-		case nyan_op::SUBTRACT_ASSIGN: {
-			if (other.get() > 0) {
-				return inf_neg();
-			}
-			return inf_pos();
-		}
+		case nyan_op::SUBTRACT_ASSIGN:
+			return inf_by_other(true);
 
-		case nyan_op::MULTIPLY_ASSIGN:{
-			if (this->value == 0) {
+		case nyan_op::MULTIPLY_ASSIGN: {
+			if (this->is_zero()) {
 				// multiplying inf with 0 not permitted
 				return {};
 			}
-			else if (this->value > 0) {
-				return other.get();
-			}
-			else if (other.get() > 0) {
-				return inf_neg();
-			}
-			return inf_pos();
+
+			return inf_by_other(not this->is_positive());
 		}
 
 		case nyan_op::DIVIDE_ASSIGN:
-			return 0;
+			return infinity_action::ZERO;
 
 		default:
 			throw InternalError{"unknown operation requested"};
@@ -362,6 +384,35 @@ const BasicType &Float::get_type() const {
 
 	return type;
 }
+
+
+template <typename T>
+value_float_t Number<T>::as_float() const {
+	// using the brave assumption that the int type max values are always lower
+	// than the floatingpoint types max values
+	return static_cast<value_float_t>(this->value);
+}
+
+template <>
+value_int_t Int::as_int() const {
+	return static_cast<value_int_t>(this->value);
+}
+
+template <>
+value_int_t Float::as_int() const {
+	// float -> int might overflow...
+	if (unlikely(
+		    (static_cast<value_float_t>(std::numeric_limits<value_int_t>::max()) < this->value) or
+		    (static_cast<value_float_t>(std::numeric_limits<value_int_t>::min()) > this->value)
+	    )) {
+
+		// we should handle this better instead of hard-crashing...
+		throw Error{"float to int conversion impossible since value wouldn't fit"};
+	}
+
+	return static_cast<value_int_t>(this->value);
+}
+
 
 // explicit instantiations
 template class Number<value_int_t>; // Int

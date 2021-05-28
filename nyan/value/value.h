@@ -56,8 +56,10 @@ public:
 	 * by the change member's operation and value.
 	 *
 	 * @param change Member that is applied.
+	 *
+	 * @return status if change application was succcessful
 	 */
-	void apply(const Member &change);
+	bool apply(const Member &change);
 
 	/**
 	 * Get the string representation of the value.
@@ -137,9 +139,10 @@ protected:
 	 * @param value Value that is applied.
 	 * @param operation Operation used in the application.
 	 *
+	 * TODO: don't return bool, instead return debugging information.
 	 * @return true if the application was successful, else false.
 	 */
-	virtual bool apply_value(const Value &value, nyan_op operation) = 0;
+	[[nodiscard]] virtual bool apply_value(const Value &value, nyan_op operation) = 0;
 };
 } // namespace nyan
 

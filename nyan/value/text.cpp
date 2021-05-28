@@ -47,7 +47,7 @@ bool Text::apply_value(const Value &value, nyan_op operation) {
 		this->value += change.value; break;
 
 	default:
-		throw Error{"unknown operation requested"};
+		throw InternalError{"unknown operation requested"};
 	}
 
 	return true;

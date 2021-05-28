@@ -356,7 +356,7 @@ ValueHolder Value::from_ast(const Type &target_type,
 }
 
 
-void Value::apply(const Member &change) {
+bool Value::apply(const Member &change) {
 	// extract the member's value,
 	// this is just the data of the member,
 	// no parent data is included.
@@ -366,7 +366,7 @@ void Value::apply(const Member &change) {
 	//       stop the patch loop and just use this value.
 	//       BUT this will fail if one is in a diamond?
 
-	this->apply_value(value, change.get_operation());
+	return this->apply_value(value, change.get_operation());
 }
 
 bool Value::operator ==(const Value &other) const {

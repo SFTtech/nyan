@@ -40,16 +40,4 @@ using value_int_t = int64_t;
 /** type used for nyan::Float values */
 using value_float_t = double;
 
-/** positive infinity for nyan::Int values */
-constexpr const value_int_t INT_POS_INF = std::numeric_limits<value_int_t>::max();
-
-/** negative infinity for nyan::Int values */
-constexpr const value_int_t INT_NEG_INF = std::numeric_limits<value_int_t>::min();
-
-/** positive infinity for nyan::Float values */
-constexpr const value_float_t FLOAT_POS_INF = std::numeric_limits<value_float_t>::infinity();
-
-/** negative infinity for nyan::Float values */
-constexpr const value_float_t FLOAT_NEG_INF = -std::numeric_limits<value_float_t>::infinity();
-
 } // namespace nyan

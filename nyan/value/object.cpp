@@ -28,7 +28,7 @@ bool ObjectValue::apply_value(const Value &value, nyan_op operation) {
 		this->name = change.name; break;
 
 	default:
-		throw Error{"unknown operation requested"};
+		throw InternalError{"unknown operation requested"};
 	}
 
 	return true;
