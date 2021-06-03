@@ -3,6 +3,7 @@
 
 
 #include <algorithm>
+#include <concepts>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -56,20 +57,82 @@ std::string typestring(const T *ptr) {
 }
 
 
+/**
+ * Check if something supports output stream operators.
+ */
 template <typename T>
-std::string get_container_elem(const T &in) {
+concept Streamable = requires(std::ostream &os, T value) {
+	{ os << value } -> std::convertible_to<std::ostream &>;
+};
+
+
+/**
+ * Check if something is a container and provides value type correctly.
+ */
+template <typename T>
+concept Container = requires(T thing) {
+	// check for value_type type-member and iterator access.
+	{*thing.begin()} -> std::convertible_to<typename T::value_type>;
+	thing.begin() == thing.end();
+};
+
+
+/**
+ * Helper function to convert something to a string.
+ * Used as default function in strjoin.
+ */
+template <typename T>
+const std::string &convert_str(const T &in) {
 	return in;
+}
+
+/**
+ * Helper function to stream something to a ostringstream.
+ */
+template <Streamable T>
+void stream_container_elem(std::ostringstream &builder, const T &in) {
+	builder << in;
 }
 
 
 /**
- * Just like python's "delim".join(container)
- * func is a function to extract the string
- * from each element of the container.
+ * Join a container with a delimiter to a given stream.
+ * Except the stream-thing, it's like python's str.join()
  *
- * Now, this function also features a compiler bug:
- * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59949
- * Fak u C++.
+ * @param builder Stringstream to feed the data in.
+ * @param delim Delimiter to add in between the elements.
+ * @param container The container with the elements to join together.
+ * @param func Function to fetch the string for a container item.
+ *
+ * @return reference to the given builder for chaining.
+ */
+template <Container T>
+std::ostringstream &
+strjoin(
+	std::ostringstream &builder,
+	const std::string &delim,
+	const T &container,
+	const std::function<void(std::ostringstream &, const typename T::value_type &)>
+	func=&stream_container_elem<typename T::value_type>
+) {
+
+	bool delim_active = false;
+	for (auto &entry : container) {
+		if (delim_active) {
+			builder << delim;
+		}
+
+		func(builder, entry);
+		delim_active = true;
+	}
+
+	return builder;
+}
+
+
+/**
+ * Like python's "delim".join(iterable).
+ * func is a function of how to stream each element of the container
  *
  * @param delim Delimeter placed between the joined strings.
  * @param container Iterable container holding the strings.
@@ -77,24 +140,19 @@ std::string get_container_elem(const T &in) {
  *
  * @return String containing the joined strings.
  */
-template <typename T>
-std::string strjoin(const std::string &delim,
-                    const T &container,
-                    const std::function<std::string(const typename T::value_type &)> func=&get_container_elem<typename T::value_type>) {
-
+template <Container T>
+std::string strjoin(
+	const std::string &delim,
+	const T &container,
+	const std::function<const std::string&(const typename T::value_type &)>
+	func=&convert_str<typename T::value_type>
+) {
 	std::ostringstream builder;
-
-	size_t cnt = 0;
-	for (auto &entry : container) {
-		if (cnt > 0) {
-			builder << delim;
-		}
-
-		builder << func(entry);
-		cnt += 1;
-	}
-
-	return builder.str();
+	strjoin(builder, delim, container,
+	        [&func](auto &stream, const auto &elem) {
+		        stream << func(elem);
+	        });
+	return std::move(builder).str();
 }
 
 

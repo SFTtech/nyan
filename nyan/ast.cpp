@@ -734,10 +734,6 @@ void ASTObject::strb(std::ostringstream &builder, int indentlevel) const {
 	indenter(builder, indentlevel);
 	builder << this->name.get();
 
-	auto token_str = [](const auto &in) {
-		return in.str();
-	};
-
 	// print <target>
 	if (this->target.exists()) {
 		builder << "<" << this->target.str() << ">";
@@ -752,9 +748,13 @@ void ASTObject::strb(std::ostringstream &builder, int indentlevel) const {
 		builder << "]";
 	}
 
-	builder << "("
-	        << util::strjoin(", ", this->parents, token_str)
-	        << "):"
+	// object parents
+	builder << "(";
+	util::strjoin(builder, ", ", this->parents,
+	              [](auto &stream, auto &elem) {
+		              stream << elem.str();
+	              });
+	builder << "):"
 	        << std::endl;
 
 	if (this->objects.size() > 0) {
@@ -821,9 +821,10 @@ void ASTMemberType::strb(std::ostringstream &builder, int /*indentlevel*/) const
 
 	if (this->has_args) {
 		builder << "(";
-		for (auto &arg : this->args) {
-			arg.strb(builder);
-		}
+		util::strjoin(builder, ", ", this->args,
+		              [](auto &stream, auto& elem) {
+			              elem.strb(stream);
+		              });
 		builder << ")";
 	}
 }
@@ -856,14 +857,8 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 		throw InternalError{"unhandled container type"};
 	}
 
-	bool comma_active = false;
-	for (auto &value : this->values) {
-		if (comma_active) {
-			builder << ", ";
-		}
-		builder << value.str();
-		comma_active = true;
-	}
+	util::strjoin(builder, ", ", this->values,
+	              [](auto &stream, auto &elem) { stream << elem.str(); });
 
 	switch (this->composite_type) {
 	case composite_t::SET:
@@ -886,7 +881,7 @@ ASTError::ASTError(const std::string &msg,
 		std::ostringstream builder;
 		builder << msg << ": "
 		        << token_type_str(token.type);
-		this->msg = builder.str();
+		this->msg = std::move(builder).str();
 	}
 	else {
 		this->msg = msg;
