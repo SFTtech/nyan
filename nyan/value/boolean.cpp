@@ -98,11 +98,6 @@ bool Boolean::equals(const Value &other) const {
 
 
 const std::unordered_set<nyan_op> &Boolean::allowed_operations(const Type &with_type) const {
-
-	const static std::unordered_set<nyan_op> none_ops{
-		nyan_op::ASSIGN,
-	};
-
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::UNION_ASSIGN,
@@ -112,9 +107,6 @@ const std::unordered_set<nyan_op> &Boolean::allowed_operations(const Type &with_
 	switch (with_type.get_primitive_type()) {
 	case primitive_t::BOOLEAN:
 		return ops;
-
-	case primitive_t::NONE:
-		return none_ops;
 
 	default:
 		return no_nyan_ops;

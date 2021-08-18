@@ -2,6 +2,7 @@
 #pragma once
 
 
+#include <concepts>
 #include <deque>
 #include <memory>
 #include <sstream>
@@ -11,6 +12,7 @@
 
 #include "api_error.h"
 #include "config.h"
+#include "value/none.h"
 #include "value/set_types.h"
 #include "value/value_holder.h"
 #include "object_notifier_types.h"
@@ -19,12 +21,23 @@
 
 namespace nyan {
 
+class NumberBase;
+class Object;
 class ObjectInfo;
 class ObjectState;
 class ObjectNotifier;
 class Type;
 class Value;
 class View;
+
+
+/**
+ * Type that is either a nyan value or object.
+ * Object is not a value (ObjectValue is), but want to allow an
+ * overloaded conversion for direct object access.
+ */
+template <typename T>
+concept ValueLike = std::derived_from<T, Value> || std::is_same_v<T, Object>;
 
 
 /**
@@ -83,18 +96,30 @@ public:
 	 * Invokes the get_value function and then does a cast to type T.
 	 * There's a special variant for T=nyan::Object which creates
 	 * an object handle.
+	 * Internally calls `get_optional` with `may_be_none=false`.
 	 *
-	 * TODO: either return a stored variant reference or the shared ptr of the holder
-	 *
-	 * @tparam Type the value is casted to.
+	 * @tparam T the value is casted to.
 	 *
 	 * @param member Identifier of the member.
 	 * @param t Time for which we want to calculate the value.
 	 *
 	 * @return Shared pointer with the value of the member.
 	 */
-	template <typename T>
+	template <ValueLike T>
 	std::shared_ptr<T> get(const memberid_t &member, order_t t=LATEST_T) const;
+
+	/**
+	 * Get a value which has optional type.
+	 * The `may_be_none` template parameter is to patch out the optional check branch,
+	 * since this function is used internally by `Object::get`.
+	 *
+	 * @param member Identifier of the object member entry.
+	 * @param t Time to retrieve the member for.
+	 *
+	 * @return std::optional wrapping the member value
+	 */
+	template <ValueLike T, bool may_be_none=true>
+	std::optional<std::shared_ptr<T>> get_optional(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for a given member at a given time.
@@ -109,7 +134,7 @@ public:
 	 *
 	 * @return Value of the member with type \p ret.
 	 */
-	template<typename T, typename ret=typename T::storage_type>
+	template<std::derived_from<NumberBase> T, typename ret=typename T::storage_type>
 	ret get_number(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
@@ -316,10 +341,22 @@ protected:
 };
 
 
-// TODO: use concepts...
-template <typename T>
+template <ValueLike T>
 std::shared_ptr<T> Object::get(const memberid_t &member, order_t t) const {
+	auto ret = this->get_optional<T, false>(member, t);
+	return *ret;
+}
+
+
+template <ValueLike T, bool may_be_none>
+std::optional<std::shared_ptr<T>> Object::get_optional(const memberid_t &member, order_t t) const {
 	std::shared_ptr<Value> value = this->get_value(member, t).get_ptr();
+	if constexpr (may_be_none) {
+		if (value == None::value) {
+			return {};
+		}
+	}
+
 	auto ret = std::dynamic_pointer_cast<T>(value);
 
 	if (not ret) {
@@ -335,8 +372,7 @@ std::shared_ptr<T> Object::get(const memberid_t &member, order_t t) const {
 }
 
 
-// TODO: use concepts...
-template<typename T, typename ret>
+template<std::derived_from<NumberBase> T, typename ret>
 ret Object::get_number(const memberid_t &member, order_t t) const {
 	return *this->get<T>(member, t);
 }
@@ -348,5 +384,16 @@ ret Object::get_number(const memberid_t &member, order_t t) const {
  */
 template <>
 std::shared_ptr<Object> Object::get<Object>(const memberid_t &member, order_t t) const;
+
+
+/**
+ * Specialization of the get_optional function to generate a nyan::Object
+ * from the ObjectValue that is stored in a optional value.
+ *
+ * Note the missing template parameter for `may_be_optional`, it uses the default
+ * value from the base template...
+ */
+template <>
+std::optional<std::shared_ptr<Object>> Object::get_optional<Object>(const memberid_t &member, order_t t) const;
 
 } // namespace nyan

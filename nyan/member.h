@@ -53,8 +53,10 @@ public:
 	 * Apply another member, using its operation, to this member.
 	 *
 	 * @param change Member applied to this member.
+	 *
+	 * @return if the change application was successful
 	 */
-	void apply(const Member &change);
+	bool apply(const Member &change);
 
 	/**
 	 * Get the string representation of this member's initialization part,
@@ -84,6 +86,7 @@ protected:
 
 	/**
 	 * Value stored in this member.
+	 * Must match the `declared_type`.
 	 */
 	ValueHolder value;
 };

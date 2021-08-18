@@ -88,7 +88,6 @@ const std::unordered_set<nyan_op> &Filename::allowed_operations(const Type &with
 
 	switch (with_type.get_primitive_type()) {
 	case primitive_t::FILENAME:
-	case primitive_t::NONE:
 		return ops;
 
 	default:

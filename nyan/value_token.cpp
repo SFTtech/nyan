@@ -59,19 +59,6 @@ bool ValueToken::exists() const {
 }
 
 
-bool ValueToken::is_none() const {
-	if (this->tokens.size() != 1) {
-		return false;
-	}
-
-	IDToken id_token = this->tokens[0];
-	if (id_token.get_components().size() != 1) {
-		return false;
-	}
-
-	return id_token.get_components()[0].get() == "None";
-}
-
 const Location &ValueToken::get_start_location() const {
 	if (unlikely(not this->exists())) {
 		throw InternalError{"this ValueToken doesn't exist, but you queried its location"};

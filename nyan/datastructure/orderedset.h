@@ -1,7 +1,6 @@
 // Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
-
 #include <cstddef>
 #include <list>
 #include <unordered_map>

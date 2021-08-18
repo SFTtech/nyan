@@ -21,7 +21,7 @@ public:
 	size_t hash() const override;
 
 	/** return the stored fqon */
-	const fqon_t &get() const;
+	const fqon_t &get_name() const;
 
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;

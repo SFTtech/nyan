@@ -3,6 +3,7 @@
 
 
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "config.h"
 #include "error.h"
 #include "ops.h"
+#include "util/flags.h"
 
 
 namespace nyan {
@@ -24,6 +26,19 @@ class NamespaceFinder;
 class Object;
 class State;
 class Token;
+class Value;
+class ValueHolder;
+
+
+/**
+ * Available modifiers for a Type.
+ */
+enum class modifier_t {
+	ABSTRACT,
+	CHILDREN,
+	OPTIONAL,
+	size,
+};
 
 
 /**
@@ -31,6 +46,8 @@ class Token;
  */
 class Type {
 public:
+
+	//////////////////////////////////////////////////////////////////
 
 	/**
 	 * Construct type from the AST.
@@ -45,16 +62,7 @@ public:
 	     const Namespace &ns,
 	     const MetaInfo &type_info);
 
-	/**
-	 * Called when a composite type is created from AST.
-	 */
-	Type(const IDToken &token,
-	     const NamespaceFinder &scope,
-	     const Namespace &ns,
-	     const MetaInfo &type_info);
-
 public:
-
 	virtual ~Type() = default;
 
 	/**
@@ -70,13 +78,6 @@ public:
 	 * @return true if the basic type is fundamental, else false.
 	 */
 	bool is_fundamental() const;
-
-	/**
-	 * Check if this type is a composite of multiple types.
-	 *
-	 * @return true if the basic type is a composite, else false.
-	 */
-	bool is_composite() const;
 
 	/**
 	 * Check if this type is a container that stores multiple values.
@@ -95,22 +96,6 @@ public:
 	bool is_container(composite_t type) const;
 
 	/**
-	 * Check if this type is a modifier.
-	 *
-	 * @return true if the basic type is a modifier, else false.
-	 */
-	bool is_modifier() const;
-
-	/**
-	 * Check if this type is a modifier of a given type.
-	 *
-	 * @param type Composite type that is compared to this type's basic type.
-	 *
-	 * @return true if the composite types matches, else false.
-	 */
-	bool is_modifier(composite_t type) const;
-
-	/**
 	 * Check if a value of this type is hashable.
 	 *
 	 * @return true if values are hashable, else false.
@@ -127,6 +112,13 @@ public:
 	bool is_basic_type_match(const BasicType &type) const;
 
 	/**
+	 * Return if the type has the given modifier flag.
+	 *
+	 * @return true if this type has the given flag.
+	 */
+	bool has_modifier(modifier_t mod) const;
+
+	/**
 	 * Get the object fqon of the type.
 	 *
 	 * @return Identifier of the object if this type is an object, else nullptr.
@@ -141,7 +133,8 @@ public:
 	const BasicType &get_basic_type() const;
 
 	/**
-	 * Get the composite type of this type.
+	 * Get the composite type of this type. Determines if there's nested
+	 * types needed e.g. for the set/dict entries.
 	 *
 	 * @return Composite type of this type.
 	 */
@@ -155,12 +148,13 @@ public:
 	const primitive_t &get_primitive_type() const;
 
 	/**
-	 * Get the composite element type of this type, i.e. the inner type
-	 * that specifies the type of each item in a value.
+	 * Get the composite element type of this type.
+	 * For a container, this is the type of each item in a value.
+	 * These can be nested arbitrarily.
 	 *
 	 * @return Pointer to the list with the element types of this type.
 	 */
-	const std::vector<Type> *get_element_type() const;
+	const std::vector<Type> &get_element_type() const;
 
 	/**
 	 * Get the string representation of this type.
@@ -187,9 +181,15 @@ protected:
 	BasicType basic_type;
 
 	/**
-	 * If this type is a composite, the element type is stored here.
+	 * Which modifiers are active for this type?
 	 */
-	std::shared_ptr<std::vector<Type>> element_type;
+	util::Flags<modifier_t> modifiers;
+
+	/**
+	 * If this type is a composite, the element type is stored here.
+	 * For optional(Bla) this the optional-type's element type is [Bla].
+	 */
+	std::optional<std::vector<Type>> element_type;
 
 	/**
 	 * If this type is an object, store the reference here.

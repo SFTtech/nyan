@@ -73,10 +73,6 @@ std::string Set::repr() const {
 
 const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type) const {
 
-	const static std::unordered_set<nyan_op> none_ops{
-		nyan_op::ASSIGN,
-	};
-
 	const static std::unordered_set<nyan_op> set_ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
@@ -89,10 +85,6 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type
 		nyan_op::SUBTRACT_ASSIGN,
 		nyan_op::INTERSECT_ASSIGN,
 	};
-
-	if (with_type.get_primitive_type() == primitive_t::NONE) {
-		return none_ops;
-	}
 
 	if (not with_type.is_container()) {
 		return no_nyan_ops;

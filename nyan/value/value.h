@@ -1,6 +1,7 @@
 // Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
+#include "nyan/error.h"
 #include <string>
 #include <unordered_set>
 
@@ -29,8 +30,6 @@ public:
 	 *
 	 * @param[in]  target_type Type of the value's member.
 	 * @param[in]  astmembervalue Value representation as the ASTMemberValue.
-	 * @param[out] objs_in_values Pointer to the list of object identifiers in
-	 *     values at load time.
 	 * @param[in]  get_fqon Function for retrieving an object identifier from
 	 *     an IDToken.
 	 * @param[in]  get_obj_lin Function for retrieving the object linearization
@@ -38,11 +37,11 @@ public:
 	 *
 	 * @return ValueHolder with shared pointer to the value.
 	 */
-	static ValueHolder from_ast(const Type &target_type,
-	                            const ASTMemberValue &astmembervalue,
-	                            std::vector<std::pair<fqon_t, Location>> *objs_in_values,
-	                            const std::function<fqon_t(const IDToken &)> &get_fqon,
-	                            const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin);
+	static ValueHolder from_ast(
+		const Type &target_type,
+		const ASTMemberValue &astmembervalue,
+		const std::function<fqon_t(const Type &, const IDToken &)> &get_fqon,
+		const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin);
 
 	/**
 	 * Get a copy of this Value.
@@ -50,6 +49,26 @@ public:
 	 * @return ValueHolder with shared pointer to the value.
 	 */
 	virtual ValueHolder copy() const = 0;
+
+	/**
+	 * Error info about type assignment problems.
+	 */
+	struct TypeProblem {
+		std::string msg;
+	};
+
+	/**
+	 * Check if the given value can be assigned to this type.
+	 *
+	 * @param  type Type of the value's member.
+	 * @param  get_obj_lin Function for retrieving the object linearization
+	 *         for an object.
+	 *
+	 * @return nothing if the value matches.
+	 */
+	std::optional<TypeProblem> compatible_with(
+		const Type &type,
+		const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin) const;
 
 	/**
 	 * Apply a given change to this value. It will be modified
@@ -153,9 +172,9 @@ namespace std {
  * Hash for Values.
  */
 template<>
-struct hash<nyan::Value *> {
-	size_t operator ()(const nyan::Value *val) const {
-		return val->hash();
+struct hash<nyan::Value> {
+	size_t operator ()(const nyan::Value &val) const {
+		return val.hash();
 	}
 };
 

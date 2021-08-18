@@ -21,6 +21,7 @@ FirstPatch<First>():
     member += 3
     blub += 3
     blob -= 3
+    wat3 = None
 
 Second(First):
     member *= 5.5

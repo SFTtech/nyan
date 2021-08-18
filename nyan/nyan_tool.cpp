@@ -30,9 +30,22 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 	Object second = root->get_object("test.Second");
 	Object first = root->get_object("test.First");
 
-	std::cout << "after change: First.member == "
+	std::cout << "before change: First.member == "
 	          << *root->get_object("test.First").get<Int>("member")
 	          << std::endl;
+
+	std::optional<std::shared_ptr<Object>> optional_wat3 = first.get_optional<Object>("wat3", 0);
+
+	if (optional_wat3.has_value()) {
+		if ((*optional_wat3)->get_name() != "test.Second") {
+			std::cout << "First.wat3 has wrong value at t=0" << std::endl;
+			return 1;
+		}
+	}
+	else {
+		std::cout << "First.wat3 should not be None" << std::endl;
+		return 1;
+	}
 
 	Object patch = root->get_object("test.FirstPatch");
 	for (int i = 0; i < 3; i++) {
@@ -41,6 +54,12 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 		if (not tx.commit()) {
 			std::cout << "fail @ " << i << std::endl;
 		}
+	}
+
+	optional_wat3 = first.get_optional<Object>("wat3");
+	if (optional_wat3.has_value()) {
+		std::cout << "First.wat3 should be None by patch" << std::endl;
+		return 1;
 	}
 
 	auto value = *root->get_object("test.First").get<Int>("member");

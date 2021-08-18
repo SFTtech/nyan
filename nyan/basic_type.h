@@ -3,6 +3,7 @@
 
 #include "config.h"
 
+#include <string>
 
 namespace nyan {
 
@@ -30,7 +31,7 @@ enum class primitive_t {
 
 
 /**
- * Available member composite types (containers or modifiers).
+ * Available member composite types (containers and modifiers).
  * SINGLE means it's not a composite.
  */
 enum class composite_t {
@@ -42,7 +43,7 @@ enum class composite_t {
 	ORDEREDSET,
 	DICT,
 
-	// Modifiers
+	// modifiers
 	ABSTRACT,
 	CHILDREN,
 	OPTIONAL,
@@ -120,11 +121,29 @@ public:
 
 
 	/**
+	 * Returns how many nested types are required when creating a Type
+	 * with this BasicType.
+	 * E.g. dict types would require a key and value type, returning 2.
+	 *
+	 * @return Number of required nested types.
+	 */
+	size_t expected_nested_types() const;
+
+
+	/**
 	 * Equality comparison.
 	 *
 	 * @return true if the basic types are exactly the same, else false.
 	 */
 	bool operator==(const BasicType &other) const;
+
+
+	/**
+	 * Get a string representation of this BasicType.
+	 *
+	 * @return the summary string
+	 */
+	std::string str() const;
 
 
 	/**
@@ -139,43 +158,6 @@ public:
 	 * @throw ASTError if no typename could be found.
 	 */
 	static BasicType from_type_token(const IDToken &token);
-
-
-	/**
-	 * Returns how many nested types are required when declaring a given
-	 * type.
-	 *
-	 * @param type The tested type.
-	 *
-	 * @return Number of required nested types.
-	 */
-	static unsigned int expected_nested_types(const BasicType &type) {
-		if (type.is_fundamental()) {
-			return 0;
-		}
-
-		switch (type.composite_type) {
-			// containers
-		case composite_t::SET:
-			return 1;
-		case composite_t::ORDEREDSET:
-			return 1;
-		case composite_t::DICT:
-			return 2;
-
-			// modifiers
-		case composite_t::ABSTRACT:
-			return 1;
-		case composite_t::CHILDREN:
-			return 1;
-		case composite_t::OPTIONAL:
-			return 1;
-
-			// else, must be an object
-		default:
-			return 0;
-		}
-	}
 };
 
 

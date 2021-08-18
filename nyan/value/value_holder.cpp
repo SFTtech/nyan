@@ -1,4 +1,4 @@
-// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "value_holder.h"
 
@@ -20,8 +20,9 @@ ValueHolder::ValueHolder(const std::shared_ptr<Value> &value)
 	value{value} {}
 
 
-Value *ValueHolder::get_value() const {
-	return this->value.get();
+ValueHolder &ValueHolder::operator =(const std::shared_ptr<Value> &value) {
+	this->value = value;
+	return *this;
 }
 
 
@@ -30,33 +31,28 @@ const std::shared_ptr<Value> &ValueHolder::get_ptr() const {
 }
 
 
-void ValueHolder::clear() {
-	this->value = nullptr;
-}
-
-
 bool ValueHolder::exists() const {
-	return this->get_value() != nullptr;
+	return this->value.get() != nullptr;
 }
 
 
 Value &ValueHolder::operator *() const {
-	return *this->get_value();
+	return *this->value;
 }
 
 
 Value *ValueHolder::operator ->() const {
-	return this->get_value();
+	return this->value.get();
 }
 
 
 bool ValueHolder::operator ==(const ValueHolder &other) const  {
-	return (*this->get_value() == *other.get_value());
+	return (*this->value == *other.value);
 }
 
 
 bool ValueHolder::operator !=(const ValueHolder &other) const {
-	return (*this->get_value() != *other.get_value());
+	return (*this->value != *other.value);
 }
 
 
@@ -66,7 +62,7 @@ bool ValueHolder::operator !=(const ValueHolder &other) const {
 namespace std {
 
 size_t hash<nyan::ValueHolder>::operator ()(const nyan::ValueHolder &val) const {
-	return hash<nyan::Value *>{}(val.get_value());
+	return hash<nyan::Value>{}(*val);
 }
 
 } // namespace std

@@ -67,20 +67,38 @@ const Value &Member::get_value() const {
 }
 
 
-void Member::apply(const Member &change) {
+bool Member::apply(const Member &change) {
 	// if the change requests an operator overwrite, apply it.
 	if (change.override_depth > 0) {
+		// TODO: need to revisit this...
+		throw InternalError{"operator overrides not really implemented"};
+
 		this->override_depth = change.override_depth - 1;
 		this->operation = change.get_operation();
+		// TODO: None can't be copied!
 		this->value = change.get_value().copy();
+		return true;
 	}
-	else if (typeid(change.get_value()) == typeid(None&)) {
-		this->value = {std::make_shared<None>(NYAN_NONE)};
+
+	// TODO: if there's more types that require a value override
+	// maybe enhance Value::apply and check which type level accepts given operator with value type
+	auto &change_value = change.value.get_ptr();
+
+	if (util::isinstance<None>(change_value.get())) {
+		// nyan_op::ASSIGN was validated during type check already
+		this->value = change_value;
 	}
-	// else, keep operator as-is and modify the value.
+	else if (util::isinstance<None>(*this->value)) {
+		if (change.get_operation() == nyan_op::ASSIGN) {
+			this->value = change_value;
+		}
+		// else swallow all operations
+	}
 	else {
-		this->value->apply(change);
+		// keep operator as-is and modify the value.
+		return this->value->apply(change);
 	}
+	return true;
 }
 
 
@@ -95,7 +113,7 @@ std::string Member::str() const {
 		builder << " " << this->value->repr();
 	}
 
-	return builder.str();
+	return std::move(builder).str();
 }
 
 } // namespace nyan

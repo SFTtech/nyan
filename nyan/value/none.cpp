@@ -1,22 +1,26 @@
 // Copyright 2020-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
-#include <memory>
-
 #include "none.h"
 
+#include <memory>
 
 namespace nyan {
+
+
+// global none value
+std::shared_ptr<None> None::value = std::make_shared<None>();
+
 
 None::None() = default;
 
 
 ValueHolder None::copy() const {
-	throw InternalError("cannot copy None, hardcoded value should be referenced instead");
+	return ValueHolder{None::value};
 }
 
 
 bool None::apply_value(const Value &/**value*/, nyan_op /**operation*/) {
-	throw InternalError("cannot apply to None: assign Value directly to member instead");
+	throw InternalError{"None can't get an applied value - assign Value directly to member instead"};
 }
 
 
@@ -31,13 +35,15 @@ std::string None::repr() const {
 
 
 size_t None::hash() const {
-	return std::hash<std::string>{}("None");
+	return std::hash<std::string>{}("nyan_None");
 }
 
 
-bool None::equals(const Value &other) const {
-	// Check address equality because we only want identity
-	return std::addressof(*this) == std::addressof(other);
+bool None::equals(const Value &/*other*/) const {
+	// none always equals none,
+	// and `other` is ensured to be none by the `Value::operator==` check,
+	// which then calls this `equals` member method.
+	return true;
 }
 
 
@@ -46,20 +52,12 @@ const std::unordered_set<nyan_op> &None::allowed_operations(const Type &with_typ
 		nyan_op::ASSIGN,
 	};
 
-	switch (with_type.get_primitive_type())
-	{
-	case primitive_t::BOOLEAN:
-	case primitive_t::INT:
-	case primitive_t::FLOAT:
-	case primitive_t::TEXT:
-	case primitive_t::FILENAME:
-	case primitive_t::NONE:
-	case primitive_t::CONTAINER:
-		return ops;
-
-	default:
+	// None can only be assigned to types with optional modifier flag
+	if (not with_type.has_modifier(modifier_t::OPTIONAL)) {
 		return no_nyan_ops;
 	}
+
+	return ops;
 }
 
 

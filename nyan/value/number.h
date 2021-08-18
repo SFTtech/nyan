@@ -19,6 +19,8 @@ class NumberBase : public Value {
 	friend class Number;
 
 public:
+	virtual ~NumberBase() = default;
+
 	/** Checks if the value is positive or negative infinity. */
 	virtual bool is_infinite() const = 0;
 

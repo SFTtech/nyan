@@ -50,7 +50,7 @@ size_t ObjectValue::hash() const {
 }
 
 
-const fqon_t &ObjectValue::get() const {
+const fqon_t &ObjectValue::get_name() const {
 	return this->name;
 }
 

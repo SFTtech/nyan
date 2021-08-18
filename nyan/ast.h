@@ -3,6 +3,7 @@
 
 
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -29,13 +30,15 @@ namespace nyan {
  * @param tokens TokenStream that is walked through.
  * @param limit Maximum number of list items that should be processed.
  * @param func Function called on the list item.
+ * @param unlimited ignore the limit and process until end token is reached.
  *
  * @return Number of list items processed.
  */
 unsigned int comma_list(token_type end,
                         TokenStream &tokens,
                         size_t limit,
-                        const std::function<void(const Token &, TokenStream &)> &func);
+                        const std::function<void(const Token &, TokenStream &)> &func,
+                        bool unlimited=false);
 
 
 /**
@@ -96,14 +99,9 @@ public:
 
 protected:
 	/**
-	 * true if the argument is a key-value pair.
+	 * Argument key token. If the argument is not keyed, this is nullopt.
 	 */
-	bool has_key;
-
-	/**
-	 * Argument key token. If the argument is not keyed, this is nullptr.
-	 */
-	IDToken key;
+	std::optional<IDToken> key;
 
 	/**
 	 * Argument value token.
@@ -124,22 +122,9 @@ public:
 	ASTMemberType();
 	ASTMemberType(const Token &name, TokenStream &tokens);
 
-	/**
-	 * Checks if the member type was declared, i.e. it contains a type definition.
-	 *
-	 * @return true if the member type was declared, false if it
-	 * wasn't. In the latter case the member type must be declared
-	 * in a parent object.
-	 */
-	bool exists() const;
 	void strb(std::ostringstream &builder, int indentlevel = 0) const override;
 
 protected:
-	/**
-	 * true if the member type was declared, i.e. it contains a type definition.
-	 */
-	bool does_exist;
-
 	/**
 	 * Typename of the member type.
 	 */
@@ -149,11 +134,6 @@ protected:
 	 * Nested types of a composite type member, e.g. int in set(int)
 	 */
 	std::vector<ASTMemberType> nested_types;
-
-	/**
-	 * true if the member type has at least one argument.
-	 */
-	bool has_args;
 
 	/**
 	 * Type arguments.
@@ -170,18 +150,9 @@ class ASTMemberValue : public ASTBase {
 	friend class ASTMember;
 
 public:
-	ASTMemberValue();
 	ASTMemberValue(composite_t type,
 	               TokenStream &tokens);
 	ASTMemberValue(const IDToken &value);
-
-	/**
-	 * Checks if the member value was defined, i.e. it contains values.
-	 *
-	 * @return true if the member value was defined, false if it
-	 * wasn't. In the latter case the member is abstract.
-	 */
-	bool exists() const;
 
 	/**
 	 * Returns the values defined by this member value.
@@ -200,11 +171,6 @@ public:
 	void strb(std::ostringstream &builder, int indentlevel = 0) const override;
 
 protected:
-	/**
-	 * true if the member value was defined, i.e. it contains values.
-	 */
-	bool does_exist;
-
 	/**
 	 * Composite type of the member value. Defines how the value is formatted in the file.
 	 */
@@ -242,12 +208,12 @@ protected:
 	/**
 	 * Member type definition.
 	 */
-	ASTMemberType type;
+	std::optional<ASTMemberType> type;
 
 	/**
 	 * Member value definition.
 	 */
-	ASTMemberValue value;
+	std::optional<ASTMemberValue> value;
 };
 
 

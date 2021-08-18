@@ -12,6 +12,7 @@ class Value;
 /**
  * Wrapper class to hold values by shared pointer.
  * Used to redirect the hashing and comparison function inside the ptr.
+ * The shared_ptr must be initialized when using ValueHolder.
  */
 class ValueHolder {
 public:
@@ -20,11 +21,9 @@ public:
 	ValueHolder(const std::shared_ptr<Value> &value);
 
 	/**
-	 * Get the value stored at this holder's pointer.
-	 *
-	 * @return Value stored at this holder's pointer.
+	 * Assign a new value to the holder.
 	 */
-	Value *get_value() const;
+	ValueHolder &operator =(const std::shared_ptr<Value> &value);
 
 	/**
 	 * Get the shared pointer of this ValueHolder.
@@ -32,11 +31,6 @@ public:
 	 * @return Shared pointer to this holder's value.
 	 */
 	const std::shared_ptr<Value> &get_ptr() const;
-
-	/**
-	 * Set the shared pointer to the value to nullptr.
-	 */
-	void clear();
 
 	/**
 	 * Check if this holder points to a value.

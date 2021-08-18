@@ -34,8 +34,8 @@ std::string IDToken::str() const {
 	return util::strjoin(
 		".",
 		this->ids,
-		[] (const auto &in) {
-			return in.get();
+		[] (const Token &tok) -> auto& {
+			return tok.get();
 		}
 	);
 }

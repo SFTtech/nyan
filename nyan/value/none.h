@@ -6,7 +6,6 @@
 
 namespace nyan {
 
-class IDToken;
 
 /**
  * Nyan value to store None (basically a "no value" placeholder).
@@ -23,12 +22,12 @@ public:
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
 
+	/** the global None value */
+	static std::shared_ptr<None> value;
+
 protected:
 	bool apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override;
 };
-
-/** None value */
-const None NYAN_NONE = None();
 
 } // namespace nyan

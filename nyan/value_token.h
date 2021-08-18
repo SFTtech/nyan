@@ -45,13 +45,6 @@ public:
 	bool exists() const;
 
 	/**
-	 * Checks if this ValueToken contains the None value.
-	 *
-	 * @return true if this ValueToken stores None, else false.
-	 */
-	bool is_none() const;
-
-	/**
 	 * Get the starting location of this ValueToken in a file.
 	 *
 	 * @return Location of this ValueToken.

@@ -65,6 +65,7 @@ add_library(nyan SHARED
 	transaction.cpp
 	type.cpp
 	util.cpp
+	util/flags.cpp
 	value_token.cpp
 	value/boolean.cpp
 	value/container.cpp

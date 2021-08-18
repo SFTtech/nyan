@@ -72,14 +72,58 @@ bool BasicType::is_modifier() const {
 }
 
 
+size_t BasicType::expected_nested_types() const {
+	if (this->is_fundamental()) {
+		return 0;
+	}
+
+	switch (this->composite_type) {
+		// containers
+	case composite_t::SET:
+	case composite_t::ORDEREDSET:
+		return 1;
+	case composite_t::DICT:
+		return 2;
+
+		// modifiers
+	case composite_t::ABSTRACT:
+	case composite_t::CHILDREN:
+	case composite_t::OPTIONAL:
+		return 1;
+
+		// else, primitive value
+	case composite_t::SINGLE:
+		return 0;
+
+	default:
+		throw Error{"unhandled composite type"};
+	}
+}
+
+
 bool BasicType::operator==(const BasicType &other) const {
 	return (this->primitive_type == other.primitive_type and
 	        this->composite_type == other.composite_type);
 }
 
 
+
+std::string BasicType::str() const {
+	if (this->is_fundamental()) {
+		return type_to_string(this->primitive_type);
+	}
+	else if (this->is_composite()) {
+		return composite_type_to_string(this->composite_type);
+	}
+
+	throw InternalError{"basic string neither fundamental nor composite"};
+}
+
+
 // textual type conversion for the type definition in a member
 BasicType BasicType::from_type_token(const IDToken &tok) {
+	// TODO: replace those lookup maps with a constexpr compiletime map.
+
 	// primitive type name map
 	static const std::unordered_map<std::string, primitive_t> primitive_types = {
 		{"bool", primitive_t::BOOLEAN},
@@ -97,7 +141,7 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 	};
 
 	// modifier type name map
-	static const std::unordered_map<std::string, composite_t> modifier_types = {
+	static const std::unordered_map<std::string, composite_t> modifiers = {
 		{"abstract", composite_t::ABSTRACT},
 		{"children", composite_t::CHILDREN},
 		{"optional", composite_t::OPTIONAL}
@@ -122,8 +166,8 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 			break;
 		}
 
-		auto it2 = modifier_types.find(tok.get_first());
-		if (it2 != std::end(modifier_types)) {
+		auto it2 = modifiers.find(tok.get_first());
+		if (it2 != std::end(modifiers)) {
 			type = primitive_t::MODIFIER;
 			composite_type = it2->second;
 		}

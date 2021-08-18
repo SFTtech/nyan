@@ -98,6 +98,7 @@ void Database::load(const std::string &filename,
 		}
 	);
 
+	// descend to all imports and load the files
 	while (to_import.size() > 0) {
 		auto cur_ns_it = to_import.begin();
 		const Namespace &namespace_to_import = cur_ns_it->first;
@@ -164,9 +165,11 @@ void Database::load(const std::string &filename,
 
 	using namespace std::placeholders;
 
+	// now that we have all imports, process the nyan-objects in those files.
+
 	size_t new_obj_count = 0;
 
-	// first run: create empty object info objects
+	// first run: create empty object infos
 	ast_obj_walk(imports, std::bind(&Database::create_obj_info,
 	                                this, &new_obj_count,
 	                                _1, _2, _3, _4));
@@ -177,7 +180,7 @@ void Database::load(const std::string &filename,
 	// map object => new children.
 	std::unordered_map<fqon_t, std::unordered_set<fqon_t>> obj_children;
 
-	// now, all new object infos need to be filled with types
+	// second run: fill object infos and its member type infos
 	ast_obj_walk(imports, std::bind(&Database::create_obj_content,
 	                                this,
 	                                &new_objects,
@@ -193,7 +196,7 @@ void Database::load(const std::string &filename,
 	// these objects were uses as values at some file location.
 	std::vector<std::pair<fqon_t, Location>> objs_in_values;
 
-	// state value creation
+	// third run: state value creation, create object members/values
 	ast_obj_walk(imports, std::bind(&Database::create_obj_state,
 	                                this, &objs_in_values,
 	                                _1, _2, _3, _4));
@@ -302,20 +305,24 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 
 		// TODO: the member name requires advanced expansions
 		//       for conflict resolving
+		//       this explicit naming is not implemented yet
+		//       variants include `ParentName.member += 1`
 
 		MemberInfo &member_info = info->add_member(
 			astmember.name.str(),
 			MemberInfo{astmember.name}
 		);
 
-		if (not astmember.type.exists()) {
+		// it doesn't exist if the user didn't specify it.
+		// it's not set
+		if (not astmember.type.has_value()) {
 			continue;
 		}
 
 		// if existing, create type information of member.
 		member_info.set_type(
 			std::make_shared<Type>(
-				astmember.type,
+				*astmember.type,
 				scope,
 				objname,
 				this->meta_info
@@ -528,7 +535,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 
 void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_in_values,
                                 const NamespaceFinder &scope,
-                                const Namespace &,
+                                const Namespace &/*containing namespace*/,
                                 const Namespace &objname,
                                 const ASTObject &astobj) {
 
@@ -552,7 +559,7 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 	for (auto &astmember : astobj.members) {
 
 		// member has no value
-		if (not astmember.value.exists()) {
+		if (not astmember.value.has_value()) {
 			continue;
 		}
 
@@ -584,22 +591,25 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 				operation,
 				*member_type,
 				Value::from_ast(
-					*member_type, astmember.value, objs_in_values,
+					*member_type, *astmember.value,
 					// function to determine object names used in values:
 					[&scope, &objname, this, &objs_in_values]
-					(const IDToken &token) -> fqon_t {
+					(const Type &target_type, const IDToken &token) -> fqon_t {
 						// find the desired object in the scope of the object
 						fqon_t obj_id = scope.find(objname, token, this->meta_info);
 
-						// remember to check if this object can be used as value
-						objs_in_values->push_back({obj_id, Location{token}});
+						if (not target_type.has_modifier(modifier_t::ABSTRACT)) {
+							// later we have to check if this object can be used as value
+							// i.e. has all members with value.
+							objs_in_values->push_back({obj_id, Location{token}});
+						}
 
 						return obj_id;
 					},
 					// function to retrieve an object's linearization
-					[&objname, this]
+					[this]
 					(const fqon_t &fqon) -> std::vector<fqon_t> {
-						const ObjectInfo *obj_info = meta_info.get_object(fqon);
+						const ObjectInfo *obj_info = this->meta_info.get_object(fqon);
 						if (unlikely(obj_info == nullptr)) {
 							throw InternalError{"object info could not be retrieved"};
 						}
@@ -610,44 +620,40 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 			}
 		).first->second;
 
-		// let the value determine if it can work together
-		// with the member type.
+		// validate type + operator + value work together
+
 		const Value &new_value = new_member.get_value();
+		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(*member_type);
 
-		// Remove the outer modifiers of the type as they
-		// are not relevant for allowed operations
-		Type unpacked_type = *member_type;
-		while (unpacked_type.is_modifier()) {
-			unpacked_type = unpacked_type.get_element_type()->at(0);
-		}
-		const std::unordered_set<nyan_op> &allowed_ops = new_value.allowed_operations(unpacked_type);
+		if (unlikely(not allowed_ops.contains(operation))) {
+			// TODO: show location of operation
 
-		if (unlikely(allowed_ops.find(operation) == std::end(allowed_ops))) {
-			// TODO: show location of operation, not the member name
-
-			// I'm really sorry for this flower meadow of an error message.
 			throw TypeError{
-				astmember.name,
-				"invalid operator "s
-				+ op_to_string(operation)
-				+ ": member type "s
+				astmember.value->values[0].get_start_location(),
+				"member type "s
 				+ member_type->str()
-				+
-				(allowed_ops.size() > 0
-				 ?
-				 " only allows operations '"s
-				 + util::strjoin(
-					 ", ", allowed_ops,
-					 [] (const nyan_op &op) {
-						 return op_to_string(op);
-					 }
-				 )
-				 + "' "
-				 :
-				 " allows no operations "
+				+ " can't be used with value of type "
+				+ new_value.get_type().str()
+				+ ": invalid operator "
+				+ op_to_string(operation)
+				+ " because member type "
+				+ (
+					allowed_ops.size() > 0
+					?
+					" only allows operations:\n'"s
+					+ util::strjoin(
+						", ", allowed_ops,
+						[] (const nyan_op &op) {
+							return op_to_string(op);
+						}
+					)
+					+ "' "
+					:
+					" allows no operations "
 				)
-				+ "for value "
+				+ "for value '"
 				+ new_value.str()
+				+ "'"
 			};
 		}
 	}
@@ -731,6 +737,9 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 
 	std::unordered_set<fqon_t> obj_values_ok;
 
+	// validate all objects that were used as a member value:
+	// each value-used object must be non-abstract,
+	// i.e. have all members with a value.
 	for (auto &it : objs_in_values) {
 		const fqon_t &obj_id = it.first;
 

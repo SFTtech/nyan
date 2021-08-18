@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <type_traits>
 #include <vector>
 
 #include "error.h"
@@ -72,8 +73,8 @@ concept Streamable = requires(std::ostream &os, T value) {
 template <typename T>
 concept Container = requires(T thing) {
 	// check for value_type type-member and iterator access.
-	{*thing.begin()} -> std::convertible_to<typename T::value_type>;
-	thing.begin() == thing.end();
+	{*std::begin(thing)} -> std::convertible_to<typename T::value_type>;
+	std::begin(thing) == std::end(thing);
 };
 
 
@@ -144,14 +145,18 @@ template <Container T>
 std::string strjoin(
 	const std::string &delim,
 	const T &container,
-	const std::function<const std::string&(const typename T::value_type &)>
+	const std::function<const std::string_view(const typename T::value_type &)>
 	func=&convert_str<typename T::value_type>
 ) {
 	std::ostringstream builder;
-	strjoin(builder, delim, container,
-	        [&func](auto &stream, const auto &elem) {
-		        stream << func(elem);
-	        });
+	strjoin(
+		builder, delim, container,
+		[&func](std::ostringstream &stream,
+		        const typename T::value_type &elem) {
+			auto &&elem_str = func(elem);
+			stream << elem_str;
+		}
+	);
 	return std::move(builder).str();
 }
 
@@ -286,6 +291,23 @@ size_t hash_combine(size_t hash1, size_t hash2);
 template <bool flag = false>
 void match_failure() {
 	static_assert(flag, "no static branch match found");
+}
+
+/**
+ * Test if the given ptr is an instance of a base
+ */
+template <typename Base, typename T>
+inline bool isinstance(const T *ptr) {
+	return dynamic_cast<const Base *>(ptr) != nullptr;
+}
+
+/**
+ * Test if the given reference is an instance of some base.
+ */
+template <typename Base, typename T>
+requires (!std::is_pointer_v<T>)
+inline bool isinstance(const T &ref) {
+	return dynamic_cast<const Base *>(&ref) != nullptr;
 }
 
 } // namespace nyan::util

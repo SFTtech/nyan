@@ -16,13 +16,14 @@ namespace nyan {
 unsigned int comma_list(token_type end,
                         TokenStream &tokens,
                         size_t limit,
-                        const std::function<void(const Token &, TokenStream &)> &func) {
+                        const std::function<void(const Token &, TokenStream &)> &func,
+                        bool unlimited) {
 	auto token = tokens.next();
 	bool comma_expected = false;
 
 	// add identifiers until the expected end token is reached.
 	unsigned int index = 0;
-	while (index < limit) {
+	while (unlimited or index < limit) {
 		if (token->type == token_type::ENDLINE) {
 			token = tokens.next();
 			continue;
@@ -61,10 +62,7 @@ unsigned int comma_list(token_type end,
 unsigned int comma_list(token_type end,
                         TokenStream &tokens,
                         const std::function<void(const Token &, TokenStream &)> &func) {
-	return comma_list(end,
-	                  tokens,
-	                  SIZE_MAX,
-	                  func);
+	return comma_list(end, tokens, 0, func, true);
 }
 
 
@@ -426,8 +424,10 @@ const IDToken &ASTInheritanceChange::get_target() const {
 
 
 ASTMember::ASTMember(const Token &name,
-                     TokenStream &tokens) {
-	this->name = IDToken{name, tokens};
+                     TokenStream &tokens) :
+	name{IDToken{name, tokens}},
+	type{std::nullopt},
+	value{std::nullopt} {
 
 	auto token = tokens.next();
 	bool had_def_or_decl = false;
@@ -526,35 +526,41 @@ ASTMember::ASTMember(const Token &name,
 }
 
 
-ASTMemberType::ASTMemberType() :
-	does_exist{false},
-	has_args{false} {}
-
-
 ASTMemberType::ASTMemberType(const Token &name,
                              TokenStream &tokens) :
-	does_exist{true},
-	has_args{false} {
-	this->name = IDToken{name, tokens};
+	name{IDToken{name, tokens}} {
 
-	// now there may follow type arguments, e.g. set(arg, key=val)
+	// now there may follow type arguments, e.g.:
+	// set(arg, key=val)
+	// optional(dict(ktype, vtype))
+	// optional(dict(abstract(ktype), optional(abstract(vtype))))
 	auto token = tokens.next();
 
 	// Check how many type arguments are required at minimum
 	BasicType member_type = BasicType::from_type_token(this->name);
-	auto num_expected_types = BasicType::expected_nested_types(member_type);
+	size_t num_expected_types = member_type.expected_nested_types();
 
 	if (token->type == token_type::LPAREN) {
+
+		// TODO: if we introduce optional arguments for composite types
+		// we have to adjust the allowed count here.
+		// or just count the non-kwarg arguments, and ignored the kwarg count.
+		// i.e. something(bla, thisisanoptionalkwarg=123)
+		//
+		// TODO: also save them to this->args
+
 		auto num_read_types = comma_list(
 			token_type::RPAREN,
 			tokens,
 			num_expected_types,
 			[this](const Token &token, TokenStream &stream) {
 				this->nested_types.emplace_back(token, stream);
-			});
-		if (num_read_types < num_expected_types) {
+			}
+		);
+
+		if (unlikely(num_read_types != num_expected_types)) {
 			throw ASTError(
-				std::string("expected at least ")
+				std::string("expected ")
 				+ std::to_string(num_expected_types)
 				+ " arguments for "
 				+ composite_type_to_string(member_type.composite_type)
@@ -564,14 +570,10 @@ ASTMemberType::ASTMemberType(const Token &name,
 				*token,
 				false);
 		}
-
-		if (this->args.size() > 0) {
-			this->has_args = true;
-		}
 	}
 	else if (num_expected_types > 0) {
 		throw ASTError(
-			std::string("expected at least ")
+			std::string("expected ")
 			+ std::to_string(num_expected_types)
 			+ " arguments for "
 			+ composite_type_to_string(member_type.composite_type)
@@ -585,13 +587,7 @@ ASTMemberType::ASTMemberType(const Token &name,
 }
 
 
-bool ASTMemberType::exists() const {
-	return this->does_exist;
-}
-
-
-ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens) :
-	has_key{false} {
+ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens) {
 	auto token = tokens.next();
 	if (token->type != token_type::ID) {
 		throw ASTError("expected argument value or key, but got", *token);
@@ -604,7 +600,6 @@ ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens) :
 			throw ASTError("expected argument keyed assignment, but got", *token);
 		}
 
-		this->has_key = true;
 		this->key = IDToken(*token, tokens);
 
 		token = tokens.next();
@@ -620,12 +615,7 @@ ASTMemberTypeArgument::ASTMemberTypeArgument(TokenStream &tokens) :
 }
 
 
-ASTMemberValue::ASTMemberValue() :
-	does_exist{false} {}
-
-
 ASTMemberValue::ASTMemberValue(const IDToken &value) :
-	does_exist{true},
 	composite_type{composite_t::SINGLE} {
 	this->values.emplace_back(value);
 }
@@ -633,7 +623,6 @@ ASTMemberValue::ASTMemberValue(const IDToken &value) :
 
 ASTMemberValue::ASTMemberValue(composite_t type,
                                TokenStream &tokens) :
-	does_exist{true},
 	composite_type{type} {
 	token_type end_token;
 
@@ -680,12 +669,6 @@ ASTMemberValue::ASTMemberValue(composite_t type,
 	default:
 		throw InternalError{"unknown container value type"};
 	}
-}
-
-
-bool ASTMemberValue::exists() const {
-	// the size of this->values doesn't matter, as the value could be an empty set.
-	return this->does_exist;
 }
 
 
@@ -799,17 +782,17 @@ void ASTMember::strb(std::ostringstream &builder, int indentlevel) const {
 	indenter(builder, indentlevel);
 	builder << this->name.str();
 
-	if (this->type.exists()) {
+	if (this->type.has_value()) {
 		builder << " : ";
-		this->type.strb(builder);
+		this->type->strb(builder);
 	}
 
-	if (this->value.exists()) {
+	if (this->value.has_value()) {
 		builder << " "
 		        << op_to_string(this->operation)
 		        << " ";
 
-		this->value.strb(builder);
+		this->value->strb(builder);
 	}
 
 	builder << std::endl;
@@ -819,7 +802,7 @@ void ASTMember::strb(std::ostringstream &builder, int indentlevel) const {
 void ASTMemberType::strb(std::ostringstream &builder, int /*indentlevel*/) const {
 	builder << this->name.str();
 
-	if (this->has_args) {
+	if (this->args.size() > 0) {
 		builder << "(";
 		util::strjoin(builder, ", ", this->args,
 		              [](auto &stream, auto& elem) {
@@ -831,8 +814,8 @@ void ASTMemberType::strb(std::ostringstream &builder, int /*indentlevel*/) const
 
 
 void ASTMemberTypeArgument::strb(std::ostringstream &builder, int /*indentlevel*/) const {
-	if (this->has_key) {
-		builder << this->key.str() << "=";
+	if (this->key.has_value()) {
+		builder << this->key->str() << "=";
 	}
 
 	builder << this->value.str();
