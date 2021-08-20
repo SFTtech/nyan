@@ -1,13 +1,12 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #pragma once
 
-
+/*
+ * Branch prediction tuning.
+ * The expression is expected to be true (=likely) or false (=unlikely).
+ */
 #if defined(__GNUC__)
-	/*
-	 * Branch prediction tuning.
-	 * The expression is expected to be true (=likely) or false (=unlikely).
-	 */
 	#define likely(x)    __builtin_expect(!!(x), 1)
 	#define unlikely(x)  __builtin_expect(!!(x), 0)
 #else

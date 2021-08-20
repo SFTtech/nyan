@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -39,7 +39,6 @@ enum class inher_change_t {
 };
 
 
-
 /**
  * Convenience variable to be used whenever no operation is allowed.
  * It comes in handy as the allowance sets are const static function
@@ -51,13 +50,11 @@ extern const std::unordered_set<nyan_op> no_nyan_ops;
 
 
 /**
- * Return the operator
- */
-nyan_op op_from_string(const std::string &str);
-
-
-/**
- * Return the string representation of a nyan operator.
+ * Get a string representation of a nyan operation.
+ *
+ * @param op Nyan operation.
+ *
+ * @return Char array with the string representation of the nyan operation.
  */
 constexpr const char *op_to_string(nyan_op op) {
 	switch (op) {
@@ -79,13 +76,29 @@ constexpr const char *op_to_string(nyan_op op) {
 
 
 /**
- * Create the nyan_op from a token.
+ * Get a nyan operation from a string of an operator.
+ *
+ * @param str String with an operator.
+ *
+ * @return A nyan operation.
+ */
+nyan_op op_from_string(const std::string &str);
+
+
+/**
+ * Get a nyan operation from a token of an operator.
+ *
+ * @param str Token with an operator string.
+ *
+ * @return A nyan operation.
  */
 nyan_op op_from_token(const Token &token);
 
 
 /**
  * A nyan operator, to be created from either a token
+ *
+ * TODO: What is this?
  */
 class Operator {
 public:

@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "set.h"
 
@@ -73,10 +73,6 @@ std::string Set::repr() const {
 
 const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type) const {
 
-	if (not with_type.is_container()) {
-		return no_nyan_ops;
-	}
-
 	const static std::unordered_set<nyan_op> set_ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
@@ -90,11 +86,15 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
-	switch (with_type.get_container_type()) {
-	case container_t::SET:
+	if (not with_type.is_container()) {
+		return no_nyan_ops;
+	}
+
+	switch (with_type.get_composite_type()) {
+	case composite_t::SET:
 		return set_ops;
 
-	case container_t::ORDEREDSET:
+	case composite_t::ORDEREDSET:
 		return orderedset_ops;
 
 	default:
@@ -106,7 +106,7 @@ const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type
 const BasicType &Set::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::CONTAINER,
-		container_t::SET,
+		composite_t::SET,
 	};
 
 	return type;

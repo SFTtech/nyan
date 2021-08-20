@@ -24,11 +24,16 @@ __pycache__
 /bin
 /.bin
 /build
+/compile_commands.json
 
 # debugging
 callgrind.out.*
 perf.data*
 .gdb_history
+
+# IDE stuff
+/.cache
+/.dir-locals.el
 
 # cmake in-source builds
 /DartConfiguration.tcl

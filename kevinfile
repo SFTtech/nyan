@@ -4,8 +4,10 @@
 #
 
 configure:
+	- env: compiler=g++                           (? if job == "debian" ?)
+	- env: compiler=clang++                       (? if job == "debian-clang" ?)
 	mkdir build
-	cd build && cmake ..
+	cd build && cmake .. -DCMAKE_CXX_COMPILER=${compiler}
 
 build: configure
 	- cwd: build/

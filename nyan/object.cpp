@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object.h"
 
@@ -92,9 +92,30 @@ Object Object::get_object(const memberid_t &member, order_t t) const {
 template <>
 std::shared_ptr<Object> Object::get<Object>(const memberid_t &member, order_t t) const {
 	auto obj_val = this->get<ObjectValue>(member, t);
-	fqon_t fqon = obj_val->get();
-	std::shared_ptr<Object> ret = std::make_shared<Object>(Object::Restricted{},
-	                                                       fqon, this->origin);
+
+	const fqon_t &fqon = obj_val->get_name();
+	std::shared_ptr<Object> ret = std::make_shared<Object>(
+		Object::Restricted{},
+		fqon,
+		this->origin
+	);
+	return ret;
+}
+
+
+template <>
+std::optional<std::shared_ptr<Object>> Object::get_optional<Object>(const memberid_t &member, order_t t) const {
+	auto optional_obj_val = this->get_optional<ObjectValue>(member, t);
+	if (not optional_obj_val.has_value()) {
+		return {};
+	}
+	std::shared_ptr<ObjectValue> obj_val = std::move(optional_obj_val).value();
+
+	const fqon_t &fqon = obj_val->get_name();
+	std::shared_ptr<Object> ret = std::make_shared<Object>(
+		Object::Restricted{},
+		fqon, this->origin
+	);
 	return ret;
 }
 

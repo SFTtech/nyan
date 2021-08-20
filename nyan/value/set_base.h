@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -107,13 +107,12 @@ public:
 
 
 	iterator begin() override {
-		throw Error{
-			"Sets are not non-const-iterable. "
+		throw APIError{
+			"Sets are only const-iterable. "
 			"make it const by using e.g. "
 			"for (auto &it = std::as_const(container))"
 		};
 	}
-
 
 	iterator end() override {
 		// also throw the error above.
@@ -157,7 +156,7 @@ public:
 
 
 	holder_iterator values_begin() override {
-		throw Error{
+		throw APIError{
 			"Set values holders are not non-const-iterable."
 		};
 	}
@@ -189,10 +188,10 @@ public:
 	 */
 	holder_const_iterator values_end() const override {
 		auto real_iterator = std::make_unique<
-		DefaultIterator<value_const_iterator,
-		                holder_const_iterator::elem_type>>(
-			                std::end(this->values)
-		                );
+			DefaultIterator<value_const_iterator,
+			                holder_const_iterator::elem_type>>(
+				                std::end(this->values)
+			                );
 
 		return holder_const_iterator{std::move(real_iterator)};
 	}
@@ -201,7 +200,7 @@ protected:
 	/**
 	 * Update this set with another set with the given operation.
 	 */
-	void apply_value(const Value &value, nyan_op operation) override {
+	bool apply_value(const Value &value, nyan_op operation) override {
 		const Container *change = dynamic_cast<const Container *>(&value);
 
 		if (unlikely(change == nullptr)) {
@@ -263,6 +262,8 @@ protected:
 		default:
 			throw InternalError{"unknown set value application"};
 		}
+
+		return true;
 	}
 
 

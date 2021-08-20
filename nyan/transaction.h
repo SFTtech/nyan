@@ -1,4 +1,4 @@
-// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <exception>
@@ -43,12 +43,21 @@ struct view_update {
 
 /**
  * New information for a view.
- * * The state that we're gonna build with this transaction
- * * Changes done in the transaction to invalidate caches.
  */
 struct view_state {
+	/**
+	 * View where the changes happen.
+	 */
 	std::shared_ptr<View> view;
+
+	/**
+	 * State that we're gonna build with this transaction.
+	 */
 	std::shared_ptr<State> state;
+
+	/**
+	 * Changes done in the transaction to invalidate caches.
+	 */
 	ChangeTracker changes;
 };
 
@@ -62,25 +71,37 @@ public:
 	Transaction(order_t at, std::shared_ptr<View> &&origin);
 
 	/**
-	 * Add a patch to the transaction.
-	 * Apply the patch to the target stored in the patch.
+	 * Add a patch to the transaction. Apply the patch to the target
+	 * stored in the patch.
+	 *
+	 * @param obj Patch to be applied.
+	 *
+	 * @return true if the patch is successfully applied, else false.
 	 */
 	bool add(const Object &obj);
 
 	/**
-	 * Add a patch to the transaction.
-	 * Apply the patch to a custom target, which must be a
-	 * child of the target stored in the patch.
+	 * Add a patch to the transaction. Apply the patch to a custom target,
+	 * which must be a descendant of the target stored in the patch.
+	 *
+	 * @param obj Patch to be applied.
+	 * @param target Target object. Must be a descendant of the target stored in the patch.
+	 *
+	 * @return true if the patch is successfully applied, else false.
 	 */
 	bool add(const Object &obj, const Object &target);
 
 	/**
-	 * Returns true if the transaction was successful.
+	 * Commit the transaction, i.e. update the views.
+	 *
+	 * @return true if the transaction was successful, else false.
 	 */
 	bool commit();
 
 	/**
-	 * Return the exception that caused a transaction failure.
+	 * Get the pointer to the exception that caused a transaction failure.
+	 *
+	 * @return Pointer to the exception that caused a transaction failure.
 	 */
 	const std::exception_ptr &get_exception() const;
 
@@ -91,17 +112,24 @@ protected:
 	void merge_changed_states();
 
 	/**
-	 * Generate all needed updates.
-	 * The vector indices are mapped to the views of the
-	 * `states` member at the bottom.
+	 * Generate all needed updates for a commit. The vector indices
+	 * are mapped to the views of the \p states member of the transaction.
+	 *
+	 * @return List of updates for the views.
 	 */
 	std::vector<view_update> generate_updates();
 
 	/**
-	 * Track which parents need to be notified
-	 * of new childs.
-	 * Also builds up a list of objects to relinearize
-	 * because its parents changed.
+	 * Track which parents need to be notified of new children.
+	 * Also builds up a list of objects to relinearize because their
+	 * parents changed.
+	 *
+	 * @param[in]  tracker ChangeTracker contaiing the object inheritance changes.
+	 * @param[in]  view View for which the objects are changed.
+	 * @param[out] objs_to_linearize Identifiers of objects that are relinearized.
+	 *
+	 * @return Map of sets of children identifiers that need to be notified
+	 *     by their parent.
 	 */
 	view_update::child_map_t
 	inheritance_updates(const ChangeTracker &tracker,
@@ -110,6 +138,12 @@ protected:
 
 	/**
 	 * Generate new linearizations for objects that changed.
+	 *
+	 * @param objs_to_linearize Identifiers of objects that are relinearized.
+	 * @param view View for which the objects are changed.
+	 * @param new_state New state of the database after the transaction.
+	 *
+	 * @return List of list of new object linearizations.
 	 */
 	view_update::linearizations_t
 	relinearize_objects(const std::unordered_set<fqon_t> &objs_to_linearize,
@@ -120,11 +154,17 @@ protected:
 	/**
 	 * Apply the gathered state updates in all views.
 	 * The update list is destroyed.
+	 *
+	 * @param updates List of updates for the views.
 	 */
 	void update_views(std::vector<view_update> &&updates);
 
 	/**
-	 * A non-fatal exception occured, so let the transaction fail.
+	 * Set the transaction to invalid and store the error. This can
+	 * be used to make the transaction silently fail on non-fatal
+	 * errors.
+	 *
+	 * @param exc Pointer to the error that occured.
 	 */
 	void set_error(std::exception_ptr &&exc);
 
@@ -139,12 +179,12 @@ protected:
 	bool valid;
 
 	/**
-	 * Time the transaction will take place.
+	 * Time at which the transaction will be commited.
 	 */
 	order_t at;
 
 	/**
-	 * The views where the transaction will be applied in.
+	 * The views to which the transaction will be applied in.
 	 */
 	std::vector<view_state> states;
 };

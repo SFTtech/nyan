@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "token.h"
 
@@ -75,6 +75,7 @@ bool Token::is_content() const {
 	switch (this->type) {
 	case token_type::FLOAT:
 	case token_type::ID:
+	case token_type::INF:
 	case token_type::INT:
 	case token_type::STRING:
 		return true;

@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -11,12 +11,9 @@
 
 namespace nyan {
 
-/** datatype used for ordered set storage */
-using set_t = std::unordered_set<ValueHolder>;
-
 
 /**
- * Value to store a unordered set of things.
+ * Nyan value to store a unordered set of things.
  */
 class Set
 	: public SetBase<set_t> {

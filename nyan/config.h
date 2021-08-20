@@ -1,16 +1,15 @@
-// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #pragma once
 
 #ifdef _MSC_VER
 // Allow using alternative operator representation with non-conforming compiler
-	#include <ciso646>
+    #include <ciso646>
 #endif
 
 #include <cstddef>
 #include <limits>
 #include <string>
-
 
 namespace nyan {
 
@@ -40,6 +39,5 @@ using value_int_t = int64_t;
 
 /** type used for nyan::Float values */
 using value_float_t = double;
-
 
 } // namespace nyan

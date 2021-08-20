@@ -1,4 +1,4 @@
-// Copyright 2017-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "boolean.h"
 
@@ -28,16 +28,16 @@ Boolean::Boolean(const IDToken &token) {
 
 	const std::string &token_value = token.get_first();
 
-	if (token_value == "true") {
+	if (token_value == "True") {
 		this->value = true;
 	}
-	else if (token_value == "false") {
+	else if (token_value == "False") {
 		this->value = false;
 	}
 	else {
 		throw LangError{
 			token,
-			"unknown boolean value (did you use 'true' and 'false'?)"
+			"unknown boolean value (did you use 'True' and 'False'?)"
 		};
 	}
 }
@@ -50,7 +50,7 @@ ValueHolder Boolean::copy() const {
 }
 
 
-void Boolean::apply_value(const Value &value, nyan_op operation) {
+bool Boolean::apply_value(const Value &value, nyan_op operation) {
 	const Boolean &change = dynamic_cast<const Boolean &>(value);
 
 	switch (operation) {
@@ -66,16 +66,18 @@ void Boolean::apply_value(const Value &value, nyan_op operation) {
 	default:
 		throw Error{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 
 std::string Boolean::str() const {
 	if (this->value) {
-		return "true";
+		return "True";
 	}
 	else {
-		return "false";
-	};
+		return "False";
+	}
 }
 
 
@@ -102,10 +104,11 @@ const std::unordered_set<nyan_op> &Boolean::allowed_operations(const Type &with_
 		nyan_op::INTERSECT_ASSIGN,
 	};
 
-	if (with_type.get_primitive_type() == primitive_t::BOOLEAN) {
+	switch (with_type.get_primitive_type()) {
+	case primitive_t::BOOLEAN:
 		return ops;
-	}
-	else {
+
+	default:
 		return no_nyan_ops;
 	}
 }
@@ -114,7 +117,7 @@ const std::unordered_set<nyan_op> &Boolean::allowed_operations(const Type &with_
 const BasicType &Boolean::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::BOOLEAN,
-		container_t::SINGLE,
+		composite_t::SINGLE,
 	};
 
 	return type;

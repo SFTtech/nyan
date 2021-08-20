@@ -1,12 +1,14 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
 #include <algorithm>
+#include <concepts>
 #include <functional>
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <type_traits>
 #include <vector>
 
 #include "error.h"
@@ -16,7 +18,12 @@ namespace nyan::util {
 
 /**
  * Read a file from the filesystem and return the contents.
- * Optionally, open it in binary mode, which will leave newlines untouched.
+ *
+ * @param filename Name of the file.
+ * @param binary If true, open the file in binary mode, which
+ *     will leave newlines untouched.
+ *
+ * @return String with the file content.
  */
 std::string read_file(const std::string &filename, bool binary=false);
 
@@ -51,45 +58,118 @@ std::string typestring(const T *ptr) {
 }
 
 
+/**
+ * Check if something supports output stream operators.
+ */
 template <typename T>
-std::string get_container_elem(const T &in) {
+concept Streamable = requires(std::ostream &os, T value) {
+	{ os << value } -> std::convertible_to<std::ostream &>;
+};
+
+
+/**
+ * Check if something is a container and provides value type correctly.
+ */
+template <typename T>
+concept Container = requires(T thing) {
+	// check for value_type type-member and iterator access.
+	{*std::begin(thing)} -> std::convertible_to<typename T::value_type>;
+	std::begin(thing) == std::end(thing);
+};
+
+
+/**
+ * Helper function to convert something to a string.
+ * Used as default function in strjoin.
+ */
+template <typename T>
+const std::string &convert_str(const T &in) {
 	return in;
+}
+
+/**
+ * Helper function to stream something to a ostringstream.
+ */
+template <Streamable T>
+void stream_container_elem(std::ostringstream &builder, const T &in) {
+	builder << in;
 }
 
 
 /**
- * Just like python's "delim".join(container)
- * func is a function to extract the string
- * from each element of the container.
+ * Join a container with a delimiter to a given stream.
+ * Except the stream-thing, it's like python's str.join()
  *
- * Now, this function also features a compiler bug:
- * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59949
- * Fak u C++.
+ * @param builder Stringstream to feed the data in.
+ * @param delim Delimiter to add in between the elements.
+ * @param container The container with the elements to join together.
+ * @param func Function to fetch the string for a container item.
+ *
+ * @return reference to the given builder for chaining.
  */
-template <typename T>
-std::string strjoin(const std::string &delim,
-                    const T &container,
-                    const std::function<std::string(const typename T::value_type &)> func=&get_container_elem<typename T::value_type>) {
+template <Container T>
+std::ostringstream &
+strjoin(
+	std::ostringstream &builder,
+	const std::string &delim,
+	const T &container,
+	const std::function<void(std::ostringstream &, const typename T::value_type &)>
+	func=&stream_container_elem<typename T::value_type>
+) {
 
-	std::ostringstream builder;
-
-	size_t cnt = 0;
+	bool delim_active = false;
 	for (auto &entry : container) {
-		if (cnt > 0) {
+		if (delim_active) {
 			builder << delim;
 		}
 
-		builder << func(entry);
-		cnt += 1;
+		func(builder, entry);
+		delim_active = true;
 	}
 
-	return builder.str();
+	return builder;
+}
+
+
+/**
+ * Like python's "delim".join(iterable).
+ * func is a function of how to stream each element of the container
+ *
+ * @param delim Delimeter placed between the joined strings.
+ * @param container Iterable container holding the strings.
+ * @param func Function for retrieving a string from a container item.
+ *
+ * @return String containing the joined strings.
+ */
+template <Container T>
+std::string strjoin(
+	const std::string &delim,
+	const T &container,
+	const std::function<const std::string_view(const typename T::value_type &)>
+	func=&convert_str<typename T::value_type>
+) {
+	std::ostringstream builder;
+	strjoin(
+		builder, delim, container,
+		[&func](std::ostringstream &stream,
+		        const typename T::value_type &elem) {
+			auto &&elem_str = func(elem);
+			stream << elem_str;
+		}
+	);
+	return std::move(builder).str();
 }
 
 
 /**
  * Split a string at a delimiter, push the result back in an iterator.
  * Why doesn't the fucking standard library have std::string::split(delimiter)?
+ *
+ * @tparam ret_t Return type.
+ *
+ * @param[in]  txt String that is split.
+ * @param[in]  delimiter Delimiter char at which the string is split.
+ * @param[out] result Splitted string with type \p ret_t.
  */
 template<typename ret_t>
 void split(const std::string &txt, char delimiter, ret_t result) {
@@ -106,19 +186,35 @@ void split(const std::string &txt, char delimiter, ret_t result) {
 
 /**
  * Split a string at a delimiter into a vector.
- * Internally, uses the above iterator splitter.
+ * Internally, uses the iterator splitter.
+ *
+ * @param txt String that is split.
+ * @param delim Delimiter char at which the string is split.
+ *
+ * @return List of string components from the splitting.
  */
 std::vector<std::string> split(const std::string &txt, char delim);
 
 
 /**
- * Check if the given string ends with the ending.
+ * Check if a string ends with another given string.
+ *
+ * @param txt String that is checked.
+ * @param end String that is compared with the end of \p txt.
+ *
+ * @return true if \p txt ends with \p end, else false.
  */
 bool ends_with(const std::string &txt, const std::string &end);
 
 
 /**
- * Extend a vector with elements, without destroying source one.
+ * Extend a vector with elements, without destroying the
+ * source of elements.
+ *
+ * @tparam T Element type.
+ *
+ * @param vec Vector that is extended.
+ * @param ext Vector used as a source of elements.
  */
 template <typename T>
 void vector_extend(std::vector<T> &vec, const std::vector<T> &ext) {
@@ -128,7 +224,12 @@ void vector_extend(std::vector<T> &vec, const std::vector<T> &ext) {
 
 
 /**
- * Extend a vector with elements with move semantics.
+ * Extend a vector with elements using move semantics.
+ *
+ * @tparam T Element type.
+ *
+ * @param vec Vector that is extended.
+ * @param ext Vector used as a source of elements.
  */
 template <typename T>
 void vector_extend(std::vector<T> &vec, std::vector<T> &&ext) {
@@ -145,6 +246,14 @@ void vector_extend(std::vector<T> &vec, std::vector<T> &&ext) {
 
 /**
  * Membership check for some container.
+ *
+ * @tparam T Container type.
+ * @tparam V Type of checked value.
+ *
+ * @param container Container that is searched.
+ * @param value Value that is searched for.
+ *
+ * @return true if the value is in the container, else false.
  */
 template <typename T, typename V>
 bool contains(const T &container, const V &value) {
@@ -162,7 +271,43 @@ bool contains(const T &container, const V &value) {
 /**
  * Creates a hash value as a combination of two other hashes. Can be called incrementally to create
  * hash value from several variables.
+ *
+ * @param hash1 First hash.
+ * @param hash2 Second hash.
  */
 size_t hash_combine(size_t hash1, size_t hash2);
+
+
+/**
+ * Helper function to be used as failure case with constexpr-ifs:
+ *
+ * if constexpr (bla) {
+ *     ...
+ * }
+ * else {
+ *     match_failure();
+ * }
+ */
+template <bool flag = false>
+void match_failure() {
+	static_assert(flag, "no static branch match found");
+}
+
+/**
+ * Test if the given ptr is an instance of a base
+ */
+template <typename Base, typename T>
+inline bool isinstance(const T *ptr) {
+	return dynamic_cast<const Base *>(ptr) != nullptr;
+}
+
+/**
+ * Test if the given reference is an instance of some base.
+ */
+template <typename Base, typename T>
+requires (!std::is_pointer_v<T>)
+inline bool isinstance(const T &ref) {
+	return dynamic_cast<const Base *>(&ref) != nullptr;
+}
 
 } // namespace nyan::util

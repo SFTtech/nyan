@@ -1,24 +1,38 @@
 # test nyan file
+!version 1
+!arg 1 2 3 "Test"
 
 Dummy():
     ...
 
 First():
     # a first object!
+    wat : abstract(First) = Second
+    wat2 : abstract(children(First)) = Second
+    wat3 : optional(First) = Second
+    wat4 : set(children(First)) = {Second}
     member : int = 15
     test : text = "rofl lol"
     bla : file = "wtf.h4x"
+    blub : int = inf
+    blob : float = -inf
 
 FirstPatch<First>():
     member += 3
+    blub += 3
+    blob -= 3
+    wat3 = None
 
 Second(First):
-    member *= 5
+    member *= 5.5
+    # nap : int
 
 NestingBase(First):
 
     setmember : set(int) = {1,2,3,4,
                             5,6,7,}
+
+    dictmember : dict(int, text) = {2: "two", 4: "four"}
 
     member = 2
 
@@ -36,11 +50,11 @@ NestingBase(First):
 
 Fourth(First):
     guenther : int = 1337
-    truth : bool = true
+    truth : bool = True
 
 Fifth(Fourth):
     guenther /= 100
-    truth &= false
+    truth &= False
 
 Third(First):
     rolf : int = 42

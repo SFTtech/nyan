@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "file.h"
 
@@ -43,7 +43,7 @@ ValueHolder Filename::copy() const {
 }
 
 
-void Filename::apply_value(const Value &value, nyan_op operation) {
+bool Filename::apply_value(const Value &value, nyan_op operation) {
 	const Filename &change = dynamic_cast<const Filename &>(value);
 
 	// TODO: relative path resolution
@@ -55,6 +55,8 @@ void Filename::apply_value(const Value &value, nyan_op operation) {
 	default:
 		throw Error{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 
@@ -84,10 +86,11 @@ const std::unordered_set<nyan_op> &Filename::allowed_operations(const Type &with
 		nyan_op::ASSIGN,
 	};
 
-	if (with_type.get_primitive_type() == primitive_t::FILENAME) {
+	switch (with_type.get_primitive_type()) {
+	case primitive_t::FILENAME:
 		return ops;
-	}
-	else {
+
+	default:
 		return no_nyan_ops;
 	}
 }
@@ -96,7 +99,7 @@ const std::unordered_set<nyan_op> &Filename::allowed_operations(const Type &with
 const BasicType &Filename::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::FILENAME,
-		container_t::SINGLE,
+		composite_t::SINGLE,
 	};
 
 	return type;

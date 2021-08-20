@@ -1,4 +1,4 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "text.h"
 
@@ -36,7 +36,7 @@ ValueHolder Text::copy() const {
 }
 
 
-void Text::apply_value(const Value &value, nyan_op operation) {
+bool Text::apply_value(const Value &value, nyan_op operation) {
 	const Text &change = dynamic_cast<const Text &>(value);
 
 	switch (operation) {
@@ -47,8 +47,10 @@ void Text::apply_value(const Value &value, nyan_op operation) {
 		this->value += change.value; break;
 
 	default:
-		throw Error{"unknown operation requested"};
+		throw InternalError{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 
@@ -79,10 +81,11 @@ const std::unordered_set<nyan_op> &Text::allowed_operations(const Type &with_typ
 		nyan_op::ADD_ASSIGN,
 	};
 
-	if (with_type.get_primitive_type() == primitive_t::TEXT) {
+	switch (with_type.get_primitive_type()) {
+	case primitive_t::TEXT:
 		return ops;
-	}
-	else {
+
+	default:
 		return no_nyan_ops;
 	}
 }
@@ -91,7 +94,7 @@ const std::unordered_set<nyan_op> &Text::allowed_operations(const Type &with_typ
 const BasicType &Text::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::TEXT,
-		container_t::SINGLE,
+		composite_t::SINGLE,
 	};
 
 	return type;

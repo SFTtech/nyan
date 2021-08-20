@@ -1,4 +1,4 @@
-// Copyright 2019-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2019-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <cstdint>
@@ -19,6 +19,13 @@ class ObjectNotifierHandle {
 public:
 	ObjectNotifierHandle(const update_cb_t &func);
 
+	/**
+	 * Calls the user provided function of the notifier.
+	 *
+	 * @param t Time of update.
+	 * @param fqon Identifier of the updated object.
+	 * @param state New object state.
+	 */
 	void fire(order_t t, const fqon_t &fqon, const ObjectState &state) const;
 
 protected:
@@ -37,6 +44,11 @@ public:
 	               const std::shared_ptr<View> &view);
 	~ObjectNotifier();
 
+	/**
+	 * Get the callback handle for the object notifier.
+	 *
+	 * @return Shared pointer to the ObjectNotifierHandle.
+	 */
 	const std::shared_ptr<ObjectNotifierHandle> &get_handle() const;
 
 protected:

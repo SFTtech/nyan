@@ -65,9 +65,13 @@ add_library(nyan SHARED
 	transaction.cpp
 	type.cpp
 	util.cpp
+	util/flags.cpp
+	value_token.cpp
 	value/boolean.cpp
 	value/container.cpp
+	value/dict.cpp
 	value/file.cpp
+	value/none.cpp
 	value/number.cpp
 	value/object.cpp
 	value/orderedset.cpp
@@ -119,7 +123,7 @@ install(
 	EXPORT ${nyan_exports_name}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 # install headers

@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include "../config.h"
@@ -21,13 +21,13 @@ public:
 	size_t hash() const override;
 
 	/** return the stored fqon */
-	const fqon_t &get() const;
+	const fqon_t &get_name() const;
 
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
 
 protected:
-	void apply_value(const Value &value, nyan_op operation) override;
+	bool apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override;
 
 	fqon_t name;

@@ -348,6 +348,8 @@ the set type.
 
 `set` does not preserve the input order of items.
 
+A `set` element type can't be optional.
+
 
 ```python
 OtherObject():
@@ -420,6 +422,7 @@ the set type.
 
 `orderedset` does preserve the input order of items.
 
+The `orderedset` element type can't be optional.
 
 ```python
 OtherObject():
@@ -485,6 +488,9 @@ Patch<SomeObject>():
 A member with type `dict` can store a collection of key-value pairs.
 Both the key type and value type must be specified during the member declaration.
 Dicts cannot contain items with duplicate keys. They can be empty.
+
+Dict keys can't be `optional`.
+
 
 ```python
 OtherObject():

@@ -1,8 +1,10 @@
-// Copyright 2016-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
 #include <memory>
+#include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -10,6 +12,7 @@
 #include "config.h"
 #include "error.h"
 #include "ops.h"
+#include "util/flags.h"
 
 
 namespace nyan {
@@ -23,6 +26,19 @@ class NamespaceFinder;
 class Object;
 class State;
 class Token;
+class Value;
+class ValueHolder;
+
+
+/**
+ * Available modifiers for a Type.
+ */
+enum class modifier_t {
+	ABSTRACT,
+	CHILDREN,
+	OPTIONAL,
+	size,
+};
 
 
 /**
@@ -30,6 +46,8 @@ class Token;
  */
 class Type {
 public:
+
+	//////////////////////////////////////////////////////////////////
 
 	/**
 	 * Construct type from the AST.
@@ -44,92 +62,140 @@ public:
 	     const Namespace &ns,
 	     const MetaInfo &type_info);
 
-	/**
-	 * Called when a container type is created from AST.
-	 */
-	Type(const IDToken &token,
-	     const NamespaceFinder &scope,
-	     const Namespace &ns,
-	     const MetaInfo &type_info);
-
 public:
-
 	virtual ~Type() = default;
 
 	/**
-	 * Return if this type is primitive (simple non-pointer value).
+	 * Check if this type is an object.
+	 *
+	 * @return true if the basic type is an object, else false.
+	 */
+	bool is_object() const;
+
+	/**
+	 * Check if this type is fundamental (simple non-pointer value).
+	 *
+	 * @return true if the basic type is fundamental, else false.
 	 */
 	bool is_fundamental() const;
 
 	/**
-	 * Return if this type is a container that stores multiple values.
+	 * Check if this type is a container that stores multiple values.
+	 *
+	 * @return true if the basic type is a container, else false.
 	 */
 	bool is_container() const;
 
 	/**
-	 * Test if is a container of the given type.
+	 * Check if this type is a container of a given type.
+	 *
+	 * @param type Composite type that is compared to this type's basic type.
+	 *
+	 * @return true if the composite types matches, else false.
 	 */
-	bool is_container(container_t type) const;
+	bool is_container(composite_t type) const;
 
 	/**
-	 * Test if the basic type is compatbile, i. e. the same.
+	 * Check if a value of this type is hashable.
+	 *
+	 * @return true if values are hashable, else false.
 	 */
-	bool is_basic_compatible(const BasicType &type) const;
+	bool is_hashable() const;
 
 	/**
-	 * Check if this type can be in the given other type.
-	 * This will of course only suceed if other is a container.
+	 * Check if the basic type matches the given basic type, i.e. it's the same.
+	 *
+	 * @param type Basic type that is compared to this type's basic type.
+	 *
+	 * @return true if the basic types match, else false.
 	 */
-	bool can_be_in(const Type &other) const;
+	bool is_basic_type_match(const BasicType &type) const;
 
 	/**
-	 * Return the object target name.
+	 * Return if the type has the given modifier flag.
+	 *
+	 * @return true if this type has the given flag.
 	 */
-	const fqon_t &get_target() const;
+	bool has_modifier(modifier_t mod) const;
 
 	/**
-	 * Return the basic type, namely the primitive and container type.
+	 * Get the object fqon of the type.
+	 *
+	 * @return Identifier of the object if this type is an object, else nullptr.
+	 */
+	const fqon_t &get_fqon() const;
+
+	/**
+	 * Get the basic type of this type, namely the primitive and composite type.
+	 *
+	 * @return Basic type of this type.
 	 */
 	const BasicType &get_basic_type() const;
 
 	/**
-	 * Return the container variant of this type.
+	 * Get the composite type of this type. Determines if there's nested
+	 * types needed e.g. for the set/dict entries.
+	 *
+	 * @return Composite type of this type.
 	 */
-	const container_t &get_container_type() const;
+	const composite_t &get_composite_type() const;
 
 	/**
-	 * Return the basic type of this Type.
+	 * Get the primitive type of this type.
+	 *
+	 * @return Primitive type of this type.
 	 */
 	const primitive_t &get_primitive_type() const;
 
 	/**
-	 * Get the container element type, i. e. the inner type
-	 * that specifies the type of each element.
+	 * Get the composite element type of this type.
+	 * For a container, this is the type of each item in a value.
+	 * These can be nested arbitrarily.
+	 *
+	 * @return Pointer to the list with the element types of this type.
 	 */
-	const Type *get_element_type() const;
+	const std::vector<Type> &get_element_type() const;
 
 	/**
-	 * Return a string representation of this type.
+	 * Get the string representation of this type.
+	 *
+	 * @return String representation of this type.
 	 */
 	std::string str() const;
+
+	/**
+	 * Checks if two types are equal. Their basic type, element types
+	 * and fqon must match.
+	 *
+	 * @param other Type that is compared with this type.
+	 *
+	 * @return true if the types are equal, else false.
+	 */
+	bool operator ==(const Type &other) const;
 
 protected:
 	/**
 	 * The basic type of this Type.
-	 * Stores the primitive type and the container type.
+	 * Stores the primitive type and the composite type.
 	 */
 	BasicType basic_type;
 
 	/**
-	 * If this type is a container, the element type is stored here.
+	 * Which modifiers are active for this type?
 	 */
-	std::shared_ptr<Type> element_type;
+	util::Flags<modifier_t> modifiers;
 
 	/**
-	 * If this type is an object, store the target here.
+	 * If this type is a composite, the element type is stored here.
+	 * For optional(Bla) this the optional-type's element type is [Bla].
+	 */
+	std::optional<std::vector<Type>> element_type;
+
+	/**
+	 * If this type is an object, store the reference here.
 	 * If it is nullptr, any object is covered by this type.
 	 */
-	fqon_t target;
+	fqon_t obj_ref;
 };
 
 } // namespace nyan

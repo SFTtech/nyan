@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object.h"
 
@@ -20,7 +20,7 @@ ValueHolder ObjectValue::copy() const {
 }
 
 
-void ObjectValue::apply_value(const Value &value, nyan_op operation) {
+bool ObjectValue::apply_value(const Value &value, nyan_op operation) {
 	const ObjectValue &change = dynamic_cast<const ObjectValue &>(value);
 
 	switch (operation) {
@@ -28,8 +28,10 @@ void ObjectValue::apply_value(const Value &value, nyan_op operation) {
 		this->name = change.name; break;
 
 	default:
-		throw Error{"unknown operation requested"};
+		throw InternalError{"unknown operation requested"};
 	}
+
+	return true;
 }
 
 
@@ -48,7 +50,7 @@ size_t ObjectValue::hash() const {
 }
 
 
-const fqon_t &ObjectValue::get() const {
+const fqon_t &ObjectValue::get_name() const {
 	return this->name;
 }
 
@@ -64,10 +66,12 @@ const std::unordered_set<nyan_op> &ObjectValue::allowed_operations(const Type &w
 		nyan_op::ASSIGN,
 	};
 
-	if (with_type.get_primitive_type() == primitive_t::OBJECT) {
+	switch (with_type.get_primitive_type()) {
+	case primitive_t::OBJECT:
+	case primitive_t::NONE:
 		return ops;
-	}
-	else {
+
+	default:
 		return no_nyan_ops;
 	}
 }
@@ -76,7 +80,7 @@ const std::unordered_set<nyan_op> &ObjectValue::allowed_operations(const Type &w
 const BasicType &ObjectValue::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::OBJECT,
-		container_t::SINGLE,
+		composite_t::SINGLE,
 	};
 
 	return type;

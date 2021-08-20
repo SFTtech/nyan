@@ -1,4 +1,4 @@
-// Copyright 2018-2019 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2018-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -33,7 +33,7 @@ public:
 	}
 
 protected:
-	void apply_value(const Value &value, nyan_op operation) override;
+	bool apply_value(const Value &value, nyan_op operation) override;
 	bool equals(const Value &other) const override;
 
 	bool value;

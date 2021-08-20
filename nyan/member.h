@@ -1,4 +1,4 @@
-// Copyright 2016-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -25,6 +25,7 @@ public:
 	 */
 	Member(override_depth_t depth,
 	       nyan_op operation,
+	       Type declared_type,
 	       ValueHolder &&value);
 
 	Member(const Member &other);
@@ -35,24 +36,33 @@ public:
 	~Member() = default;
 
 	/**
-	 * Provide the operation stored in the member.
+	 * Get the operation performed by this member.
+	 *
+	 * @return Operation of the member.
 	 */
 	nyan_op get_operation() const;
 
 	/**
-	 * Return the value stored in this member.
+	 * Get the value stored in this member.
+	 *
+	 * @return Value of the member.
 	 */
 	const Value &get_value() const;
 
 	/**
-	 * Apply another member to this one.
-	 * This applies the member with its operation
-	 * to this member.
+	 * Apply another member, using its operation, to this member.
+	 *
+	 * @param change Member applied to this member.
+	 *
+	 * @return if the change application was successful
 	 */
-	void apply(const Member &change);
+	bool apply(const Member &change);
 
 	/**
-	 * String representation of this member.
+	 * Get the string representation of this member's initialization part,
+	 * i.e. operation and value.
+	 *
+	 * @return String containing the member initialization in nyan format.
 	 */
 	std::string str() const;
 
@@ -65,12 +75,18 @@ protected:
 	override_depth_t override_depth = 0;
 
 	/**
-	 * operation specified for this member.
+	 * Operation specified for this member.
 	 */
 	nyan_op operation = nyan_op::INVALID;
 
 	/**
+	 * Type from the member declaration.
+	 */
+	Type declared_type;
+
+	/**
 	 * Value stored in this member.
+	 * Must match the `declared_type`.
 	 */
 	ValueHolder value;
 };

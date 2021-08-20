@@ -1,4 +1,4 @@
-// Copyright 2017-2017 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #pragma once
 
@@ -40,7 +40,11 @@ public:
 	//       which also return the time the keyframe belongs to.
 
 	/**
-	 * Get the latest value at given time.
+	 * Get the first value after a given point in time.
+	 *
+	 * @param time The point in time after which the method searches for a value.
+	 *
+	 * @return The first value that can be found after 'time'.
 	 */
 	const T &at(const order_t time) const {
 		// search for element which is greater than time
@@ -67,6 +71,10 @@ public:
 
 	/**
 	 * Like `at`, but returns nullptr if no keyframe was found.
+	 *
+	 * @param time The point in time after which the method searches for a value.
+	 *
+	 * @return The first value that can be found after 'time' if one exists, else nullptr.
 	 */
 	const T *at_find(const order_t time) const {
 		auto it = this->container.upper_bound(time);
@@ -79,6 +87,10 @@ public:
 
 	/**
 	 * Get the value at the exact time.
+	 *
+	 * @param time The point in time at which the value should be retrieved.
+	 *
+	 * @return Value at the given time if it exists, else nullptr.
 	 */
 	const T *at_exact(const order_t time) const {
 		auto it = this->container.find(time);
@@ -90,7 +102,11 @@ public:
 	}
 
 	/**
-	 * Get the value which active earlier than given time.
+	 * Get the first value before a given point in time.
+	 *
+	 * @param time The point in time before which the method searches for a value.
+	 *
+	 * @return The first value that can be found before 'time'.
 	 */
 	const T &before(const order_t time) const {
 		// search for element which is not less than the given time.
@@ -105,14 +121,21 @@ public:
 	}
 
 	/**
-	 * No data is stored in the curve.
+	 * Check if no values are stored in the curve.
+	 *
+	 * @return true if the value container is empty, else false.
 	 */
 	bool empty() const {
 		return this->container.empty();
 	}
 
 	/**
-	 * Add a new value at the given time.
+	 * Insert a new keyframe with a value into the curve.
+	 *
+	 * @param time The point in time at which the value is inserted.
+	 * @param value Value that is inserted.
+	 *
+	 * @return The inserted value.
 	 */
 	T &insert_drop(const order_t time, T &&value) {
 		auto it = this->container.lower_bound(time);
@@ -130,6 +153,9 @@ public:
 	}
 
 protected:
+	/**
+	 * Keyframes of the curve, stored as a map of values by time.
+	 */
 	container_t container;
 };
 

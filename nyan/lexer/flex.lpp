@@ -38,6 +38,7 @@ id             [A-Za-z_][A-Za-z0-9_]*
 operator       [-+*/|%&]=?|=
 int            (-|0[xX])?{digit}+
 float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
+inf            -?inf
 
 %%
 
@@ -65,6 +66,7 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 "{"                     { impl->token(nyan::token_type::LBRACE); }
 "}"                     { impl->token(nyan::token_type::RBRACE); }
 "@"                     { impl->token(nyan::token_type::AT); }
+"!"                     { impl->token(nyan::token_type::BANG); }
 
 "pass"                  { impl->token(nyan::token_type::PASS); }
 "..."                   { impl->token(nyan::token_type::ELLIPSIS); }
@@ -72,6 +74,7 @@ float          -?({digit}+\.{digit}*|{digit}*\.{digit}+)
 "from"                  { impl->token(nyan::token_type::FROM); }
 "as"                    { impl->token(nyan::token_type::AS); }
 {operator}              { impl->token(nyan::token_type::OPERATOR); }
+{inf}                   { impl->token(nyan::token_type::INF); }
 {int}                   { impl->token(nyan::token_type::INT); }
 {float}                 { impl->token(nyan::token_type::FLOAT); }
 {id}                    { impl->token(nyan::token_type::ID); }
