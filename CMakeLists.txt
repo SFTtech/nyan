@@ -29,7 +29,9 @@ Contact: #sfttech:matrix.org
 
 
 # nyan library version
-set(nyan_VERSION 0.1)
+file(STRINGS "nyan_version" version)
+list(GET version 0 ver)
+set(nyan_VERSION ${ver})
 
 project(nyan VERSION ${nyan_VERSION} LANGUAGES CXX)
 
