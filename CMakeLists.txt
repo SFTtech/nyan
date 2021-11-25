@@ -29,7 +29,9 @@ Contact: #sfttech:matrix.org
 
 
 # nyan library version
-set(nyan_VERSION 0.1)
+file(STRINGS "nyan_version" version)
+list(GET version 0 ver)
+set(nyan_VERSION ${ver})
 
 project(nyan VERSION ${nyan_VERSION} LANGUAGES CXX)
 
@@ -137,6 +139,12 @@ install(FILES
 	"${CMAKE_CURRENT_BINARY_DIR}/nyanConfigVersion.cmake"
 	DESTINATION ${config_package_location}
 	COMPONENT Devel
+)
+
+# Copy nyan version file to build dir
+file(COPY
+    "nyan_version"
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/nyan/"
 )
 
 
