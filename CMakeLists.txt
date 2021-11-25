@@ -141,6 +141,12 @@ install(FILES
 	COMPONENT Devel
 )
 
+# Copy nyan version file to build dir
+file(COPY
+    "nyan_version"
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/nyan/"
+)
+
 
 # allow to disable the userpackage registration
 # set the variable to off if you include nyan as a submodule!
