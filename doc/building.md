@@ -1,12 +1,12 @@
 # Building nyan
 
-This project requires a C++17 compiler (e.g gcc >= 7 or clang >= 4) and
+This project requires a C++20 compiler (e.g gcc >= 10 or clang >= 10) and
 uses `flex` and `cmake`.
 
 
 ## Dependencies
 
-###### Ubuntu 16.04 or later
+###### Ubuntu 20.04 or later
 
 ```
 sudo apt-get update
