@@ -89,7 +89,7 @@ not match any name of the unique members of the object.
 Nested objects function like any other object. They allow for additional
 structuring of the data model using the object hierarchy.
 
-An object is **abstract** iff it contains at least one uninitialized member.
+An object is **abstract** when it contains at least one uninitialized member.
 This includes inherited members.
 
 If an object contains no member definitions, changes to inherited members
@@ -101,7 +101,7 @@ ObjName(ParentObj, OtherParentObj, ...):
     pass
 ```
 
-Objects can be referenced by a fully qualifies object name (FQON). The FQON
+Objects can be referenced by a fully qualified object name (FQON). The FQON
 is a unique string indentifier composed of the **namespace** the **object name**.
 The namespace of an object is be derived from the location of the file it
 is located in and its nesting parents (more details in section [Namespace](#namespace)).
@@ -213,8 +213,8 @@ A patch always targets a specific object. The object must be defined.
 Since patches are also objects, patches can target other patches
 and themselves.
 
-A patch is defined similar to a normal object with the addition of
-a **target**. The patch target must be written in angled brackets
+A patch is defined like a normal object with the addition of
+a **target**. The patch target must be written in angle brackets
 after the object name. The defined target cannot be changed.
 
 ```python
@@ -337,8 +337,8 @@ FixOtherPatch<OtherPatch>():
 
 In the above example, the first `@` in `FixOtherPatch` marks an
 override. All following `@`s are considered parts of the overriden
-operation, which means they are copied along the operator and value
-when the patch is applied. Therefore,the application of `FixOtherPatch`
+operation, which means they are copied along with the operator and value
+when the patch is applied. Therefore, the application of `FixOtherPatch`
 will override the operation in `OtherPatch` with `member_name @+= 5`.
 When `OtherPatch` is applied after that, it will now override the
 operation in `SomePatch` with the operation defined after the `@`. The
@@ -482,7 +482,7 @@ BalanceHP<LoomVillagerHP>():
     hp -= 5
 ```
 
-This demonstrated that modding capabilities are strongly limited by the game
+This demonstrates that modding capabilities are strongly limited by the game
 engine, nyan just assists you in designing a mod api in an intuitive way.
 
 
@@ -575,7 +575,7 @@ The detection of the qualification requirement works as follows:
     * The access to `entry` must hence be qualified, too
 * nyan concludes that all accesses must be qualified,
   except to `specialentry`, as only one declaration was found
-* The qualification is done by prefixing the precedes a `nyan::Object` name
+* The qualification is done by prefixing a `nyan::Object` name
   which is somewhere up the hierarchy and would grant conflict-free access
   to that member
 * That does **not** mean the value somewhere up the tree is changed!
@@ -583,24 +583,24 @@ The detection of the qualification requirement works as follows:
   ensures the correct target member is selected!
 
 
-If one now has the `OHNoes` `nyan::Object` and desires to get values,
+If one now has the `OHNoes` `nyan::Object` and desires to get its values,
 the calculation is done like this:
 
 * Just like defining a change, the value must be queried using
   a distinct name, i. e. the qualification prefix.
 * In the engine, you call something like `OHNoes.get("A.entry")`
   * The inheritance list by C3 of `OHNoes` is `[LOLWhat, A, B, Top, C]`
-  * The list is gone through until the declaration of the requested member
-    was found
-  * `LOLWhat` did not declare it
-  * `A` did not declare it either, but we requested `"A.entry"`
+  * The list is traversed until the declaration of the requested member
+    is found
+  * `LOLWhat` does not declare it
+  * `A` does not declare it either, but we requested `"A.entry"`
   * As the qualified prefix object does not declare it, the prefix is dropped
   * The member name is now unique and can be searched for without the prefix
     further up the tree
   * `B` does not declare the `entry` either
   * `Top` does declare it, now the recursion goes back the other way
-  * `Top` defined the value of `entry` to `10`
-  * `B` wants to subtract `3`, so `entry` is `7`
-  * `A` adds `5`, so `entry` is `12`
-  * `LOLWhat` adds `1`, `entry` is `13`
-  * `OHNoes` adds `1` as well, and `entry` is returned to be `14`
+  * `Top` defined the value of `entry` to be `10`
+  * `B` wants to subtract `3`, so `entry` is now `7`
+  * `A` adds `5`, so `entry` is now `12`
+  * `LOLWhat` adds `1`, `entry` is now `13`
+  * `OHNoes` adds `1` as well, and `entry` is returned as `14`
