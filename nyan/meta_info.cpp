@@ -3,6 +3,7 @@
 #include "meta_info.h"
 
 #include <sstream>
+#include <utility>
 
 #include "lang_error.h"
 
