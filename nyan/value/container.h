@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -22,9 +22,14 @@ namespace nyan {
  * instanciate this by wrapping it in the ContainerIterator below.
  */
 template<typename elem_type>
-class ContainerIterBase : public std::iterator<std::forward_iterator_tag,
-                                               elem_type> {
+class ContainerIterBase {
 public:
+	using iterator_category = std::forward_iterator_tag;
+	using value_type = elem_type;
+	using difference_type = elem_type;
+	using pointer = elem_type*;
+	using reference = elem_type&;
+
 	using this_type = ContainerIterBase<elem_type>;
 
 	ContainerIterBase() = default;
@@ -64,8 +69,14 @@ protected:
  * Just relays the calls to the wrapped actual container.
  */
 template<typename T>
-class ContainerIterator : public std::iterator<std::forward_iterator_tag, T> {
+class ContainerIterator {
 public:
+	using iterator_category = std::forward_iterator_tag;
+	using value_type = T;
+	using difference_type = T;
+	using pointer = T*;
+	using reference = T&;
+
 	using elem_type = T;
 	using real_iterator = ContainerIterBase<elem_type>;
 
