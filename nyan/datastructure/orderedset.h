@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <cstddef>
@@ -71,9 +71,13 @@ protected:
 	 *
 	 * Thanks C++ for such a small and readable implementation.
 	 */
-	class ConstIterator
-		: public std::iterator<std::forward_iterator_tag, const T> {
+	class ConstIterator {
 	public:
+    	using iterator_category = std::forward_iterator_tag;
+    	using value_type = T;
+    	using difference_type = T;
+    	using pointer = T*;
+    	using reference = T&;
 
 		ConstIterator(list_iter iter)
 			:
