@@ -1,4 +1,4 @@
-// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #pragma once
 
@@ -7,6 +7,7 @@
     #include <ciso646>
 #endif
 
+#include <cstdint>
 #include <cstddef>
 #include <limits>
 #include <string>
