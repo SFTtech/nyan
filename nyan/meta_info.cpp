@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "meta_info.h"
 
@@ -50,6 +50,27 @@ bool MetaInfo::has_object(const fqon_t &name) const {
 	return this->object_info.count(name) == 1;
 }
 
+Namespace &MetaInfo::add_namespace(const Namespace &ns) {
+    auto ret = this->namespaces.insert({ns.to_fqon(), ns});
+
+	return ret.first->second;
+}
+
+Namespace *MetaInfo::get_namespace(const fqon_t &name) {
+    return const_cast<Namespace *>(std::as_const(*this).get_namespace(name));
+}
+
+const Namespace *MetaInfo::get_namespace(const fqon_t &name) const {
+	auto it = this->namespaces.find(name);
+	if (it == std::end(this->namespaces)) {
+		return nullptr;
+	}
+	return &it->second;
+}
+
+bool MetaInfo::has_namespace(const fqon_t &name) const {
+    return this->namespaces.contains(name);
+}
 
 std::string MetaInfo::str() const {
 	std::ostringstream builder;

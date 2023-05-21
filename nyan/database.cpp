@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "database.h"
 
@@ -90,13 +90,16 @@ void Database::load(const std::string &filename,
 	// the location is the first request origin.
 	std::unordered_map<Namespace, Location> to_import;
 
-	// push the first namespace to import
-	to_import.insert(
-		{
-			Namespace::from_filename(filename),
-			Location{" -> requested by native call to Database::load()"}
-		}
-	);
+	auto file_ns = Namespace::from_filename(filename);
+	if (not this->meta_info.has_namespace(file_ns.to_fqon())) {
+		// push the first namespace to import
+		to_import.insert(
+			{
+				file_ns,
+				Location{" -> requested by native call to Database::load()"}
+			}
+		);
+	}
 
 	// descend to all imports and load the files
 	while (to_import.size() > 0) {
@@ -147,15 +150,16 @@ void Database::load(const std::string &filename,
 			}
 
 			// check if this import was already requested or is known.
-			// todo: also check if that ns is already fully loaded in the db
 			auto was_imported = imports.find(request);
 			auto import_requested = to_import.find(request);
 
 			if (was_imported == std::end(imports) and
 			    import_requested == std::end(to_import)) {
 
-				// add the request to the pending imports
-				to_import.insert({std::move(request), import.get()});
+				if (not this->meta_info.has_namespace(request.to_fqon())) {
+					// add the request to the pending imports
+					to_import.insert({std::move(request), import.get()});
+				}
 			}
 		}
 
@@ -215,6 +219,10 @@ void Database::load(const std::string &filename,
 		}
 
 		info->set_children(std::move(children));
+	}
+
+	for (auto loaded: imports) {
+		this->meta_info.add_namespace(loaded.first);
 	}
 
 	// TODO: check pending objectvalues (probably not needed as they're all loaded)
