@@ -375,6 +375,19 @@ void Database::find_member(bool skip_first,
 
 	bool finished = false;
 
+	// if the member is inherited, it can be prefixed with the ID
+	// of the object it's inherited from, e.g. ParentObj.some_member
+	std::string member_name = member_id;
+	std::optional<fqon_t> member_obj_id = std::nullopt;
+	std::vector<std::string> member_parts = util::split(member_id, '.');
+	if (member_parts.size() > 1) {
+		member_name = member_parts.back();
+		member_parts.pop_back();
+
+		// TODO: we might need to resolve aliases here
+		member_obj_id = util::strjoin(".", member_parts);
+	}
+
 	// member doesn't have type yet. find it.
 	for (auto &obj : search_objs) {
 
@@ -385,14 +398,25 @@ void Database::find_member(bool skip_first,
 			continue;
 		}
 
+		// TODO: if the obj fqon is prefixed, we can skip objects that don't match
+		if (member_obj_id and member_obj_id != obj) {
+			// continue;
+		}
+
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
 		if (unlikely(obj_info == nullptr)) {
 			throw InternalError{"object information not retrieved"};
 		}
-		const MemberInfo *obj_member_info = obj_info->get_member(member_id);
+		const MemberInfo *obj_member_info = obj_info->get_member(member_name);
 
 		// obj doesn't have this member
 		if (not obj_member_info) {
+			// TODO: fail here if the member is prefixed with the parent fqon
+			// but the object doesn't have the member
+			// if (unlikely(member_obj_id)) {
+			// 	throw InternalError{"specified parent object doesn't have the member"};
+			// }
+
 			continue;
 		}
 
@@ -400,7 +424,7 @@ void Database::find_member(bool skip_first,
 		if (unlikely(par_state == nullptr)) {
 			throw InternalError{"object state not retrieved"};
 		}
-		const Member *member = par_state->get(member_id);
+		const Member *member = par_state->get(member_name);
 
 		finished = member_found(obj, *obj_member_info, member);
 
@@ -420,7 +444,7 @@ void Database::find_member(bool skip_first,
 		// recurse into the target.
 		// check if the patch defines the member as well -> error.
 		// otherwise, infer type from patch.
-		this->find_member(false, member_id,
+		this->find_member(false, member_name,
 		                  obj_info->get_linearization(),
 		                  *obj_info, member_found);
 	}

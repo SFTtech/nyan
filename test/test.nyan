@@ -12,6 +12,7 @@ First():
     wat3 : optional(First) = Second
     wat4 : set(children(First)) = {Second}
     member : int = 15
+    nice_member : bool = True
     test : text = "rofl lol"
     bla : file = "wtf.h4x"
     blub : int = inf
@@ -25,6 +26,7 @@ FirstPatch<First>():
 
 Second(First):
     member *= 5.5
+    First.nice_member = False
     # nap : int
 
 NestingBase(First):
