@@ -342,6 +342,10 @@ void ASTObject::ast_members(TokenStream &tokens) {
 
 		token = tokens.next();
 	}
+
+	if (token->type == token_type::ENDFILE) {
+		tokens.reinsert_last();
+	}
 }
 
 
