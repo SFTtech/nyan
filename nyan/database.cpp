@@ -377,7 +377,7 @@ void Database::find_member(bool skip_first,
 
 	// if the member is inherited, it can be prefixed with the ID
 	// of the object it's inherited from, e.g. ParentObj.some_member
-	std::string member_name = member_id;
+	memberid_t member_name = member_id;
 	std::optional<fqon_t> member_obj_id = std::nullopt;
 	std::vector<std::string> member_parts = util::split(member_id, '.');
 	if (member_parts.size() > 1) {
@@ -814,12 +814,26 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 
 			for (auto &it : state_members) {
 				const memberid_t &member_id = it.first;
+
+				// if the member is inherited, its ID can be prefixed with the ID
+				// of the object it's inherited from, e.g. ParentObj.some_member
+				memberid_t member_name = member_id;
+				std::optional<fqon_t> member_obj_id = std::nullopt;
+				std::vector<std::string> member_parts = util::split(member_id, '.');
+				if (member_parts.size() > 1) {
+					member_name = member_parts.back();
+					member_parts.pop_back();
+
+					// TODO: resolve aliases here
+					member_obj_id = util::strjoin(".", member_parts);
+				}
+
 				const Member &member = it.second;
 				nyan_op op = member.get_operation();
 
 				// member has = operation, so it's no longer pending.
 				if (op == nyan_op::ASSIGN) {
-					pending_members.erase(member_id);
+					pending_members.erase(member_name);
 				}
 			}
 		}
