@@ -218,7 +218,7 @@ void Database::load(const std::string &filename,
 			throw InternalError{"object info could not be retrieved"};
 		}
 
-		info->set_children(std::move(children));
+		info->update_children(std::move(children));
 	}
 
 	for (auto loaded: imports) {
@@ -291,11 +291,14 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 		fqon_t parent_id = scope.find(ns, parent, this->meta_info);
 
 		// this object is therefore a child of the parent one.
-		auto ins = child_assignments->emplace(
-			parent_id,
-			std::unordered_set<fqon_t>{}
-		);
-		ins.first->second.insert(obj_fqon);
+		auto ins = child_assignments->find(parent_id);
+		if (ins == std::end(*child_assignments)) {
+			ins = child_assignments->emplace(
+				parent_id,
+				std::unordered_set<fqon_t>{}
+			).first;
+		}
+		ins->second.insert(obj_fqon);
 
 		object_parents.push_back(std::move(parent_id));
 	}
