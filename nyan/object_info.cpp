@@ -104,7 +104,7 @@ const std::vector<fqon_t> &ObjectInfo::get_linearization() const {
 }
 
 
-void ObjectInfo::update_children(std::unordered_set<fqon_t> &&children) {
+void ObjectInfo::add_children(std::unordered_set<fqon_t> &&children) {
 	this->initial_children.insert(children.begin(), children.end());
 }
 

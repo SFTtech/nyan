@@ -218,7 +218,7 @@ void Database::load(const std::string &filename,
 			throw InternalError{"object info could not be retrieved"};
 		}
 
-		info->update_children(std::move(children));
+		info->add_children(std::move(children));
 	}
 
 	for (auto loaded: imports) {

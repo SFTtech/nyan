@@ -120,11 +120,11 @@ public:
 	const std::vector<fqon_t> &get_linearization() const;
 
 	/**
-	 * Update the children of the object.
+	 * Add children to the object.
 	 *
-	 * @param children fqons of the child objects.
+	 * @param children fqons of the added child objects.
 	 */
-	void update_children(std::unordered_set<fqon_t> &&children);
+	void add_children(std::unordered_set<fqon_t> &&children);
 
 	/**
 	 * Set the children of the object.
