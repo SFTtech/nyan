@@ -51,16 +51,16 @@ bool MetaInfo::has_object(const fqon_t &name) const {
 }
 
 Namespace &MetaInfo::add_namespace(const Namespace &ns) {
-    auto ret = this->namespaces.insert({ns.to_fqon(), ns});
+    auto ret = this->namespaces.insert({fqnn_t(ns.to_fqon()), ns});
 
 	return ret.first->second;
 }
 
-Namespace *MetaInfo::get_namespace(const fqon_t &name) {
+Namespace *MetaInfo::get_namespace(const fqnn_t &name) {
     return const_cast<Namespace *>(std::as_const(*this).get_namespace(name));
 }
 
-const Namespace *MetaInfo::get_namespace(const fqon_t &name) const {
+const Namespace *MetaInfo::get_namespace(const fqnn_t &name) const {
 	auto it = this->namespaces.find(name);
 	if (it == std::end(this->namespaces)) {
 		return nullptr;
@@ -68,7 +68,7 @@ const Namespace *MetaInfo::get_namespace(const fqon_t &name) const {
 	return &it->second;
 }
 
-bool MetaInfo::has_namespace(const fqon_t &name) const {
+bool MetaInfo::has_namespace(const fqnn_t &name) const {
     return this->namespaces.contains(name);
 }
 

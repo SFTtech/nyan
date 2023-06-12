@@ -29,6 +29,9 @@ constexpr const order_t LATEST_T = std::numeric_limits<order_t>::max();
 /** fully-qualified object name */
 using fqon_t = std::string;
 
+/** fully-qualified namespace name */
+using fqnn_t = fqon_t;
+
 /** member name identifier type */
 using memberid_t = std::string;
 

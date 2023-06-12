@@ -19,7 +19,7 @@ namespace nyan {
 class MetaInfo {
 public:
 	using obj_info_t = std::unordered_map<fqon_t, ObjectInfo>;
-	using ns_info_t = std::unordered_map<fqon_t, Namespace>;
+	using ns_info_t = std::unordered_map<fqnn_t, Namespace>;
 
 	MetaInfo() = default;
 	~MetaInfo() = default;
@@ -87,7 +87,7 @@ public:
 	 *
 	 * @return The stored namespace.
 	 */
-	Namespace *get_namespace(const fqon_t &name);
+	Namespace *get_namespace(const fqnn_t &name);
 
 	/**
 	 * Get a namespace from the database.
@@ -96,7 +96,7 @@ public:
 	 *
 	 * @return The stored namespace.
 	 */
-	const Namespace *get_namespace(const fqon_t &name) const;
+	const Namespace *get_namespace(const fqnn_t &name) const;
 
 	/**
 	 * Check if a namespace is in the database.
@@ -105,7 +105,7 @@ public:
 	 *
 	 * @return true if the namespace is in the database, else false.
 	 */
-	bool has_namespace(const fqon_t &name) const;
+	bool has_namespace(const fqnn_t &name) const;
 
 	/**
 	 * Get a string representation of all metadata information objects.
