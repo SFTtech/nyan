@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <unordered_map>
@@ -120,9 +120,16 @@ public:
 	const std::vector<fqon_t> &get_linearization() const;
 
 	/**
-	 * Set the initial children of the object at load time.
+	 * Add children to the object.
 	 *
-	 * @param children List of initial children of the object.
+	 * @param children fqons of the added child objects.
+	 */
+	void add_children(std::unordered_set<fqon_t> &&children);
+
+	/**
+	 * Set the children of the object.
+	 *
+	 * @param children fqons of the child objects.
 	 */
 	void set_children(std::unordered_set<fqon_t> &&children);
 

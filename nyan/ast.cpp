@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "ast.h"
 
@@ -301,7 +301,9 @@ void ASTObject::ast_members(TokenStream &tokens) {
 			bool object_next = false;
 			auto lookahead = tokens.next();
 
-			if (lookahead->type == token_type::OPERATOR or lookahead->type == token_type::COLON) {
+			if (lookahead->type == token_type::OPERATOR  // value assignment
+				or lookahead->type == token_type::COLON  // type declaration
+				or lookahead->type == token_type::DOT) { // inherited member access (e.g. Parent.some_member)
 				object_next = false;
 			}
 			else if (lookahead->type == token_type::LANGLE or lookahead->type == token_type::LBRACKET or lookahead->type == token_type::LPAREN) {
@@ -339,6 +341,10 @@ void ASTObject::ast_members(TokenStream &tokens) {
 		}
 
 		token = tokens.next();
+	}
+
+	if (token->type == token_type::ENDFILE) {
+		tokens.reinsert_last();
 	}
 }
 

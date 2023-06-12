@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "database.h"
 
@@ -90,13 +90,16 @@ void Database::load(const std::string &filename,
 	// the location is the first request origin.
 	std::unordered_map<Namespace, Location> to_import;
 
-	// push the first namespace to import
-	to_import.insert(
-		{
-			Namespace::from_filename(filename),
-			Location{" -> requested by native call to Database::load()"}
-		}
-	);
+	auto file_ns = Namespace::from_filename(filename);
+	if (not this->meta_info.has_namespace(file_ns.to_fqon())) {
+		// push the first namespace to import
+		to_import.insert(
+			{
+				file_ns,
+				Location{" -> requested by native call to Database::load()"}
+			}
+		);
+	}
 
 	// descend to all imports and load the files
 	while (to_import.size() > 0) {
@@ -147,15 +150,16 @@ void Database::load(const std::string &filename,
 			}
 
 			// check if this import was already requested or is known.
-			// todo: also check if that ns is already fully loaded in the db
 			auto was_imported = imports.find(request);
 			auto import_requested = to_import.find(request);
 
 			if (was_imported == std::end(imports) and
 			    import_requested == std::end(to_import)) {
 
-				// add the request to the pending imports
-				to_import.insert({std::move(request), import.get()});
+				if (not this->meta_info.has_namespace(request.to_fqon())) {
+					// add the request to the pending imports
+					to_import.insert({std::move(request), import.get()});
+				}
 			}
 		}
 
@@ -214,7 +218,11 @@ void Database::load(const std::string &filename,
 			throw InternalError{"object info could not be retrieved"};
 		}
 
-		info->set_children(std::move(children));
+		info->add_children(std::move(children));
+	}
+
+	for (auto loaded: imports) {
+		this->meta_info.add_namespace(loaded.first);
 	}
 
 	// TODO: check pending objectvalues (probably not needed as they're all loaded)
@@ -283,11 +291,14 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 		fqon_t parent_id = scope.find(ns, parent, this->meta_info);
 
 		// this object is therefore a child of the parent one.
-		auto ins = child_assignments->emplace(
-			parent_id,
-			std::unordered_set<fqon_t>{}
-		);
-		ins.first->second.insert(obj_fqon);
+		auto ins = child_assignments->find(parent_id);
+		if (ins == std::end(*child_assignments)) {
+			ins = child_assignments->emplace(
+				parent_id,
+				std::unordered_set<fqon_t>{}
+			).first;
+		}
+		ins->second.insert(obj_fqon);
 
 		object_parents.push_back(std::move(parent_id));
 	}
@@ -367,6 +378,19 @@ void Database::find_member(bool skip_first,
 
 	bool finished = false;
 
+	// if the member is inherited, it can be prefixed with the ID
+	// of the object it's inherited from, e.g. ParentObj.some_member
+	memberid_t member_name = member_id;
+	std::optional<fqon_t> member_obj_id = std::nullopt;
+	std::vector<std::string> member_parts = util::split(member_id, '.');
+	if (member_parts.size() > 1) {
+		member_name = member_parts.back();
+		member_parts.pop_back();
+
+		// TODO: we might need to resolve aliases here
+		member_obj_id = util::strjoin(".", member_parts);
+	}
+
 	// member doesn't have type yet. find it.
 	for (auto &obj : search_objs) {
 
@@ -377,14 +401,27 @@ void Database::find_member(bool skip_first,
 			continue;
 		}
 
+		// TODO: if the obj fqon is prefixed, we can skip objects that don't match
+		// TODO: This requires that aliases and fqons are properly resolved
+		// if (member_obj_id and member_obj_id != obj) {
+		// 	continue;
+		// }
+
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
 		if (unlikely(obj_info == nullptr)) {
 			throw InternalError{"object information not retrieved"};
 		}
-		const MemberInfo *obj_member_info = obj_info->get_member(member_id);
+		const MemberInfo *obj_member_info = obj_info->get_member(member_name);
 
 		// obj doesn't have this member
 		if (not obj_member_info) {
+			// TODO: fail here if the member is prefixed with the parent fqon
+			// but the object doesn't have the member
+			// TODO: This requires that aliases and fqons are properly resolved
+			// if (unlikely(member_obj_id)) {
+			// 	throw InternalError{"specified parent object doesn't have the member"};
+			// }
+
 			continue;
 		}
 
@@ -392,7 +429,7 @@ void Database::find_member(bool skip_first,
 		if (unlikely(par_state == nullptr)) {
 			throw InternalError{"object state not retrieved"};
 		}
-		const Member *member = par_state->get(member_id);
+		const Member *member = par_state->get(member_name);
 
 		finished = member_found(obj, *obj_member_info, member);
 
@@ -412,7 +449,7 @@ void Database::find_member(bool skip_first,
 		// recurse into the target.
 		// check if the patch defines the member as well -> error.
 		// otherwise, infer type from patch.
-		this->find_member(false, member_id,
+		this->find_member(false, member_name,
 		                  obj_info->get_linearization(),
 		                  *obj_info, member_found);
 	}
@@ -782,12 +819,26 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 
 			for (auto &it : state_members) {
 				const memberid_t &member_id = it.first;
+
+				// if the member is inherited, its ID can be prefixed with the ID
+				// of the object it's inherited from, e.g. ParentObj.some_member
+				memberid_t member_name = member_id;
+				std::optional<fqon_t> member_obj_id = std::nullopt;
+				std::vector<std::string> member_parts = util::split(member_id, '.');
+				if (member_parts.size() > 1) {
+					member_name = member_parts.back();
+					member_parts.pop_back();
+
+					// TODO: resolve aliases here
+					member_obj_id = util::strjoin(".", member_parts);
+				}
+
 				const Member &member = it.second;
 				nyan_op op = member.get_operation();
 
 				// member has = operation, so it's no longer pending.
 				if (op == nyan_op::ASSIGN) {
-					pending_members.erase(member_id);
+					pending_members.erase(member_name);
 				}
 			}
 		}

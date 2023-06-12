@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "value.h"
 
@@ -21,7 +21,6 @@
 
 
 namespace nyan {
-
 
 /**
  * Create a ValueHolder from an IDToken.
@@ -154,6 +153,30 @@ static std::vector<ValueHolder> value_from_value_token(
 }
 
 
+/**
+ * Check if the value contained in a list of value tokens is 'None' (the value available
+ * for the optional type modifier).
+ *
+ * Can be used to check if a container is set to None.
+ *
+ * @param astvalues Value tokens of a member defiinition.
+ * @return true if the value is 'None', false otherwise.
+ */
+static bool check_container_none(const std::vector<ValueToken> &astvalues) {
+	if (astvalues.size() == 1) {
+		auto &id_tokens = astvalues[0].get_value();
+		if (id_tokens.size() == 1) {
+			auto &token_components = id_tokens[0].get_components();
+			if (token_components.size() == 1
+			    and token_components[0].get() == "None") {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
 ValueHolder Value::from_ast(
 	const Type &target_type,
 	const ASTMemberValue &astmembervalue,
@@ -183,105 +206,111 @@ ValueHolder Value::from_ast(
 		)[0];
 	}
 	else {
+		// for optional types, we need to check if the member is set to None
+		if (target_type.has_modifier(modifier_t::OPTIONAL)
+			and check_container_none(astvalues)) {
+			value = None::value;
+		}
+		else {
+			// now for containers (dict, set, orderedset, ...)
+			composite_t composite_type = target_type.get_composite_type();
 
-		// now for containers (dict, set, orderedset, ...)
-		composite_t composite_type = target_type.get_composite_type();
+			switch (composite_type)
+			{
+			case composite_t::ORDEREDSET:
+			case composite_t::SET: {
+				std::vector<ValueHolder> values;
 
-		switch (composite_type)
-		{
-		case composite_t::ORDEREDSET:
-		case composite_t::SET: {
-			std::vector<ValueHolder> values;
+				// process multi-value values (orderedsets etc)
+				values.reserve(astvalues.size());
 
-			// process multi-value values (orderedsets etc)
-			values.reserve(astvalues.size());
+				// convert all tokens to values
+				const Type &element_type = target_type.get_element_type()[0];
 
-			// convert all tokens to values
-			const Type &element_type = target_type.get_element_type()[0];
+				for (auto &value_token : astvalues) {
+					ValueHolder value = value_from_value_token(
+						{element_type},
+						value_token,
+						get_fqon
+					)[0];
 
-			for (auto &value_token : astvalues) {
-				ValueHolder value = value_from_value_token(
-					{element_type},
-					value_token,
-					get_fqon
-				)[0];
+					if (auto error = value->compatible_with(element_type, get_obj_lin)) {
+						throw TypeError(
+							value_token.get_start_location(),
+							"set element type "s
+							+ element_type.str()
+							+ " can't be assigned a value of type "
+							+ value->get_type().str()
+							+ ": " + error->msg
+						);
+					}
 
-				if (auto error = value->compatible_with(element_type, get_obj_lin)) {
-					throw TypeError(
-						value_token.get_start_location(),
-						"set element type "s
-						+ element_type.str()
-						+ " can't be assigned a value of type "
-						+ value->get_type().str()
-						+ ": " + error->msg
-					);
+					values.push_back(value);
 				}
 
-				values.push_back(value);
-			}
+				switch (composite_type) {
+				case composite_t::SET:
+					// create a set from the value list
+					value = std::make_shared<Set>(std::move(values));
+					break;
 
-			switch (composite_type) {
-			case composite_t::SET:
-				// create a set from the value list
-				value = std::make_shared<Set>(std::move(values));
-				break;
+				case composite_t::ORDEREDSET:
+					value = std::make_shared<OrderedSet>(std::move(values));
+					break;
 
-			case composite_t::ORDEREDSET:
-				value = std::make_shared<OrderedSet>(std::move(values));
-				break;
+				default:
+					throw InternalError{"value creation for unhandled container type"};
+				}
+			} break;
+
+			case composite_t::DICT: {
+				std::unordered_map<ValueHolder, ValueHolder> items;
+
+				items.reserve(astvalues.size());
+
+				// convert all tokens to values
+				const std::vector<Type> &element_type = target_type.get_element_type();
+
+				const Type &key_type = element_type[0];
+				const Type &value_type = element_type[1];
+
+				for (auto &value_token : astvalues) {
+					std::vector<ValueHolder> keyval = value_from_value_token(
+						element_type,
+						value_token,
+						get_fqon
+					);
+
+					if (auto error = keyval[0]->compatible_with(key_type, get_obj_lin)) {
+						throw TypeError(
+							value_token.get_start_location(),
+							"dict key type "s
+							+ key_type.str()
+							+ " can't be assigned a value of type "
+							+ keyval[0]->get_type().str()
+							+ ": " + error->msg
+						);
+					}
+					if (auto error = keyval[1]->compatible_with(value_type, get_obj_lin)) {
+						throw TypeError(
+							value_token.get_start_location(),
+							"dict value type "s
+							+ value_type.str()
+							+ " can't be assigned a value of type "
+							+ keyval[1]->get_type().str()
+							+ ": " + error->msg
+						);
+					}
+
+					items.insert(std::make_pair(keyval[0], keyval[1]));
+				}
+
+				value = std::make_shared<Dict>(std::move(items));
+			} break;
 
 			default:
 				throw InternalError{"value creation for unhandled container type"};
 			}
-		} break;
-
-		case composite_t::DICT: {
-			std::unordered_map<ValueHolder, ValueHolder> items;
-
-			items.reserve(astvalues.size());
-
-			// convert all tokens to values
-			const std::vector<Type> &element_type = target_type.get_element_type();
-
-			const Type &key_type = element_type[0];
-			const Type &value_type = element_type[1];
-
-			for (auto &value_token : astvalues) {
-				std::vector<ValueHolder> keyval = value_from_value_token(
-					element_type,
-					value_token,
-					get_fqon
-				);
-
-				if (auto error = keyval[0]->compatible_with(key_type, get_obj_lin)) {
-					throw TypeError(
-						value_token.get_start_location(),
-						"dict key type "s
-						+ key_type.str()
-						+ " can't be assigned a value of type "
-						+ keyval[0]->get_type().str()
-						+ ": " + error->msg
-					);
-				}
-				if (auto error = keyval[1]->compatible_with(value_type, get_obj_lin)) {
-					throw TypeError(
-						value_token.get_start_location(),
-						"dict value type "s
-						+ value_type.str()
-						+ " can't be assigned a value of type "
-						+ keyval[1]->get_type().str()
-						+ ": " + error->msg
-					);
-				}
-
-				items.insert(std::make_pair(keyval[0], keyval[1]));
-			}
-
-			value = std::make_shared<Dict>(std::move(items));
-		} break;
-
-		default:
-			throw InternalError{"value creation for unhandled container type"};
 		}
 	}
 

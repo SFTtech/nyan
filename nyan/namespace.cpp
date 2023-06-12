@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "namespace.h"
 
@@ -94,9 +94,30 @@ Namespace Namespace::from_filename(const std::string &filename) {
 		throw APIError{"there's too many dots in the path"};
 	}
 
-	// strip off the file extension
-	std::string namespace_name{filename, 0, filename.size() - extension.size()};
-	std::replace(namespace_name.begin(), namespace_name.end(), '/', '.');
+	// sanitize the filename
+	// TODO: Do this via a file API
+	std::string namespace_name;
+	char prev_char;
+	char cur_char;
+	// condition strips off file extension
+	for (size_t i = 0; i < filename.size() - extension.size(); ++i) {
+		cur_char = filename[i];
+		
+		// slashes get replaced with dots
+		if (cur_char == '/') {
+			// strip multiple slashes
+			if (prev_char == '/') {
+				continue;
+			}
+			namespace_name += '.';
+		}
+		// normal chars get copied
+		else {
+			namespace_name += cur_char;
+		}
+
+		prev_char = cur_char;
+	}
 
 	// the fqon_t constructor.
 	return Namespace{namespace_name};

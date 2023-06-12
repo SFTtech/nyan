@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object_info.h"
 
@@ -101,6 +101,11 @@ void ObjectInfo::set_linearization(std::vector<fqon_t> &&lin) {
 
 const std::vector<fqon_t> &ObjectInfo::get_linearization() const {
 	return this->initial_linearization;
+}
+
+
+void ObjectInfo::add_children(std::unordered_set<fqon_t> &&children) {
+	this->initial_children.insert(children.begin(), children.end());
 }
 
 

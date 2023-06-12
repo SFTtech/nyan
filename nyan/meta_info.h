@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "object_info.h"
+#include "namespace.h"
 
 
 namespace nyan {
@@ -18,6 +19,7 @@ namespace nyan {
 class MetaInfo {
 public:
 	using obj_info_t = std::unordered_map<fqon_t, ObjectInfo>;
+	using ns_info_t = std::unordered_map<fqnn_t, Namespace>;
 
 	MetaInfo() = default;
 	~MetaInfo() = default;
@@ -70,6 +72,42 @@ public:
 	bool has_object(const fqon_t &name) const;
 
 	/**
+	 * Add a namespace to the database.
+	 *
+	 * @param ns Namespace to add.
+	 *
+	 * @return The stored namespace.
+	 */
+	Namespace &add_namespace(const Namespace &ns);
+
+	/**
+	 * Get a namespace from the database.
+	 *
+	 * @param name Identifier of the namespace.
+	 *
+	 * @return The stored namespace.
+	 */
+	Namespace *get_namespace(const fqnn_t &name);
+
+	/**
+	 * Get a namespace from the database.
+	 *
+	 * @param name Identifier of the namespace.
+	 *
+	 * @return The stored namespace.
+	 */
+	const Namespace *get_namespace(const fqnn_t &name) const;
+
+	/**
+	 * Check if a namespace is in the database.
+	 *
+	 * @param name Identifier of the namespace.
+	 *
+	 * @return true if the namespace is in the database, else false.
+	 */
+	bool has_namespace(const fqnn_t &name) const;
+
+	/**
 	 * Get a string representation of all metadata information objects.
 	 *
 	 * @return String representation of all metadata information objects.
@@ -82,6 +120,11 @@ protected:
 	 * This is for displaying error messages and line information.
 	 */
 	obj_info_t object_info;
+
+	/**
+	 * Namespaces loaded in the database.
+	 */
+	ns_info_t namespaces;
 };
 
 } // namespace nyan

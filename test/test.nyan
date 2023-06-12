@@ -12,6 +12,7 @@ First():
     wat3 : optional(First) = Second
     wat4 : set(children(First)) = {Second}
     member : int = 15
+    nice_member : bool = True
     test : text = "rofl lol"
     bla : file = "wtf.h4x"
     blub : int = inf
@@ -25,14 +26,13 @@ FirstPatch<First>():
 
 Second(First):
     member *= 5.5
+    First.nice_member = False
     # nap : int
 
 NestingBase(First):
 
     setmember : set(int) = {1,2,3,4,
                             5,6,7,}
-
-    dictmember : dict(int, text) = {2: "two", 4: "four"}
 
     member = 2
 
@@ -86,6 +86,11 @@ SetTest():
 SetPatch<SetTest>():
     member |= o{3,4,4}
     orderedmember += o{4}
+
+DictTest():
+    dictmember : dict(int, text) = {2: "two", 4: "four"}
+    dictmember2 : optional(dict(text, int)) = None
+    dictmember3 : optional(dict(text, int)) = {"two": 2, "four": 4}
 
 # importing!
 import imported as imp
