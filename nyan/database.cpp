@@ -402,9 +402,10 @@ void Database::find_member(bool skip_first,
 		}
 
 		// TODO: if the obj fqon is prefixed, we can skip objects that don't match
-		if (member_obj_id and member_obj_id != obj) {
-			// continue;
-		}
+		// TODO: This requires that aliases and fqons are properly resolved
+		// if (member_obj_id and member_obj_id != obj) {
+		// 	continue;
+		// }
 
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
 		if (unlikely(obj_info == nullptr)) {
@@ -416,6 +417,7 @@ void Database::find_member(bool skip_first,
 		if (not obj_member_info) {
 			// TODO: fail here if the member is prefixed with the parent fqon
 			// but the object doesn't have the member
+			// TODO: This requires that aliases and fqons are properly resolved
 			// if (unlikely(member_obj_id)) {
 			// 	throw InternalError{"specified parent object doesn't have the member"};
 			// }
