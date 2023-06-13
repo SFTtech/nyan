@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object.h"
 
@@ -59,7 +59,7 @@ value_float_t Object::get_float(const memberid_t &member, order_t t) const {
 }
 
 
-const std::string &Object::get_text(const memberid_t &member, order_t t) const {
+std::string Object::get_text(const memberid_t &member, order_t t) const {
 	return *this->get<Text>(member, t);
 }
 
@@ -69,17 +69,17 @@ bool Object::get_bool(const memberid_t &member, order_t t) const {
 }
 
 
-const set_t &Object::get_set(const memberid_t &member, order_t t) const {
+set_t Object::get_set(const memberid_t &member, order_t t) const {
 	return this->get<Set>(member, t)->get();
 }
 
 
-const ordered_set_t &Object::get_orderedset(const memberid_t &member, order_t t) const {
+ordered_set_t Object::get_orderedset(const memberid_t &member, order_t t) const {
 	return this->get<OrderedSet>(member, t)->get();
 }
 
 
-const std::string &Object::get_file(const memberid_t &member, order_t t) const {
+std::string Object::get_file(const memberid_t &member, order_t t) const {
 	return this->get<Filename>(member, t)->get();
 }
 
