@@ -9,6 +9,7 @@
 #include "../util.h"
 #include "container.h"
 #include "value.h"
+#include "container_types.h"
 
 
 namespace nyan {
@@ -19,7 +20,7 @@ namespace nyan {
  */
 class Dict : public Value {
 public:
-	using value_storage = std::unordered_map<ValueHolder,ValueHolder>;
+	using value_storage = dict_t;
 	using key_type = typename value_storage::key_type;
 	using value_type = typename value_storage::mapped_type;
 	using element_type = typename value_storage::value_type;

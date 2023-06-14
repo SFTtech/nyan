@@ -13,7 +13,7 @@
 #include "api_error.h"
 #include "config.h"
 #include "value/none.h"
-#include "value/set_types.h"
+#include "value/container_types.h"
 #include "value/value_holder.h"
 #include "object_notifier_types.h"
 #include "util.h"
@@ -196,6 +196,16 @@ public:
 	 * @return Value of the member.
 	 */
 	ordered_set_t get_orderedset(const memberid_t &member, order_t t=LATEST_T) const;
+
+	/**
+	 * Get the calculated member value for an \p dict type member.
+	 *
+	 * @param member Member ID.
+	 * @param t Time for which the value is calculated.
+	 *
+	 * @return Value of the member.
+	 */
+	dict_t get_dict(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p file type member.

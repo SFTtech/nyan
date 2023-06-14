@@ -68,6 +68,7 @@ add_library(nyan SHARED
 	util/flags.cpp
 	value_token.cpp
 	value/boolean.cpp
+	value/container_types.cpp
 	value/container.cpp
 	value/dict.cpp
 	value/file.cpp
@@ -77,7 +78,6 @@ add_library(nyan SHARED
 	value/orderedset.cpp
 	value/set.cpp
 	value/set_base.cpp
-	value/set_types.cpp
 	value/text.cpp
 	value/value.cpp
 	value/value_holder.cpp

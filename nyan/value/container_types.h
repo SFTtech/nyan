@@ -1,4 +1,4 @@
-// Copyright 2019-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2019-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <unordered_set>
@@ -15,5 +15,9 @@ using set_t = std::unordered_set<ValueHolder>;
 
 /** datatype used for ordered set storage */
 using ordered_set_t = datastructure::OrderedSet<ValueHolder>;
+
+
+/** datatype used for dict storage */
+using dict_t = std::unordered_map<ValueHolder, ValueHolder>;
 
 } // namespace nyan

@@ -19,6 +19,7 @@
 #include "value/object.h"
 #include "value/orderedset.h"
 #include "value/set.h"
+#include "value/dict.h"
 #include "value/text.h"
 #include "view.h"
 
@@ -78,6 +79,9 @@ ordered_set_t Object::get_orderedset(const memberid_t &member, order_t t) const 
 	return this->get<OrderedSet>(member, t)->get();
 }
 
+dict_t Object::get_dict(const memberid_t &member, order_t t) const {
+    return this->get<Dict>(member, t)->get();
+}
 
 std::string Object::get_file(const memberid_t &member, order_t t) const {
 	return this->get<Filename>(member, t)->get();
