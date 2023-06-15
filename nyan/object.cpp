@@ -14,20 +14,19 @@
 #include "patch_info.h"
 #include "util.h"
 #include "value/boolean.h"
+#include "value/dict.h"
 #include "value/file.h"
 #include "value/number.h"
 #include "value/object.h"
 #include "value/orderedset.h"
 #include "value/set.h"
-#include "value/dict.h"
 #include "value/text.h"
 #include "view.h"
 
 
 namespace nyan {
 
-Object::Object(const fqon_t &name, const std::shared_ptr<View> &origin)
-	:
+Object::Object(const fqon_t &name, const std::shared_ptr<View> &origin) :
 	origin{origin},
 	name{name} {}
 
@@ -79,9 +78,11 @@ ordered_set_t Object::get_orderedset(const memberid_t &member, order_t t) const 
 	return this->get<OrderedSet>(member, t)->get();
 }
 
+
 dict_t Object::get_dict(const memberid_t &member, order_t t) const {
-    return this->get<Dict>(member, t)->get();
+	return this->get<Dict>(member, t)->get();
 }
+
 
 std::string Object::get_file(const memberid_t &member, order_t t) const {
 	return this->get<Filename>(member, t)->get();
@@ -101,8 +102,7 @@ std::shared_ptr<Object> Object::get<Object>(const memberid_t &member, order_t t)
 	std::shared_ptr<Object> ret = std::make_shared<Object>(
 		Object::Restricted{},
 		fqon,
-		this->origin
-	);
+		this->origin);
 	return ret;
 }
 
@@ -118,8 +118,8 @@ std::optional<std::shared_ptr<Object>> Object::get_optional<Object>(const member
 	const fqon_t &fqon = obj_val->get_name();
 	std::shared_ptr<Object> ret = std::make_shared<Object>(
 		Object::Restricted{},
-		fqon, this->origin
-	);
+		fqon,
+		this->origin);
 	return ret;
 }
 
