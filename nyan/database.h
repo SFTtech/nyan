@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
@@ -20,7 +20,6 @@ class Namespace;
 class ObjectState;
 class State;
 class View;
-
 
 
 /**
@@ -92,13 +91,12 @@ public:
 	}
 
 protected:
-
 	/**
 	 * Create the metadata information ObjectInfo for an object.
 	 *
 	 * @param counter Increments after ObjectInfo has been created. Used to count the created objects.
 	 * @param current_file NamespaceFinder to check object naming conflicts.
-	 * @param ns Namespace the object is in?
+	 * @param ns Namespace of the object.
 	 * @param objname Namespace created by the object.
 	 * @param astobj Parsed object data from the AST.
 	 */
@@ -107,8 +105,7 @@ protected:
 		const NamespaceFinder &current_file,
 		const Namespace &ns,
 		const Namespace &objname,
-		const ASTObject &astobj
-	);
+		const ASTObject &astobj);
 
 	/**
 	 * Add an object's content to the metadata information ObjectInfo of
@@ -128,8 +125,7 @@ protected:
 		const NamespaceFinder &current_file,
 		const Namespace &ns,
 		const Namespace &objname,
-		const ASTObject &astobj
-	);
+		const ASTObject &astobj);
 
 	/**
 	 * Create the initial ObjectState of an object.
@@ -145,8 +141,7 @@ protected:
 		const NamespaceFinder &current_file,
 		const Namespace &ns,
 		const Namespace &objname,
-		const ASTObject &astobj
-	);
+		const ASTObject &astobj);
 
 	/**
 	 * Linearizes the parents of all given objects.
@@ -169,8 +164,7 @@ protected:
 		const memberid_t &member_id,
 		const std::vector<fqon_t> &search_objs,
 		const ObjectInfo &obj_info,
-		const std::function<bool(const fqon_t &, const MemberInfo &, const Member *)> &member_found
-	);
+		const std::function<bool(const fqon_t &, const MemberInfo &, const Member *)> &member_found);
 
 	/**
 	 * Resolves types that are inherited by objects and members. This will
