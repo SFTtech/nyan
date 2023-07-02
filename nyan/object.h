@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -13,7 +13,7 @@
 #include "api_error.h"
 #include "config.h"
 #include "value/none.h"
-#include "value/set_types.h"
+#include "value/container_types.h"
 #include "value/value_holder.h"
 #include "object_notifier_types.h"
 #include "util.h"
@@ -69,80 +69,76 @@ public:
 	/**
 	 * Get the identifier of this object (fully-qualified object name).
 	 *
-	 * @return Identifier of this object.
+	 * @return fqon of this object.
 	 */
 	const fqon_t &get_name() const;
 
 	/**
-	 * Get the view this object was created in.
+	 * Get the view of the database this object is associated with
 	 *
-	 * @return View of this object.
+	 * @return Database view.
 	 */
 	const std::shared_ptr<View> &get_view() const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get a new value holder that contains the calculated member value
+	 * for a given member at a given time.
 	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which we want to calculate the value.
 	 *
-	 * @return ValueHolder with the value of the member.
+	 * @return ValueHolder containing the raw value of the member.
 	 */
 	ValueHolder get_value(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value container for a given member at a given time.
 	 *
-	 * Invokes the get_value function and then does a cast to type T.
-	 * There's a special variant for T=nyan::Object which creates
-	 * an object handle.
-	 * Internally calls `get_optional` with `may_be_none=false`.
+	 * Invokes the get_value function and then does a cast to type T which
+	 * is a nyan value type.
 	 *
-	 * @tparam T the value is casted to.
+	 * @tparam T nyan type of the value.
 	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which we want to calculate the value.
 	 *
-	 * @return Shared pointer with the value of the member.
+	 * @return Value of the member.
 	 */
 	template <ValueLike T>
 	std::shared_ptr<T> get(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get a value which has optional type.
-	 * The `may_be_none` template parameter is to patch out the optional check branch,
-	 * since this function is used internally by `Object::get`.
+	 * Get the calculated member value container for a given member at a given time.
 	 *
-	 * @param member Identifier of the object member entry.
+	 * This variant of \p get() always explicitely tests if the member value
+	 * is \p None (i.e. if there is an optional value).
+	 *
+	 * @param member Member ID.
 	 * @param t Time to retrieve the member for.
 	 *
-	 * @return std::optional wrapping the member value
+	 * @return Value of the member.
 	 */
 	template <ValueLike T, bool may_be_none=true>
 	std::optional<std::shared_ptr<T>> get_optional(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for a number type member (\p int or \p float).
 	 *
-	 * Casts to a number type T.
-	 *
-	 * @tparam Number type the value is casted to.
+	 * @tparam Number type of the member.
 	 * @tparam Return type of the value.
 	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which we want to calculate the value.
 	 *
-	 * @return Value of the member with type \p ret.
+	 * @return Value of the member.
 	 */
 	template<std::derived_from<NumberBase> T, typename ret=typename T::storage_type>
 	ret get_number(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p int type member.
 	 *
-	 * Casts to int.
-	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which we want to calculate the value.
 	 *
 	 * @return Value of the member.
@@ -150,11 +146,11 @@ public:
 	value_int_t get_int(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p float type member.
 	 *
-	 * Casts to float.
+	 * Note that this actually returns a double.
 	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which the value is calculated.
 	 *
 	 * @return Value of the member.
@@ -162,23 +158,19 @@ public:
 	value_float_t get_float(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p text type member.
 	 *
-	 * Casts to std::string.
-	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which the value is calculated.
 	 *
 	 * @return Value of the member.
 	 */
-	const std::string &get_text(const memberid_t &member, order_t t=LATEST_T) const;
+	std::string get_text(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p bool type member.
 	 *
-	 * Casts to bool.
-	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which the value is calculated.
 	 *
 	 * @return Value of the member.
@@ -186,47 +178,49 @@ public:
 	bool get_bool(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p set type member.
 	 *
-	 * Casts to std::unordered_set.
-	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which the value is calculated.
 	 *
 	 * @return Value of the member.
 	 */
-	const set_t &get_set(const memberid_t &member, order_t t=LATEST_T) const;
+	set_t get_set(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p orderedset type member.
 	 *
-	 * Casts to nyan::OrderedSet.
-	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which the value is calculated.
 	 *
 	 * @return Value of the member.
 	 */
-	const ordered_set_t &get_orderedset(const memberid_t &member, order_t t=LATEST_T) const;
+	ordered_set_t get_orderedset(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p dict type member.
 	 *
-	 * Casts to std::string.
-	 *
-	 * @param member Identifier of the member.
+	 * @param member Member ID.
 	 * @param t Time for which the value is calculated.
 	 *
 	 * @return Value of the member.
 	 */
-	const std::string &get_file(const memberid_t &member, order_t t=LATEST_T) const;
+	dict_t get_dict(const memberid_t &member, order_t t=LATEST_T) const;
 
 	/**
-	 * Get the calculated member value for a given member at a given time.
+	 * Get the calculated member value for an \p file type member.
 	 *
-	 * Returns an Object.
+	 * @param member Member ID.
+	 * @param t Time for which the value is calculated.
 	 *
-	 * @param member Identifier of the member.
+	 * @return Value of the member.
+	 */
+	std::string get_file(const memberid_t &member, order_t t=LATEST_T) const;
+
+	/**
+	 * Get the calculated member value container for an \p object type member.
+	 *
+	 * @param member Member ID.
 	 * @param t Time for which the value is calculated.
 	 *
 	 * @return Value of the member.

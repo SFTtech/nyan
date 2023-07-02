@@ -5,16 +5,17 @@
 #include <sstream>
 
 #include "lang_error.h"
-#include "util.h"
 #include "patch_info.h"
 #include "state.h"
+#include "util.h"
 
 
 namespace nyan {
 
-ObjectInfo::ObjectInfo(const Location &location)
-	:
+ObjectInfo::ObjectInfo(const Location &location,
+                       const Namespace &ns) :
 	location{location},
+	ns{ns},
 	initial_patch{false} {}
 
 
@@ -22,10 +23,13 @@ const Location &ObjectInfo::get_location() const {
 	return this->location;
 }
 
+const Namespace &ObjectInfo::get_namespace() const {
+	return this->ns;
+}
+
 
 MemberInfo &ObjectInfo::add_member(const memberid_t &name,
                                    MemberInfo &&member) {
-
 	// copy the location so it's still valid if the insert fails.
 	Location loc = member.get_location();
 
@@ -34,8 +38,7 @@ MemberInfo &ObjectInfo::add_member(const memberid_t &name,
 		throw LangError{
 			loc,
 			"member already in this object",
-			{{ret.first->second.get_location(), "first defined here"}}
-		};
+			{{ret.first->second.get_location(), "first defined here"}}};
 	}
 
 	return ret.first->second;
@@ -135,7 +138,8 @@ std::string ObjectInfo::str() const {
 		for (auto &change : this->inheritance_change) {
 			if (not liststart) {
 				builder << ", ";
-			} else {
+			}
+			else {
 				liststart = false;
 			}
 

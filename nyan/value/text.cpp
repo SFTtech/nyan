@@ -1,33 +1,31 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "text.h"
 
 #include <typeinfo>
 
 #include "../compiler.h"
-#include "../lang_error.h"
 #include "../id_token.h"
-#include "../util.h"
+#include "../lang_error.h"
 #include "../token.h"
+#include "../util.h"
 
 
 namespace nyan {
 
-Text::Text(const std::string &value)
-	:
+Text::Text(const std::string &value) :
 	value{value} {}
 
 
-Text::Text(const IDToken &token)
-	:
-	Text{token.get_first()} {
-
+Text::Text(const IDToken &token) {
 	if (unlikely(token.get_type() != token_type::STRING)) {
 		throw LangError{
 			token,
-			"invalid value for text"
-		};
+			"invalid value for text"};
 	}
+
+	// strip the quotes
+	this->value = token.get_first().substr(1, token.get_first().size() - 2);
 }
 
 
@@ -41,10 +39,12 @@ bool Text::apply_value(const Value &value, nyan_op operation) {
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
-		this->value = change.value; break;
+		this->value = change.value;
+		break;
 
 	case nyan_op::ADD_ASSIGN:
-		this->value += change.value; break;
+		this->value += change.value;
+		break;
 
 	default:
 		throw InternalError{"unknown operation requested"};
@@ -55,7 +55,7 @@ bool Text::apply_value(const Value &value, nyan_op operation) {
 
 
 std::string Text::str() const {
-	return this->value;
+	return "\"" + this->value + "\"";
 }
 
 

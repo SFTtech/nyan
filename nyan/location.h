@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
@@ -21,8 +21,10 @@ public:
 	Location() = default;
 	Location(const Token &token);
 	Location(const IDToken &token);
-	Location(const std::shared_ptr<File> &file, int line,
-	         int line_offset, int length=0);
+	Location(const std::shared_ptr<File> &file,
+	         int line,
+	         int line_offset,
+	         int length = 0);
 	explicit Location(const std::string &custom);
 
 	~Location() = default;
@@ -68,6 +70,13 @@ public:
 	 * @return String containing the contents of the line.
 	 */
 	std::string get_line_content() const;
+
+	/**
+	 * Get the file for the location.
+	 *
+	 * @return File handle. Can be \p nullptr.
+	 */
+	const std::shared_ptr<File> &get_file() const;
 
 	/**
 	 * Append the string representation of the location to a given output stream.

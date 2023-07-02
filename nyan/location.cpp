@@ -1,40 +1,37 @@
-// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "location.h"
 
 #include "file.h"
-#include "token.h"
 #include "id_token.h"
+#include "token.h"
 
 
 namespace nyan {
 
 
-Location::Location(const Token &token)
-	:
+Location::Location(const Token &token) :
 	Location{token.location} {}
 
 
-Location::Location(const IDToken &token)
-	:
+Location::Location(const IDToken &token) :
 	Location{token.get_start_location()} {
-
 	// use the full id length as location length
 	this->length = token.get_length();
 }
 
 
 Location::Location(const std::shared_ptr<File> &file,
-                   int line, int line_offset, int length)
-	:
+                   int line,
+                   int line_offset,
+                   int length) :
 	file{file},
 	line{line},
 	line_offset{line_offset},
 	length{length} {}
 
 
-Location::Location(const std::string &custom)
-	:
+Location::Location(const std::string &custom) :
 	_is_builtin{true},
 	msg{custom} {}
 
@@ -68,6 +65,10 @@ std::string Location::get_line_content() const {
 	return this->file->get_line(this->get_line());
 }
 
+const std::shared_ptr<File> &Location::get_file() const {
+	return this->file;
+}
+
 
 void Location::str(std::ostringstream &builder) const {
 	if (this->_is_builtin) {
@@ -76,8 +77,8 @@ void Location::str(std::ostringstream &builder) const {
 	}
 
 	builder << this->file->get_name() << ":"
-	        << this->line << ":"
-	        << this->line_offset << ": ";
+			<< this->line << ":"
+			<< this->line_offset << ": ";
 }
 
 } // namespace nyan

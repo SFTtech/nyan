@@ -9,6 +9,7 @@
 #include "inheritance_change.h"
 #include "location.h"
 #include "member_info.h"
+#include "namespace.h"
 #include "ops.h"
 
 
@@ -26,7 +27,8 @@ class ObjectInfo {
 public:
 	using member_info_t = std::unordered_map<memberid_t, MemberInfo>;
 
-	explicit ObjectInfo(const Location &location);
+	explicit ObjectInfo(const Location &location,
+	                    const Namespace &ns);
 	~ObjectInfo() = default;
 
 	/**
@@ -35,6 +37,13 @@ public:
 	 * @return Location of the object.
 	 */
 	const Location &get_location() const;
+
+	/**
+	 * Get the namespace of the object.
+	 *
+	 * @return Object namespace.
+	 */
+	const Namespace &get_namespace() const;
 
 	/**
 	 * Add metadata information for a member.
@@ -167,6 +176,11 @@ protected:
 	 * Location where the object was defined.
 	 */
 	Location location;
+
+	/**
+	 * Namespace of the object.
+	 */
+	Namespace ns;
 
 	/**
 	 * Determines whether this object was defined as a patch.

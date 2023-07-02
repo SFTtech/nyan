@@ -43,7 +43,7 @@ public:
 
 	/**
 	 * Check if a name conflicts wth other names in the namespace, i.e. the
-	 * name is already used.
+	 * name is already used by an alias or an import.
 	 *
 	 * @return true if the name is already used, else false.
 	 */

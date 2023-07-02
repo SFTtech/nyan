@@ -3,8 +3,8 @@
 #include "database.h"
 
 #include <memory>
-#include <unordered_map>
 #include <queue>
+#include <unordered_map>
 
 #include "c3.h"
 #include "compiler.h"
@@ -26,8 +26,7 @@ std::shared_ptr<Database> Database::create() {
 }
 
 
-Database::Database()
-	:
+Database::Database() :
 	state{std::make_shared<State>()} {}
 
 
@@ -49,7 +48,6 @@ static void ast_obj_walk_recurser(const ast_objwalk_cb_t &callback,
                                   const NamespaceFinder &scope,
                                   const Namespace &ns,
                                   const std::vector<ASTObject> &objs) {
-
 	// go over all objects
 	for (auto &astobj : objs) {
 		Namespace objname{ns, astobj.get_name().get()};
@@ -65,7 +63,6 @@ static void ast_obj_walk_recurser(const ast_objwalk_cb_t &callback,
 
 static void ast_obj_walk(const namespace_lookup_t &imports,
                          const ast_objwalk_cb_t &cb) {
-
 	// go over all the imported files
 	for (auto &it : imports) {
 		const Namespace &ns = it.first;
@@ -80,7 +77,6 @@ static void ast_obj_walk(const namespace_lookup_t &imports,
 
 void Database::load(const std::string &filename,
                     const filefetcher_t &filefetcher) {
-
 	Parser parser;
 
 	// tracking of imported namespaces (with aliases)
@@ -94,11 +90,8 @@ void Database::load(const std::string &filename,
 	if (not this->meta_info.has_namespace(file_ns.to_fqon())) {
 		// push the first namespace to import
 		to_import.insert(
-			{
-				file_ns,
-				Location{" -> requested by native call to Database::load()"}
-			}
-		);
+			{file_ns,
+		     Location{" -> requested by native call to Database::load()"}});
 	}
 
 	// descend to all imports and load the files
@@ -117,8 +110,7 @@ void Database::load(const std::string &filename,
 		try {
 			// get the data and parse the file
 			current_file = filefetcher(
-				namespace_to_import.to_filename()
-			);
+				namespace_to_import.to_filepath());
 		}
 		catch (FileReadError &err) {
 			// the import request failed,
@@ -128,17 +120,23 @@ void Database::load(const std::string &filename,
 
 		// create import tracking entry for this file
 		// and parse the file contents!
-		NamespaceFinder &new_ns = imports.insert({
-			namespace_to_import,                         // name of the import
-			NamespaceFinder{
-				parser.parse(current_file)  // read the ast!
-			}
-		}).first->second;
+		NamespaceFinder &new_ns = imports.insert({namespace_to_import, // name of the import
+		                                          NamespaceFinder{
+													  parser.parse(current_file) // read the ast!
+												  }})
+		                              .first->second;
 
 		// enqueue all new imports of this file
 		// and record import aliases
 		for (auto &import : new_ns.get_ast().get_imports()) {
-			Namespace request{import.get()};
+			std::vector<Token> components = import.get().get_components();
+			std::vector<std::string> dir_components;
+			dir_components.reserve(components.size() - 1);
+			for (size_t i = 0; i < components.size() - 1; ++i) {
+				dir_components.push_back(components[i].get());
+			}
+			std::string filename = components.back().get();
+			Namespace request{std::move(dir_components), std::move(filename)};
 
 			// either register the alias
 			if (import.has_alias()) {
@@ -153,9 +151,7 @@ void Database::load(const std::string &filename,
 			auto was_imported = imports.find(request);
 			auto import_requested = to_import.find(request);
 
-			if (was_imported == std::end(imports) and
-			    import_requested == std::end(to_import)) {
-
+			if (was_imported == std::end(imports) and import_requested == std::end(to_import)) {
 				if (not this->meta_info.has_namespace(request.to_fqon())) {
 					// add the request to the pending imports
 					to_import.insert({std::move(request), import.get()});
@@ -174,9 +170,14 @@ void Database::load(const std::string &filename,
 	size_t new_obj_count = 0;
 
 	// first run: create empty object infos
-	ast_obj_walk(imports, std::bind(&Database::create_obj_info,
-	                                this, &new_obj_count,
-	                                _1, _2, _3, _4));
+	ast_obj_walk(imports,
+	             std::bind(&Database::create_obj_info,
+	                       this,
+	                       &new_obj_count,
+	                       _1,
+	                       _2,
+	                       _3,
+	                       _4));
 
 	std::vector<fqon_t> new_objects;
 	new_objects.reserve(new_obj_count);
@@ -185,11 +186,15 @@ void Database::load(const std::string &filename,
 	std::unordered_map<fqon_t, std::unordered_set<fqon_t>> obj_children;
 
 	// second run: fill object infos and its member type infos
-	ast_obj_walk(imports, std::bind(&Database::create_obj_content,
-	                                this,
-	                                &new_objects,
-	                                &obj_children,
-	                                _1, _2, _3, _4));
+	ast_obj_walk(imports,
+	             std::bind(&Database::create_obj_content,
+	                       this,
+	                       &new_objects,
+	                       &obj_children,
+	                       _1,
+	                       _2,
+	                       _3,
+	                       _4));
 
 	// linearize the parents of all new objects
 	this->linearize_new(new_objects);
@@ -201,9 +206,14 @@ void Database::load(const std::string &filename,
 	std::vector<std::pair<fqon_t, Location>> objs_in_values;
 
 	// third run: state value creation, create object members/values
-	ast_obj_walk(imports, std::bind(&Database::create_obj_state,
-	                                this, &objs_in_values,
-	                                _1, _2, _3, _4));
+	ast_obj_walk(imports,
+	             std::bind(&Database::create_obj_state,
+	                       this,
+	                       &objs_in_values,
+	                       _1,
+	                       _2,
+	                       _3,
+	                       _4));
 
 	// verify hierarchy consistency
 	this->check_hierarchy(new_objects, objs_in_values);
@@ -221,7 +231,7 @@ void Database::load(const std::string &filename,
 		info->add_children(std::move(children));
 	}
 
-	for (auto loaded: imports) {
+	for (auto loaded : imports) {
 		this->meta_info.add_namespace(loaded.first);
 	}
 
@@ -234,7 +244,6 @@ void Database::create_obj_info(size_t *counter,
                                const Namespace &,
                                const Namespace &objname,
                                const ASTObject &astobj) {
-
 	const std::string &name = astobj.name.get();
 
 	// object name must not be an alias
@@ -243,14 +252,12 @@ void Database::create_obj_info(size_t *counter,
 		throw NameError{
 			astobj.name,
 			"object name conflicts with import",
-			name
-		};
+			name};
 	}
 
 	this->meta_info.add_object(
 		objname.to_fqon(),
-		ObjectInfo{astobj.name}
-	);
+		ObjectInfo{astobj.name, objname});
 
 	*counter += 1;
 }
@@ -262,7 +269,6 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
                                   const Namespace &ns,
                                   const Namespace &objname,
                                   const ASTObject &astobj) {
-
 	fqon_t obj_fqon = objname.to_fqon();
 	new_objs->push_back(obj_fqon);
 
@@ -294,9 +300,9 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 		auto ins = child_assignments->find(parent_id);
 		if (ins == std::end(*child_assignments)) {
 			ins = child_assignments->emplace(
-				parent_id,
-				std::unordered_set<fqon_t>{}
-			).first;
+									   parent_id,
+									   std::unordered_set<fqon_t>{})
+			          .first;
 		}
 		ins->second.insert(obj_fqon);
 
@@ -307,13 +313,10 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 	this->state->add_object(
 		obj_fqon,
 		std::make_shared<ObjectState>(
-			std::move(object_parents)
-		)
-	);
+			std::move(object_parents)));
 
 	// create member types
 	for (auto &astmember : astobj.members) {
-
 		// TODO: the member name requires advanced expansions
 		//       for conflict resolving
 		//       this explicit naming is not implemented yet
@@ -321,8 +324,7 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 
 		MemberInfo &member_info = info->add_member(
 			astmember.name.str(),
-			MemberInfo{astmember.name}
-		);
+			MemberInfo{astmember.name});
 
 		// it doesn't exist if the user didn't specify it.
 		// it's not set
@@ -336,9 +338,8 @@ void Database::create_obj_content(std::vector<fqon_t> *new_objs,
 				*astmember.type,
 				scope,
 				objname,
-				this->meta_info
-			),
-			true   // type was defined in the ast -> initial definition
+				this->meta_info),
+			true // type was defined in the ast -> initial definition
 		);
 	}
 }
@@ -358,12 +359,10 @@ void Database::linearize_new(const std::vector<fqon_t> &new_objects) {
 		obj_info->set_linearization(
 			linearize_recurse(
 				obj,
-				[this] (const fqon_t &name) -> const ObjectState & {
+				[this](const fqon_t &name) -> const ObjectState & {
 					return **this->state->get(name);
 				},
-				&seen
-			)
-		);
+				&seen));
 	}
 }
 
@@ -375,7 +374,6 @@ void Database::find_member(bool skip_first,
                            const std::function<bool(const fqon_t &,
                                                     const MemberInfo &,
                                                     const Member *)> &member_found) {
-
 	bool finished = false;
 
 	// if the member is inherited, it can be prefixed with the ID
@@ -393,7 +391,6 @@ void Database::find_member(bool skip_first,
 
 	// member doesn't have type yet. find it.
 	for (auto &obj : search_objs) {
-
 		// at the very beginning, we have to skip the object
 		// we want to find the type for. it's the first in the linearization.
 		if (skip_first) {
@@ -449,15 +446,12 @@ void Database::find_member(bool skip_first,
 		// recurse into the target.
 		// check if the patch defines the member as well -> error.
 		// otherwise, infer type from patch.
-		this->find_member(false, member_name,
-		                  obj_info->get_linearization(),
-		                  *obj_info, member_found);
+		this->find_member(false, member_name, obj_info->get_linearization(), *obj_info, member_found);
 	}
 }
 
 
 void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
-
 	using namespace std::string_literals;
 
 	// TODO: if inheritance parents are added,
@@ -471,8 +465,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 		const auto &linearization = obj_info->get_linearization();
 		if (unlikely(linearization.size() < 1)) {
 			throw InternalError{
-				"Linearization doesn't contain obj itself."
-			};
+				"Linearization doesn't contain obj itself."};
 		}
 
 		auto it = std::begin(linearization);
@@ -487,8 +480,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 					throw LangError{
 						obj_info->get_location(),
 						"child patches can't declare a patch target",
-						{{parent_info->get_location(), "parent that declares the patch"}}
-					};
+						{{parent_info->get_location(), "parent that declares the patch"}}};
 				}
 				else {
 					// this is patch because of inheritance.
@@ -519,13 +511,13 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 			// start the recursion into the inheritance tree,
 			// which includes the recursion into patch targets.
 			this->find_member(
-				true,  // make sure the object we search the type for isn't checked with itself.
-				member_id, linearization, *obj_info,
-				[&member_info, &type_found, &member_id]
-				(const fqon_t &parent,
-				 const MemberInfo &source_member_info,
-				 const Member *) {
-
+				true, // make sure the object we search the type for isn't checked with itself.
+				member_id,
+				linearization,
+				*obj_info,
+				[&member_info, &type_found, &member_id](const fqon_t &parent,
+			                                            const MemberInfo &source_member_info,
+			                                            const Member *) {
 					if (source_member_info.is_initial_def()) {
 						const std::shared_ptr<Type> &new_type = source_member_info.get_type();
 
@@ -542,9 +534,8 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 							throw LangError{
 								member_info.get_location(),
 								("parent '"s + parent
-								 + "' already defines type of '" + member_id + "'"),
-								{{source_member_info.get_location(), "parent that declares the member"}}
-							};
+						         + "' already defines type of '" + member_id + "'"),
+								{{source_member_info.get_location(), "parent that declares the member"}}};
 						}
 
 						type_found = true;
@@ -555,15 +546,13 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 
 					// we need to traverse all members and never stop early.
 					return false;
-				}
-			);
+				});
 
 			if (unlikely(not type_found)) {
 				throw TypeError{
 					member_info.get_location(),
 					"could not infer type of '"s + member_id
-					+ "' from parents or patch target"
-				};
+						+ "' from parents or patch target"};
 			}
 		}
 	}
@@ -572,10 +561,9 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 
 void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_in_values,
                                 const NamespaceFinder &scope,
-                                const Namespace &/*containing namespace*/,
+                                const Namespace & /*containing namespace*/,
                                 const Namespace &objname,
                                 const ASTObject &astobj) {
-
 	using namespace std::string_literals;
 
 	if (astobj.members.size() == 0) {
@@ -594,7 +582,6 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 
 	// create member values
 	for (auto &astmember : astobj.members) {
-
 		// member has no value
 		if (not astmember.value.has_value()) {
 			continue;
@@ -620,42 +607,40 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 			throw InternalError{"member has value but no operator"};
 		}
 
+		// function to determine object names used in values:
+		auto get_fqon_func = [&scope, &objname, this, &objs_in_values](const Type &target_type, const IDToken &token) -> fqon_t {
+			// find the desired object in the scope of the object
+			fqon_t obj_id = scope.find(objname, token, this->meta_info);
+
+			if (not target_type.has_modifier(modifier_t::ABSTRACT)) {
+				// later we have to check if this object can be used as value
+				// i.e. has all members with value.
+				objs_in_values->push_back({obj_id, Location{token}});
+			}
+
+			return obj_id;
+		};
+
+		// function to retrieve an object's linearization
+		auto get_obj_lin_func = [this](const fqon_t &fqon) -> std::vector<fqon_t> {
+			const ObjectInfo *obj_info = this->meta_info.get_object(fqon);
+			if (unlikely(obj_info == nullptr)) {
+				throw InternalError{"object info could not be retrieved"};
+			}
+
+			return obj_info->get_linearization();
+		};
+
 		// create the member with operation, type and value
 		Member &new_member = members.emplace(
-			memberid,
-			Member{
-				0,          // TODO: get override depth from AST (the @-count)
-				operation,
-				*member_type,
-				Value::from_ast(
-					*member_type, *astmember.value,
-					// function to determine object names used in values:
-					[&scope, &objname, this, &objs_in_values]
-					(const Type &target_type, const IDToken &token) -> fqon_t {
-						// find the desired object in the scope of the object
-						fqon_t obj_id = scope.find(objname, token, this->meta_info);
-
-						if (not target_type.has_modifier(modifier_t::ABSTRACT)) {
-							// later we have to check if this object can be used as value
-							// i.e. has all members with value.
-							objs_in_values->push_back({obj_id, Location{token}});
-						}
-
-						return obj_id;
-					},
-					// function to retrieve an object's linearization
-					[this]
-					(const fqon_t &fqon) -> std::vector<fqon_t> {
-						const ObjectInfo *obj_info = this->meta_info.get_object(fqon);
-						if (unlikely(obj_info == nullptr)) {
-							throw InternalError{"object info could not be retrieved"};
-						}
-
-						return obj_info->get_linearization();
-					}
-				)
-			}
-		).first->second;
+										memberid,
+										Member{
+											0, // TODO: get override depth from AST (the @-count)
+											operation,
+											*member_type,
+											Value::from_ast(
+												*member_type, *astmember.value, get_fqon_func, get_obj_lin_func)})
+		                         .first->second;
 
 		// validate type + operator + value work together
 
@@ -668,30 +653,21 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 			throw TypeError{
 				astmember.value->values[0].get_start_location(),
 				"member type "s
-				+ member_type->str()
-				+ " can't be used with value of type "
-				+ new_value.get_type().str()
-				+ ": invalid operator "
-				+ op_to_string(operation)
-				+ " because member type "
-				+ (
-					allowed_ops.size() > 0
-					?
-					" only allows operations:\n'"s
-					+ util::strjoin(
-						", ", allowed_ops,
-						[] (const nyan_op &op) {
-							return op_to_string(op);
-						}
-					)
-					+ "' "
-					:
-					" allows no operations "
-				)
-				+ "for value '"
-				+ new_value.str()
-				+ "'"
-			};
+					+ member_type->str()
+					+ " can't be used with value of type "
+					+ new_value.get_type().str()
+					+ ": invalid operator "
+					+ op_to_string(operation)
+					+ " because member type "
+					+ (allowed_ops.size() > 0 ?
+			               " only allows operations:\n'"s
+			                   + util::strjoin(
+								   ", ", allowed_ops, [](const nyan_op &op) {
+									   return op_to_string(op);
+								   })
+			                   + "' " :
+			               " allows no operations ")
+					+ "for value '" + new_value.str() + "'"};
 		}
 	}
 
@@ -704,7 +680,6 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 	using namespace std::string_literals;
 
 	for (auto &obj : new_objs) {
-
 		ObjectInfo *obj_info = this->meta_info.get_object(obj);
 		ObjectState *obj_state = this->state->get(obj)->get();
 		if (unlikely(obj_info == nullptr)) {
@@ -719,8 +694,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			if (unlikely(not obj_info->is_patch())) {
 				throw LangError{
 					obj_info->get_location(),
-					"Inheritance additions can only be done in patches."
-				};
+					"Inheritance additions can only be done in patches."};
 			}
 		}
 
@@ -732,11 +706,11 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			bool other_op = false;
 
 			this->find_member(
-				false, it.first, linearization, *obj_info,
-				[&assign_ok, &other_op]
-				(const fqon_t &,
-				 const MemberInfo &,
-				 const Member *member) {
+				false,
+				it.first,
+				linearization,
+				*obj_info,
+				[&assign_ok, &other_op](const fqon_t &, const MemberInfo &, const Member *member) {
 					// member has no value
 					if (member == nullptr) {
 						return false;
@@ -755,15 +729,13 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 						throw InternalError{"member has invalid operator"};
 					}
 					return false;
-				}
-			);
+				});
 
 			if (unlikely(other_op and not assign_ok)) {
 				const MemberInfo *member_info = obj_info->get_member(it.first);
 				throw LangError{
 					member_info->get_location(),
-					"this member was never assigned a value."
-				};
+					"this member was never assigned a value."};
 			}
 		}
 
@@ -852,8 +824,7 @@ void Database::check_hierarchy(const std::vector<fqon_t> &new_objs,
 			throw TypeError{
 				loc,
 				"this object has members without values: "s
-				+ util::strjoin(", ", pending_members)
-			};
+					+ util::strjoin(", ", pending_members)};
 		}
 	}
 

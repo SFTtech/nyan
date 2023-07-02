@@ -1,35 +1,32 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "file.h"
 
 #include <typeinfo>
 
 #include "../compiler.h"
-#include "../lang_error.h"
 #include "../id_token.h"
+#include "../lang_error.h"
 #include "../util.h"
 
 
 namespace nyan {
 
-Filename::Filename(const std::string &path)
-	:
+Filename::Filename(const std::string &path) :
 	path{path} {
-
 	// TODO relative path resolution
 }
 
 
-Filename::Filename(const IDToken &token)
-	:
-	Filename{token.get_first()} {
-
+Filename::Filename(const IDToken &token) {
 	if (unlikely(token.get_type() != token_type::STRING)) {
 		throw LangError{
 			token,
-			"invalid value for filename"
-		};
+			"invalid value for filename"};
 	}
+
+	// strip the quotes
+	this->path = token.get_first().substr(1, token.get_first().size() - 2);
 }
 
 
@@ -50,7 +47,8 @@ bool Filename::apply_value(const Value &value, nyan_op operation) {
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
-		this->path = change.path; break;
+		this->path = change.path;
+		break;
 
 	default:
 		throw Error{"unknown operation requested"};
@@ -61,7 +59,7 @@ bool Filename::apply_value(const Value &value, nyan_op operation) {
 
 
 std::string Filename::str() const {
-	return this->path;
+	return "\"" + this->path + "\"";
 }
 
 

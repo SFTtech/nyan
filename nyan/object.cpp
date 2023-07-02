@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object.h"
 
@@ -14,6 +14,7 @@
 #include "patch_info.h"
 #include "util.h"
 #include "value/boolean.h"
+#include "value/dict.h"
 #include "value/file.h"
 #include "value/number.h"
 #include "value/object.h"
@@ -25,8 +26,7 @@
 
 namespace nyan {
 
-Object::Object(const fqon_t &name, const std::shared_ptr<View> &origin)
-	:
+Object::Object(const fqon_t &name, const std::shared_ptr<View> &origin) :
 	origin{origin},
 	name{name} {}
 
@@ -59,7 +59,7 @@ value_float_t Object::get_float(const memberid_t &member, order_t t) const {
 }
 
 
-const std::string &Object::get_text(const memberid_t &member, order_t t) const {
+std::string Object::get_text(const memberid_t &member, order_t t) const {
 	return *this->get<Text>(member, t);
 }
 
@@ -69,17 +69,22 @@ bool Object::get_bool(const memberid_t &member, order_t t) const {
 }
 
 
-const set_t &Object::get_set(const memberid_t &member, order_t t) const {
+set_t Object::get_set(const memberid_t &member, order_t t) const {
 	return this->get<Set>(member, t)->get();
 }
 
 
-const ordered_set_t &Object::get_orderedset(const memberid_t &member, order_t t) const {
+ordered_set_t Object::get_orderedset(const memberid_t &member, order_t t) const {
 	return this->get<OrderedSet>(member, t)->get();
 }
 
 
-const std::string &Object::get_file(const memberid_t &member, order_t t) const {
+dict_t Object::get_dict(const memberid_t &member, order_t t) const {
+	return this->get<Dict>(member, t)->get();
+}
+
+
+std::string Object::get_file(const memberid_t &member, order_t t) const {
 	return this->get<Filename>(member, t)->get();
 }
 
@@ -97,8 +102,7 @@ std::shared_ptr<Object> Object::get<Object>(const memberid_t &member, order_t t)
 	std::shared_ptr<Object> ret = std::make_shared<Object>(
 		Object::Restricted{},
 		fqon,
-		this->origin
-	);
+		this->origin);
 	return ret;
 }
 
@@ -114,8 +118,8 @@ std::optional<std::shared_ptr<Object>> Object::get_optional<Object>(const member
 	const fqon_t &fqon = obj_val->get_name();
 	std::shared_ptr<Object> ret = std::make_shared<Object>(
 		Object::Restricted{},
-		fqon, this->origin
-	);
+		fqon,
+		this->origin);
 	return ret;
 }
 

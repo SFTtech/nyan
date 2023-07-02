@@ -7,13 +7,13 @@
 #include "compiler.h"
 #include "error.h"
 #include "location.h"
+#include "util.h"
 
 namespace nyan {
 
 
 IDToken::IDToken(const Token &first,
                  TokenStream &tokens) {
-
 	this->ids.push_back(first);
 
 	auto token = tokens.next();
@@ -34,10 +34,9 @@ std::string IDToken::str() const {
 	return util::strjoin(
 		".",
 		this->ids,
-		[] (const Token &tok) -> auto& {
+		[](const Token &tok) -> auto & {
 			return tok.get();
-		}
-	);
+		});
 }
 
 
@@ -59,8 +58,7 @@ token_type IDToken::get_type() const {
 const Location &IDToken::get_start_location() const {
 	if (unlikely(not this->exists())) {
 		throw InternalError{
-			"this IDToken doesn't exist, but you queried its location"
-		};
+			"this IDToken doesn't exist, but you queried its location"};
 	}
 
 	return this->ids.at(0).location;
@@ -96,6 +94,14 @@ const std::string &IDToken::get_first() const {
 	}
 
 	return this->ids[0].get();
+}
+
+fqon_t IDToken::to_fqon() const {
+	return util::strjoin(".",
+	                     this->ids,
+	                     [](const auto &in) -> const std::string & {
+							 return in.get();
+						 });
 }
 
 } // namespace nyan

@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "namespace_finder.h"
 
@@ -10,8 +10,7 @@
 
 namespace nyan {
 
-NamespaceFinder::NamespaceFinder(AST &&ast)
-	:
+NamespaceFinder::NamespaceFinder(AST &&ast) :
 	ast{std::move(ast)} {}
 
 
@@ -22,7 +21,6 @@ void NamespaceFinder::add_import(const Namespace &import) {
 
 void NamespaceFinder::add_alias(const Token &alias,
                                 const Namespace &destination) {
-
 	const std::string &search = alias.get();
 
 	if (this->aliases.find(search) != std::end(this->aliases)) {
@@ -34,8 +32,9 @@ void NamespaceFinder::add_alias(const Token &alias,
 
 
 bool NamespaceFinder::check_conflict(const std::string &name) const {
-	return (this->aliases.find(name) != std::end(this->aliases) or
-	        this->imports.find(Namespace{name}) != std::end(this->imports));
+	return (this->aliases.find(name) != std::end(this->aliases) // aliases
+	        // importing files from the root directory can be a problem too
+	        or this->imports.find(Namespace{std::vector<std::string>(), name}) != std::end(this->imports));
 }
 
 
@@ -54,14 +53,13 @@ fqon_t NamespaceFinder::expand_alias(const IDToken &name) const {
 	}
 
 	// no alias found. basically return the input name.
-	return Namespace{name}.to_fqon();
+	return name.to_fqon();
 }
 
 
 fqon_t NamespaceFinder::find(const Namespace &current,
                              const IDToken &search,
                              const MetaInfo &typedb) const {
-
 	if (unlikely(not search.exists())) {
 		throw InternalError{"tried to find namespace for empty id"};
 	}
@@ -101,11 +99,11 @@ const AST &NamespaceFinder::get_ast() const {
 std::string NamespaceFinder::str() const {
 	std::ostringstream builder;
 	builder << "NamespaceFinder knows:" << std::endl
-	        << "= aliases:" << std::endl;
+			<< "= aliases:" << std::endl;
 
 	for (auto &it : this->aliases) {
 		builder << " * " << it.first
-		        << " => " << it.second.str() << std::endl;
+				<< " => " << it.second.str() << std::endl;
 	}
 
 	builder << "= imports:" << std::endl;

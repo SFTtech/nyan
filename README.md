@@ -14,7 +14,7 @@ properly represent the enormous complexity of storing the data for [openage](htt
 The main focus is *readability* and *moddability*.
 
 [![github stars](https://img.shields.io/github/stars/SFTtech/nyan.svg)](https://github.com/SFTtech/nyan/stargazers)
-[![#sfttech on Freenode](https://img.shields.io/badge/chat-on%20freenode-brightgreen)](https://webchat.freenode.net/?channels=sfttech)
+[![#sfttech on matrix.org](/doc/assets/matrix.svg)](https://matrix.to/#/#sfttech:matrix.org)
 
 
 The foundation of **nyan**:
@@ -123,18 +123,20 @@ Current State of the Project
 ----------------------------
 
 `nyan` is fully functional and can be used in your project.
+Please make us aware of your needs/experiences in our chat!
 
-There's some features left to implement, but those only
-cover special use cases:
+We try to keep the API stable, but there's still some unknowns and need-to-change features.
 
-* [ ] Inverse patch generation
-* [ ] Subobject set specializations
-* [ ] Callback trigger when a value changes
-* [ ] Member name qualifications for name conflict resolving
+Please submit bugs and feature requests (and patches) on [GitHub](https://github.com/SFTtech/nyan)!
 
 
 Dependencies, Building and Running
 ----------------------------------
+
+Operating System    | Build status
+--------------------|--------------
+Debian Sid          | [Todo: Kevin #11](https://github.com/SFTtech/kevin/issues/11)
+
 
  - How do I get this to install on my box?
    - See [doc/building.md](doc/building.md).
@@ -147,12 +149,6 @@ Dependencies, Building and Running
 All of those observations are intended, not bugs.
 
 To get rid of them, recompile with `--dont-segfault --shut-up --new-girlfriend`.
-
-Operating System    | Build status
---------------------|--------------
-Debian Sid          | [Todo: Kevin #11](https://github.com/SFTtech/kevin/issues/11)
-MacOSX 10.14        | [![Build Status](https://travis-ci.org/SFTtech/nyan.svg?branch=master)](https://travis-ci.org/SFTtech/nyan)
-Windows 10 - x64    | [![Build status](https://ci.appveyor.com/api/projects/status/6t1yonx5fu7dejs0/branch/master?svg=true)](https://ci.appveyor.com/project/simonsan/nyan-c53id/branch/master)
 
 If this still does not help, try the [contact section](#contact)
 or the [bug tracker](https://github.com/SFTtech/nyan/issues).
@@ -176,10 +172,9 @@ Contact
 -------
 
 If you have the desire to perform semi-human interaction,
-join our **Matrix** or **IRC** chatroom!
+join our **Matrix** chatroom!
 
 * [`#sfttech:matrix.org`](https://riot.im/app/#/room/#sfttech:matrix.org)
-* [`irc.freenode.net #sfttech`](https://webchat.freenode.net/?channels=sfttech)
 
 For ideas, problems, ..., use the [issue tracker](https://github.com/SFTtech/nyan/issues)!
 

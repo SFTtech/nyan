@@ -71,6 +71,13 @@ public:
 	 */
 	const std::string &get_first() const;
 
+	/**
+	 * Get an fqon from an IDToken.
+	 *
+	 * @return Fqon for IDToken.
+	 */
+	fqon_t to_fqon() const;
+
 protected:
 	/**
 	 * List of IDs defining the IDToken.
