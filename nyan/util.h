@@ -117,14 +117,13 @@ strjoin(
 	func=&stream_container_elem<typename T::value_type>
 ) {
 
-	bool delim_active = false;
-	for (auto &entry : container) {
-		if (delim_active) {
+	for (bool use_delim = false; auto &entry : container) {
+		if (use_delim) {
 			builder << delim;
 		}
 
 		func(builder, entry);
-		delim_active = true;
+		use_delim = true;
 	}
 
 	return builder;
