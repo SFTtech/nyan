@@ -99,7 +99,7 @@ if(UNIX)
 	endif()
 endif()
 
-if(WIN32)
+if(WIN32 AND (NOT WINDOWS_STORE))
 	set_target_properties(nyan PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 	target_link_libraries(nyan PRIVATE DbgHelp)
 endif()
