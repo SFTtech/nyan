@@ -55,6 +55,17 @@ cmake ..
 make -j$(nproc)
 ```
 
+_Note:_ on windows is
+```powershell
+cd nyan
+mkdir build
+cd build
+cmake .. -G "Visual Studio 16 2019"
+cmake --build . --config RelWithDebInfo
+```
+if nyan can't find flex add `-DFLEX_EXECUTABLE=path/to/win_flex.exe` to the cmake configure command.
+
+
 `cmake` registers the project in the [user package registry](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#user-package-registry).
 Other projects can therefore easily find `nyan` **without** installing it
 (no `sudo make install` needed).
