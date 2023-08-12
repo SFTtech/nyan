@@ -55,15 +55,12 @@ cmake ..
 make -j$(nproc)
 ```
 
-_Note:_ on windows is
+_Note:_ on windows the last command is
 ```powershell
-cd nyan
-mkdir build
-cd build
-cmake ..
 cmake --build . --config RelWithDebInfo
-```
-if nyan can't find flex add `-DFLEX_EXECUTABLE=path/to/win_flex.exe` to the cmake configure command.
+``` 
+
+_Note:_ if nyan can't find flex add `-DFLEX_EXECUTABLE=path/to/win_flex.exe` to the cmake configure command.
 
 
 `cmake` registers the project in the [user package registry](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#user-package-registry).
