@@ -60,7 +60,7 @@ _Note:_ on windows is
 cd nyan
 mkdir build
 cd build
-cmake .. -G "Visual Studio 16 2019"
+cmake ..
 cmake --build . --config RelWithDebInfo
 ```
 if nyan can't find flex add `-DFLEX_EXECUTABLE=path/to/win_flex.exe` to the cmake configure command.
