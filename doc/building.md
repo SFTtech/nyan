@@ -21,7 +21,7 @@ For clang: `sudo apt-get install clang`
 ###### Archlinux
 
 ```
-sudo pacman -Syu --as-needed cmake flex make clang gcc
+sudo pacman -Syu --needed cmake flex make clang gcc
 ```
 
 ###### Gentoo
