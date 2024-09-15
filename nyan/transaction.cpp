@@ -15,12 +15,10 @@ namespace nyan {
 // ones that happen before must invalidate this one!
 
 
-Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
-	:
+Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin) :
 	valid{true},
 	at{at} {
-
-	auto create_state_mod = [this] (std::shared_ptr<View> &&view) {
+	auto create_state_mod = [this](std::shared_ptr<View> &&view) {
 		StateHistory &view_history = view->get_state_history();
 
 		// use this as parent state
@@ -34,11 +32,9 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 		// create a state that follows the current view state.
 		auto new_view_state = std::make_shared<State>(base_view_state);
 
-		this->states.push_back({
-				std::move(view),
-				std::move(new_view_state),
-				{}
-			});
+		this->states.push_back({std::move(view),
+		                        std::move(new_view_state),
+		                        {}});
 	};
 
 	// first, perform transaction on the requested view
@@ -49,14 +45,13 @@ Transaction::Transaction(order_t at, std::shared_ptr<View> &&origin)
 
 	// recursively visit all of the view's children and their children
 	// lol C++
-	std::function<void(const std::shared_ptr<View>&)> recurse =
-		[&create_state_mod, &recurse] (const std::shared_ptr<View> &view) {
+	std::function<void(const std::shared_ptr<View> &)> recurse =
+		[&create_state_mod, &recurse](const std::shared_ptr<View> &view) {
 			bool view_has_stale_children = false;
 
 			// also apply the transaction in all childs of the view.
 			for (auto &target_child_view_weakptr :
-			     view->get_children()) {
-
+		         view->get_children()) {
 				auto target_child_view = target_child_view_weakptr.lock();
 				if (not target_child_view) {
 					// child view no longer there, so we skip it.
@@ -97,7 +92,6 @@ bool Transaction::add(const Object &patch) {
 
 	// apply the patch in each view's state
 	for (auto &view_state : this->states) {
-
 		auto &view = view_state.view;
 		auto &new_state = view_state.state;
 		auto &tracker = view_state.changes;
@@ -109,7 +103,6 @@ bool Transaction::add(const Object &patch) {
 
 		// apply each patch component (i.e. all the parents of the patch)
 		for (auto &patch_name : patch.get_linearized(this->at)) {
-
 			auto &patch_tracker = tracker.track_patch(target);
 
 			// apply all patch parents in order (last the patch itself)
@@ -118,8 +111,7 @@ bool Transaction::add(const Object &patch) {
 				//       obj states of base_state
 				view->get_raw(patch_name, this->at),
 				view->get_info(patch_name),
-				patch_tracker
-			);
+				patch_tracker);
 		}
 
 		// TODO: linearize here so other patches can depend on that?
@@ -129,7 +121,7 @@ bool Transaction::add(const Object &patch) {
 }
 
 
-bool Transaction::add(const Object &/*patch*/, const Object &/*target*/) {
+bool Transaction::add(const Object & /*patch*/, const Object & /*target*/) {
 	// TODO check if the target is a child of the original target
 	throw InternalError{"TODO custom patch target"};
 }
@@ -194,9 +186,7 @@ void Transaction::merge_changed_states() {
 }
 
 
-
 std::vector<view_update> Transaction::generate_updates() {
-
 	std::vector<view_update> updates;
 
 	// try linearizing objects which have changed parents
@@ -220,15 +210,13 @@ std::vector<view_update> Transaction::generate_updates() {
 		update.children = this->inheritance_updates(
 			tracker,
 			view,
-			objs_to_linearize
-		);
+			objs_to_linearize);
 
 		try {
 			update.linearizations = this->relinearize_objects(
 				objs_to_linearize,
 				view,
-				new_state
-			);
+				new_state);
 		}
 		catch (C3Error &) {
 			// this error is non-fatal but aborts the transaction
@@ -247,7 +235,6 @@ view_update::child_map_t
 Transaction::inheritance_updates(const ChangeTracker &tracker,
                                  const std::shared_ptr<View> &view,
                                  std::unordered_set<fqon_t> &objs_to_linearize) const {
-
 	// maps fqon => set of children fqons
 	view_update::child_map_t children;
 
@@ -258,14 +245,12 @@ Transaction::inheritance_updates(const ChangeTracker &tracker,
 
 		// the object has new parents.
 		if (obj_changes.parents_update_required()) {
-
 			// so we register the object at each parent as new child.
 			// the previous children are merged with that set later.
 			for (auto &parent : obj_changes.get_new_parents()) {
 				auto ins = children.emplace(
 					parent,
-					std::unordered_set<fqon_t>{}
-				);
+					std::unordered_set<fqon_t>{});
 				ins.first->second.insert(obj);
 			}
 
@@ -289,15 +274,12 @@ view_update::linearizations_t
 Transaction::relinearize_objects(const std::unordered_set<fqon_t> &objs_to_linearize,
                                  const std::shared_ptr<View> &view,
                                  const std::shared_ptr<State> &new_state) {
-
 	view_update::linearizations_t linearizations;
 
 	for (auto &obj : objs_to_linearize) {
 		auto lin = linearize(
 			obj,
-			[this, &view, &new_state]
-			(const fqon_t &name) -> const ObjectState & {
-
+			[this, &view, &new_state](const fqon_t &name) -> const ObjectState & {
 				// try to use the object in the new state if it's in there
 				const auto &new_obj_state = new_state->get(name);
 				if (new_obj_state != nullptr) {
@@ -310,8 +292,7 @@ Transaction::relinearize_objects(const std::unordered_set<fqon_t> &objs_to_linea
 					throw InternalError{"could not find parent object"};
 				}
 				return *view_obj_state;
-			}
-		);
+			});
 
 		linearizations.push_back(std::move(lin));
 	}

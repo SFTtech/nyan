@@ -19,8 +19,8 @@ namespace nyan {
  * Backtrace::get_symbols().
  */
 struct backtrace_symbol {
-	std::string functionname;  // empty if unknown
-	void *pc;                  // nullptr if unknown
+	std::string functionname; // empty if unknown
+	void *pc; // nullptr if unknown
 };
 
 
@@ -50,8 +50,8 @@ public:
 	 * @param reversed
 	 *	  if true, the most recent call is given last.
 	 */
-	void get_symbols(std::function<void (const backtrace_symbol *)> cb,
-	                 bool reversed=true) const;
+	void get_symbols(std::function<void(const backtrace_symbol *)> cb,
+	                 bool reversed = true) const;
 
 	/**
 	 * Removes all the lower frames that are also present
@@ -77,8 +77,8 @@ protected:
 class Error : public std::runtime_error {
 public:
 	Error(const std::string &msg,
-	      bool generate_backtrace=true,
-	      bool store_cause=true);
+	      bool generate_backtrace = true,
+	      bool store_cause = true);
 
 	virtual ~Error() = default;
 
@@ -184,7 +184,7 @@ protected:
  * @param os Output stream the error is appended to.
  * @param e Error whose message is appended to the output stream.
  */
-std::ostream &operator <<(std::ostream &os, const Error &e);
+std::ostream &operator<<(std::ostream &os, const Error &e);
 
 
 /**
@@ -193,7 +193,7 @@ std::ostream &operator <<(std::ostream &os, const Error &e);
  * @param os Output stream the backtrace symbol is appended to.
  * @param bt_sym Backtrace symbol which is appended to the output stream.
  */
-std::ostream &operator <<(std::ostream &os, const backtrace_symbol &bt_sym);
+std::ostream &operator<<(std::ostream &os, const backtrace_symbol &bt_sym);
 
 
 /**
@@ -202,7 +202,7 @@ std::ostream &operator <<(std::ostream &os, const backtrace_symbol &bt_sym);
  * @param os Output stream the backtrace is appended to.
  * @param bt Backtrace which is appended to the output stream.
  */
-std::ostream &operator <<(std::ostream &os, const Backtrace &bt);
+std::ostream &operator<<(std::ostream &os, const Backtrace &bt);
 
 
 /**

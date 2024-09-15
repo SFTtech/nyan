@@ -23,7 +23,7 @@ public:
 	/**
 	 * Assign a new value to the holder.
 	 */
-	ValueHolder &operator =(const std::shared_ptr<Value> &value);
+	ValueHolder &operator=(const std::shared_ptr<Value> &value);
 
 	/**
 	 * Get the shared pointer of this ValueHolder.
@@ -44,28 +44,28 @@ public:
 	 *
 	 * @return Value stored at this holder's pointer.
 	 */
-	Value &operator *() const;
+	Value &operator*() const;
 
 	/**
 	 * Get the shared pointer of this ValueHolder.
 	 *
 	 * @return Shared pointer to this holder's value.
 	 */
-	Value *operator ->() const;
+	Value *operator->() const;
 
 	/**
 	 * Compare two ValueHolders for equality.
 	 *
 	 * @return true if the values stored by the holders are equal, else false.
 	 */
-	bool operator ==(const ValueHolder &other) const;
+	bool operator==(const ValueHolder &other) const;
 
 	/**
 	 * Compare two ValueHolders for inequality.
 	 *
 	 * @return true if the values stored by the holders are not equal, else false.
 	 */
-	bool operator !=(const ValueHolder &other) const;
+	bool operator!=(const ValueHolder &other) const;
 
 protected:
 	/**
@@ -85,8 +85,7 @@ namespace std {
  */
 template <>
 struct hash<nyan::ValueHolder> {
-	size_t operator ()(const nyan::ValueHolder &val) const;
+	size_t operator()(const nyan::ValueHolder &val) const;
 };
 
 } // namespace std
-

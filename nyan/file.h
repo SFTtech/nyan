@@ -19,11 +19,11 @@ public:
 
 	// moving allowed
 	File(File &&other) noexcept = default;
-	File& operator =(File &&other) noexcept = default;
+	File &operator=(File &&other) noexcept = default;
 
 	// no copies
 	File(const File &other) = delete;
-	File &operator =(const File &other) = delete;
+	File &operator=(const File &other) = delete;
 
 	virtual ~File() = default;
 
@@ -96,4 +96,4 @@ protected:
 	std::vector<size_t> line_ends;
 };
 
-} // namespace std
+} // namespace nyan

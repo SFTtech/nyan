@@ -24,14 +24,12 @@ namespace nyan::util {
  *   lolflags[lol::red] == true;
  */
 template <typename T>
-requires
-std::is_enum_v<T> &&
-requires {
-	{ T::size };
-}
+	requires std::is_enum_v<T> && requires {
+		{ T::size };
+	}
 class Flags {
 public:
-	Flags &set(T e, bool value=true) noexcept {
+	Flags &set(T e, bool value = true) noexcept {
 		this->bits.set(underlying(e), value);
 		return *this;
 	}

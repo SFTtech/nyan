@@ -112,15 +112,13 @@ const std::vector<std::string> &Namespace::get_obj_components() const {
 std::string Namespace::to_dirpath() const {
 	return util::strjoin(
 		"/",
-		this->dir_components
-	);
+		this->dir_components);
 }
 
 std::string Namespace::to_filepath() const {
 	std::string ret = util::strjoin(
 		"/",
-		this->dir_components
-	);
+		this->dir_components);
 
 	if (not this->filename.empty()) {
 		ret += "/" + this->filename + extension;

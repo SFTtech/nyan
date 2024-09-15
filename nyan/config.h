@@ -4,11 +4,11 @@
 
 #ifdef _MSC_VER
 // Allow using alternative operator representation with non-conforming compiler
-    #include <ciso646>
+#include <ciso646>
 #endif
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <string>
 

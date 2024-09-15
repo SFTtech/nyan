@@ -15,16 +15,14 @@ namespace nyan {
 Member::Member(override_depth_t depth,
                nyan_op operation,
                Type declared_type,
-               ValueHolder &&value)
-	:
+               ValueHolder &&value) :
 	override_depth{depth},
 	operation{operation},
 	declared_type{declared_type},
 	value{std::move(value)} {}
 
 
-Member::Member(const Member &other)
-	:
+Member::Member(const Member &other) :
 	override_depth{other.override_depth},
 	operation{other.operation},
 	declared_type{other.declared_type},
@@ -39,13 +37,13 @@ Member::Member(Member &&other) noexcept
 	value{std::move(other.value)} {}
 
 
-Member &Member::operator =(const Member &other) {
+Member &Member::operator=(const Member &other) {
 	*this = Member{other};
 	return *this;
 }
 
 
-Member &Member::operator =(Member &&other) noexcept {
+Member &Member::operator=(Member &&other) noexcept {
 	this->override_depth = std::move(other.override_depth);
 	this->operation = std::move(other.operation);
 	this->value = std::move(other.value);

@@ -6,8 +6,8 @@
 #include <concepts>
 #include <functional>
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 #include <type_traits>
 #include <vector>
 
@@ -25,7 +25,7 @@ namespace nyan::util {
  *
  * @return String with the file content.
  */
-std::string read_file(const std::string &filename, bool binary=false);
+std::string read_file(const std::string &filename, bool binary = false);
 
 
 /**
@@ -38,7 +38,7 @@ std::string demangle(const char *symbol);
 /**
  * Return the demangled symbol name for a given code address.
  */
-std::string symbol_name(const void *addr, bool require_exact_addr=true, bool no_pure_addrs=false);
+std::string symbol_name(const void *addr, bool require_exact_addr = true, bool no_pure_addrs = false);
 
 
 /**
@@ -73,7 +73,7 @@ concept Streamable = requires(std::ostream &os, T value) {
 template <typename T>
 concept Container = requires(T thing) {
 	// check for value_type type-member and iterator access.
-	{*std::begin(thing)} -> std::convertible_to<typename T::value_type>;
+	{ *std::begin(thing) } -> std::convertible_to<typename T::value_type>;
 	std::begin(thing) == std::end(thing);
 };
 
@@ -114,9 +114,7 @@ strjoin(
 	const std::string &delim,
 	const T &container,
 	const std::function<void(std::ostringstream &, const typename T::value_type &)>
-	func=&stream_container_elem<typename T::value_type>
-) {
-
+		func = &stream_container_elem<typename T::value_type>) {
 	for (bool use_delim = false; auto &entry : container) {
 		if (use_delim) {
 			builder << delim;
@@ -145,17 +143,13 @@ std::string strjoin(
 	const std::string &delim,
 	const T &container,
 	const std::function<const std::string_view(const typename T::value_type &)>
-	func=&convert_str<typename T::value_type>
-) {
+		func = &convert_str<typename T::value_type>) {
 	std::ostringstream builder;
 	strjoin(
-		builder, delim, container,
-		[&func](std::ostringstream &stream,
-		        const typename T::value_type &elem) {
+		builder, delim, container, [&func](std::ostringstream &stream, const typename T::value_type &elem) {
 			auto &&elem_str = func(elem);
 			stream << elem_str;
-		}
-	);
+		});
 	return std::move(builder).str();
 }
 
@@ -170,7 +164,7 @@ std::string strjoin(
  * @param[in]  delimiter Delimiter char at which the string is split.
  * @param[out] result Splitted string with type \p ret_t.
  */
-template<typename ret_t>
+template <typename ret_t>
 void split(const std::string &txt, char delimiter, ret_t result) {
 	std::stringstream splitter;
 	splitter.str(txt);
@@ -258,7 +252,8 @@ template <typename T, typename V>
 bool contains(const T &container, const V &value) {
 	if (std::find(std::begin(container),
 	              std::end(container),
-	              value) == std::end(container)) {
+	              value)
+	    == std::end(container)) {
 		return false;
 	}
 	else {
@@ -304,7 +299,7 @@ inline bool isinstance(const T *ptr) {
  * Test if the given reference is an instance of some base.
  */
 template <typename Base, typename T>
-requires (!std::is_pointer_v<T>)
+	requires(!std::is_pointer_v<T>)
 inline bool isinstance(const T &ref) {
 	return dynamic_cast<const Base *>(&ref) != nullptr;
 }

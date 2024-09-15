@@ -10,8 +10,7 @@
 
 namespace nyan {
 
-ObjectValue::ObjectValue(const fqon_t &name)
-	:
+ObjectValue::ObjectValue(const fqon_t &name) :
 	name{name} {}
 
 
@@ -25,7 +24,8 @@ bool ObjectValue::apply_value(const Value &value, nyan_op operation) {
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
-		this->name = change.name; break;
+		this->name = change.name;
+		break;
 
 	default:
 		throw InternalError{"unknown operation requested"};

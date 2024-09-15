@@ -31,7 +31,7 @@ public:
 	const std::unordered_set<nyan_op> &allowed_operations(const Type &with_type) const override;
 	const BasicType &get_type() const override;
 
-	operator const std::string&() const {
+	operator const std::string &() const {
 		return this->value;
 	}
 

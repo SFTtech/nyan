@@ -38,7 +38,6 @@ protected:
 
 class ObjectNotifier {
 public:
-
 	ObjectNotifier(const fqon_t &fqon,
 	               const update_cb_t &func,
 	               const std::shared_ptr<View> &view);

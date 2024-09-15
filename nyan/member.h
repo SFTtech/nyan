@@ -30,8 +30,8 @@ public:
 
 	Member(const Member &other);
 	Member(Member &&other) noexcept;
-	Member &operator =(const Member &other);
-	Member &operator =(Member &&other) noexcept;
+	Member &operator=(const Member &other);
+	Member &operator=(Member &&other) noexcept;
 
 	~Member() = default;
 
@@ -67,7 +67,6 @@ public:
 	std::string str() const;
 
 protected:
-
 	/**
 	 * Number of @ chars before the operation,
 	 * those define the override depth when applying the patch.
