@@ -21,14 +21,14 @@ namespace nyan {
  * The begin() and end() functions of the container class
  * instanciate this by wrapping it in the ContainerIterator below.
  */
-template<typename elem_type>
+template <typename elem_type>
 class ContainerIterBase {
 public:
 	using iterator_category = std::forward_iterator_tag;
 	using value_type = elem_type;
 	using difference_type = elem_type;
-	using pointer = elem_type*;
-	using reference = elem_type&;
+	using pointer = elem_type *;
+	using reference = elem_type &;
 
 	using this_type = ContainerIterBase<elem_type>;
 
@@ -38,18 +38,18 @@ public:
 	/**
 	 * Advance the iterator to the next element.
 	 */
-	virtual this_type &operator ++() = 0;
+	virtual this_type &operator++() = 0;
 
 	/**
 	 * Get the element the iterator is currently pointing to.
 	 */
-	virtual elem_type &operator *() const = 0;
+	virtual elem_type &operator*() const = 0;
 
 	/**
 	 * Compare if both iterators are pointing
 	 * to the same container position.
 	 */
-	bool operator ==(const ContainerIterBase &other) const {
+	bool operator==(const ContainerIterBase &other) const {
 		return (typeid(*this) == typeid(other)) and this->equals(other);
 	}
 
@@ -68,14 +68,14 @@ protected:
  *
  * Just relays the calls to the wrapped actual container.
  */
-template<typename T>
+template <typename T>
 class ContainerIterator {
 public:
 	using iterator_category = std::forward_iterator_tag;
 	using value_type = T;
 	using difference_type = T;
-	using pointer = T*;
-	using reference = T&;
+	using pointer = T *;
+	using reference = T &;
 
 	using elem_type = T;
 	using real_iterator = ContainerIterBase<elem_type>;
@@ -86,19 +86,18 @@ public:
 		:
 		iter{std::move(real)} {}
 
-	ContainerIterator(const ContainerIterator &other)
-		:
+	ContainerIterator(const ContainerIterator &other) :
 		iter{std::make_unique(other)} {}
 
 	ContainerIterator(ContainerIterator &&other) noexcept
 		:
 		iter{std::move(other.iter)} {}
 
-	ContainerIterator &operator =(const ContainerIterator &other) {
+	ContainerIterator &operator=(const ContainerIterator &other) {
 		this->iter = std::make_unique(other);
 	}
 
-	ContainerIterator &operator =(ContainerIterator &&other) noexcept {
+	ContainerIterator &operator=(ContainerIterator &&other) noexcept {
 		this->iter = std::move(other);
 	}
 
@@ -107,7 +106,7 @@ public:
 	/**
 	 * Advance the inner iterator to the next element.
 	 */
-	ContainerIterator &operator ++() {
+	ContainerIterator &operator++() {
 		++(*this->iter);
 		return *this;
 	}
@@ -115,7 +114,7 @@ public:
 	/**
 	 * Get the element the inner iterator points to.
 	 */
-	elem_type &operator *() const {
+	elem_type &operator*() const {
 		return *(*this->iter);
 	}
 
@@ -123,7 +122,7 @@ public:
 	 * Check if this iterator points to the same container element
 	 * as the other iterator.
 	 */
-	bool operator ==(const ContainerIterator& other) const {
+	bool operator==(const ContainerIterator &other) const {
 		return (this->iter == other.iter) or (*this->iter == *other.iter);
 	}
 
@@ -131,8 +130,8 @@ public:
 	 * Check if the iterator does not point to the same container element
 	 * as the other iterator.
 	 */
-	bool operator !=(const ContainerIterator& other) const {
-		return not (*this == other);
+	bool operator!=(const ContainerIterator &other) const {
+		return not(*this == other);
 	}
 
 protected:
@@ -153,14 +152,13 @@ public:
 	using this_type = DefaultIterator<iter_type, elem_type>;
 	using base_type = ContainerIterBase<elem_type>;
 
-	explicit DefaultIterator(iter_type &&iter)
-		:
+	explicit DefaultIterator(iter_type &&iter) :
 		iterator{std::move(iter)} {}
 
 	/**
 	 * Advance the iterator to the next element in the set.
 	 */
-	base_type &operator ++() override {
+	base_type &operator++() override {
 		++this->iterator;
 		return *this;
 	}
@@ -168,7 +166,7 @@ public:
 	/**
 	 * Return the iterator value.
 	 */
-	elem_type &operator *() const override {
+	elem_type &operator*() const override {
 		return *this->iterator;
 	}
 
@@ -250,12 +248,16 @@ public:
 	/**
 	 * Guarantee a const_iterator beginning.
 	 */
-	const_iterator cbegin() const { return this->begin(); };
+	const_iterator cbegin() const {
+		return this->begin();
+	};
 
 	/**
 	 * Guarantee a const_iterator end.
 	 */
-	const_iterator cend() const { return this->end(); };
+	const_iterator cend() const {
+		return this->end();
+	};
 
 	/**
 	 * Get an iterator to the first value holder in that container.
@@ -282,12 +284,16 @@ public:
 	/**
 	 * Guarantee a const_iterator to the value iterator beginning.
 	 */
-	holder_const_iterator values_cbegin() const { return this->values_begin(); };
+	holder_const_iterator values_cbegin() const {
+		return this->values_begin();
+	};
 
 	/**
 	 * Guarantee a const_iterator to the value iterator end.
 	 */
-	holder_const_iterator values_cend() const { return this->values_end(); };
+	holder_const_iterator values_cend() const {
+		return this->values_end();
+	};
 };
 
 } // namespace nyan

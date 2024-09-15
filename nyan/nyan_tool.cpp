@@ -20,10 +20,9 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 
 	db->load(
 		filename,
-		[&base_path] (const std::string &filename) {
+		[&base_path](const std::string &filename) {
 			return std::make_shared<File>(base_path + "/" + filename);
-		}
-	);
+		});
 
 	std::shared_ptr<View> root = db->new_view();
 
@@ -32,8 +31,8 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 	Object first = root->get_object("test.First");
 
 	std::cout << "before change: First.member == "
-	          << *root->get_object("test.First").get<Int>("member")
-	          << std::endl;
+			  << *root->get_object("test.First").get<Int>("member")
+			  << std::endl;
 
 	std::optional<std::shared_ptr<Object>> wat3_first = first.get_optional<Object>("wat3", 0);
 	if (wat3_first.has_value()) {
@@ -78,8 +77,8 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 	auto value = *root->get_object("test.First").get<Int>("member");
 
 	std::cout << "after change: First.member == "
-	          << value.str()
-	          << std::endl;
+			  << value.str()
+			  << std::endl;
 
 	if (value != 24) {
 		std::cout << "patch result is wrong" << std::endl;
@@ -126,32 +125,35 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 	}
 
 	std::cout << "after change: Second.member == "
-	          << *second.get<Int>("member", 1)
-	          << std::endl;
+			  << *second.get<Int>("member", 1)
+			  << std::endl;
 
 	std::cout << "SetTest.member = "
-	          << root->get_object("test.SetTest").get_value("member")->str()
-	          << std::endl
-	          << "SetTest.orderedmember = "
-	          << root->get_object("test.SetTest").get_value("orderedmember")->str()
-	          << std::endl
-	          << "Fifth.truth = "
-	          << root->get_object("test.Fifth").get_value("truth")->str()
-	          << std::endl
-	          << "PATCH"
-	          << std::endl
-	          << "SetTest.member = "
-	          << root->get_object("test.SetTest").get_value("member", 1)->str()
-	          << std::endl
-	          << "SetTest.orderedmember = "
-	          << root->get_object("test.SetTest").get_value("orderedmember", 1)->str()
-	          << std::endl << std::endl;
+			  << root->get_object("test.SetTest").get_value("member")->str()
+			  << std::endl
+			  << "SetTest.orderedmember = "
+			  << root->get_object("test.SetTest").get_value("orderedmember")->str()
+			  << std::endl
+			  << "Fifth.truth = "
+			  << root->get_object("test.Fifth").get_value("truth")->str()
+			  << std::endl
+			  << "PATCH"
+			  << std::endl
+			  << "SetTest.member = "
+			  << root->get_object("test.SetTest").get_value("member", 1)->str()
+			  << std::endl
+			  << "SetTest.orderedmember = "
+			  << root->get_object("test.SetTest").get_value("orderedmember", 1)->str()
+			  << std::endl
+			  << std::endl;
 
 	std::cout << "test.gschicht parents = " << util::strjoin(", ", root->get_object("test.Test").get_parents())
-	          << std::endl << "PATCH" << std::endl
-	          << "test.gschicht parents = " << util::strjoin(", ", root->get_object("test.Test").get_parents(1))
-	          << std::endl << "newvalue = " << root->get_object("test.Test").get_value("new_value", 1)->str()
-	          << std::endl;
+			  << std::endl
+			  << "PATCH" << std::endl
+			  << "test.gschicht parents = " << util::strjoin(", ", root->get_object("test.Test").get_parents(1))
+			  << std::endl
+			  << "newvalue = " << root->get_object("test.Test").get_value("new_value", 1)->str()
+			  << std::endl;
 
 	return ret;
 }
@@ -180,20 +182,22 @@ int run(flags_t flags, params_t params) {
 			}
 			catch (LangError &err) {
 				std::cout << "\x1b[33;1mfile error:\x1b[m\n"
-				          << err << std::endl
-				          << err.show_problem_origin()
-				          << std::endl << std::endl;
+						  << err << std::endl
+						  << err.show_problem_origin()
+						  << std::endl
+						  << std::endl;
 				return 1;
 			}
 		}
 		else {
-			std::cout << "no action selected" << std::endl << std::endl;
+			std::cout << "no action selected" << std::endl
+					  << std::endl;
 			help();
 		}
 	}
 	catch (Error &err) {
 		std::cout << "\x1b[31;1merror:\x1b[m\n"
-		          << err << std::endl;
+				  << err << std::endl;
 		return 1;
 	}
 	return 0;
@@ -202,30 +206,29 @@ int run(flags_t flags, params_t params) {
 
 void help() {
 	std::cout << "\x1b[32;1mnyan\x1b[m - "
-	             "\x1b[32;1my\x1b[met "
-	             "\x1b[32;1ma\x1b[mnother "
-	             "\x1b[32;1mn\x1b[motation "
-	             "-- tool" << std::endl
-	          << std::endl
-	          << "usage:" << std::endl
-	          << "-h --help                  -- show this" << std::endl
-	          << "-f --file <filename>       -- file to load" << std::endl
-	          << "-b --break                 -- debug-break on error" << std::endl
-	          << "   --test-parser           -- test the parser" << std::endl
-	          << "   --echo                  -- print the ast" << std::endl
-	          << "" << std::endl;
+				 "\x1b[32;1my\x1b[met "
+				 "\x1b[32;1ma\x1b[mnother "
+				 "\x1b[32;1mn\x1b[motation "
+				 "-- tool"
+			  << std::endl
+			  << std::endl
+			  << "usage:" << std::endl
+			  << "-h --help                  -- show this" << std::endl
+			  << "-f --file <filename>       -- file to load" << std::endl
+			  << "-b --break                 -- debug-break on error" << std::endl
+			  << "   --test-parser           -- test the parser" << std::endl
+			  << "   --echo                  -- print the ast" << std::endl
+			  << "" << std::endl;
 }
 
 
-std::pair<flags_t, params_t> argparse(int argc, char** argv) {
+std::pair<flags_t, params_t> argparse(int argc, char **argv) {
 	flags_t flags{
 		{option_flag::ECHO, false},
-		{option_flag::TEST_PARSER, false}
-	};
+		{option_flag::TEST_PARSER, false}};
 
 	params_t params{
-		{option_param::FILE, ""}
-	};
+		{option_param::FILE, ""}};
 
 	for (int option_index = 1; option_index < argc; ++option_index) {
 		std::string arg = argv[option_index];
@@ -277,7 +280,7 @@ int main(int argc, char **argv) {
 	}
 	catch (std::exception &exc) {
 		std::cout << "\x1b[31;1mfatal error:\x1b[m "
-		          << exc.what() << std::endl;
+				  << exc.what() << std::endl;
 		return 1;
 	}
 #endif

@@ -9,8 +9,7 @@
 
 namespace nyan {
 
-TokenStream::TokenStream(const TokenStream::container_t &container)
-	:
+TokenStream::TokenStream(const TokenStream::container_t &container) :
 	container{container},
 	iter{std::begin(container)} {}
 

@@ -10,11 +10,9 @@
 
 namespace nyan::lexer {
 
-Impl::Impl(const std::shared_ptr<File> &file)
-	:
+Impl::Impl(const std::shared_ptr<File> &file) :
 	file{file},
 	input{file->get_content()} {
-
 	yylex_init_extra(this, &this->scanner);
 }
 
@@ -53,10 +51,8 @@ TokenizeError Impl::error(const std::string &msg) {
 			this->file,
 			yyget_lineno(this->scanner),
 			this->linepos - static_cast<int>(yyget_leng(this->scanner)),
-			static_cast<int>(yyget_leng(this->scanner))
-		},
-		msg
-	};
+			static_cast<int>(yyget_leng(this->scanner))},
+		msg};
 }
 
 void Impl::advance_linepos() {
@@ -105,8 +101,7 @@ void Impl::token(token_type type) {
 			token_start,
 			length,
 			type,
-			yyget_text(this->scanner)
-		});
+			yyget_text(this->scanner)});
 	}
 	else {
 		this->tokens.push(Token{
@@ -114,8 +109,7 @@ void Impl::token(token_type type) {
 			lineno,
 			token_start,
 			length,
-			type
-		});
+			type});
 	}
 }
 
@@ -124,30 +118,20 @@ void Impl::token(token_type type) {
  * so that the indentation can check if the depth is correct.
  */
 void Impl::track_brackets(token_type type, int token_start) {
-
 	// opening brackets
-	if (type == token_type::LPAREN or
-	    type == token_type::LANGLE or
-	    type == token_type::LBRACKET or
-	    type == token_type::LBRACE) {
-
+	if (type == token_type::LPAREN or type == token_type::LANGLE or type == token_type::LBRACKET or type == token_type::LBRACE) {
 		// Track bracket type and indentation.
 		// The position after the ( is exactly the expected indent
 		// for hanging brackets.
 		this->brackets.emplace(
 			type,
-			token_start + 1
-		);
+			token_start + 1);
 
 		this->possibly_hanging = true;
 		return;
 	}
 	// closing brackets
-	else if (type == token_type::RPAREN or
-	         type == token_type::RANGLE or
-	         type == token_type::RBRACKET or
-	         type == token_type::RBRACE) {
-
+	else if (type == token_type::RPAREN or type == token_type::RANGLE or type == token_type::RBRACKET or type == token_type::RBRACE) {
 		if (this->brackets.empty()) {
 			throw this->error("unexpected closing bracket, "
 			                  "as no opening one is known");
@@ -159,17 +143,17 @@ void Impl::track_brackets(token_type type, int token_start) {
 		if (not matching_open_bracket.matches(type)) {
 			std::ostringstream builder;
 			builder << "non-matching bracket: expected '"
-			        << matching_open_bracket.matching_type_str()
-			        << "' but got '" << token_type_str(type) << "'";
+					<< matching_open_bracket.matching_type_str()
+					<< "' but got '" << token_type_str(type) << "'";
 			throw this->error(builder.str());
 		}
 
 		if (not matching_open_bracket.closing_indent_ok(token_start)) {
 			std::ostringstream builder;
 			builder << "wrong indentation of bracket: expected "
-			        << matching_open_bracket.get_closing_indent()
-			        << " indentation spaces (it is currently at "
-			        << token_start << " spaces)";
+					<< matching_open_bracket.get_closing_indent()
+					<< " indentation spaces (it is currently at "
+					<< token_start << " spaces)";
 			throw this->error(builder.str());
 		}
 
@@ -179,23 +163,18 @@ void Impl::track_brackets(token_type type, int token_start) {
 	// newline directly after opening bracket
 	// means regular indentation has to follow
 	// and the bracket pair doesn't hang.
-	else if (not this->brackets.empty() and
-	         this->possibly_hanging and
-	         type == token_type::ENDLINE) {
-
+	else if (not this->brackets.empty() and this->possibly_hanging and type == token_type::ENDLINE) {
 		// the bracket is followed by a newline directly,
 		// thus is not hanging.
 		this->brackets.top().doesnt_hang(
-			this->previous_indent
-		);
+			this->previous_indent);
 	}
-	else if (not this->brackets.empty() and
-	         this->bracketcloseindent_expected) {
+	else if (not this->brackets.empty() and this->bracketcloseindent_expected) {
 		std::ostringstream builder;
 		builder << ("expected closing bracket or content "
 		            "at indentation with ")
-		        << this->brackets.top().get_content_indent()
-		        << " spaces (you start at " << token_start << " spaces)";
+				<< this->brackets.top().get_content_indent()
+				<< " spaces (you start at " << token_start << " spaces)";
 		throw this->error(builder.str());
 	}
 
@@ -206,7 +185,6 @@ void Impl::track_brackets(token_type type, int token_start) {
  * measure the indentation of a line
  */
 void Impl::handle_indent(int depth) {
-
 	this->linepos -= yyget_leng(this->scanner) - depth;
 
 	if (not this->brackets.empty()) {
@@ -233,8 +211,8 @@ void Impl::handle_indent(int depth) {
 	if ((depth % SPACES_PER_INDENT) > 0) {
 		std::ostringstream builder;
 		builder << "indentation requires exactly "
-		        << SPACES_PER_INDENT
-		        << " spaces per level";
+				<< SPACES_PER_INDENT
+				<< " spaces per level";
 		throw this->error(builder.str());
 	}
 

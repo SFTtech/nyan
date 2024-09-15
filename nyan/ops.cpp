@@ -30,7 +30,8 @@ nyan_op op_from_string(const std::string &str) {
 
 	if (it == std::end(str_to_op)) {
 		return nyan_op::INVALID;
-	} else {
+	}
+	else {
 		return it->second;
 	}
 }
@@ -46,8 +47,7 @@ nyan_op op_from_token(const Token &token) {
 }
 
 
-Operator::Operator(const Token &token)
-	:
+Operator::Operator(const Token &token) :
 	op{op_from_token(token)} {}
 
 

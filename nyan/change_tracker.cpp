@@ -25,10 +25,8 @@ ObjectChanges &ChangeTracker::track_patch(const fqon_t &target_name) {
 	// else: create a new one.
 	auto it = this->changes.find(target_name);
 	if (it == std::end(this->changes)) {
-		return this->changes.emplace(
-			target_name,
-			ObjectChanges{}
-		).first->second;
+		auto it_new_tracker = this->changes.emplace(target_name, ObjectChanges{}).first;
+		return it_new_tracker->second;
 	}
 	else {
 		return it->second;

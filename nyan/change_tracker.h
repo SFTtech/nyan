@@ -51,7 +51,6 @@ protected:
  */
 class ChangeTracker {
 public:
-
 	/**
 	 * Get the ObjectChanges for an object targeted by a patch
 	 * from the changes map or create a new one if there doesn't

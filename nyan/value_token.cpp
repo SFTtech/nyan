@@ -11,24 +11,19 @@
 namespace nyan {
 
 
-ValueToken::ValueToken(const IDToken &token)
-	:
+ValueToken::ValueToken(const IDToken &token) :
 	container_type{composite_t::SINGLE} {
-
 	this->tokens.push_back(token);
 }
 
 
 ValueToken::ValueToken(composite_t type,
-                       std::vector<IDToken> &tokens)
-	:
+                       std::vector<IDToken> &tokens) :
 	tokens{tokens} {
-
 	const static std::unordered_set<composite_t> container_types{
 		composite_t::SET,
 		composite_t::ORDEREDSET,
-		composite_t::DICT
-	};
+		composite_t::DICT};
 
 	if (container_types.find(type) == container_types.end()) {
 		throw InternalError{"unknown container value type"};
@@ -81,8 +76,7 @@ size_t ValueToken::get_length() const {
 
 	case composite_t::DICT:
 		// key token length + value token length + separating ": " length
-		return this->tokens.at(0).get_length() +
-		this->tokens.at(1).get_length() + 2;
+		return this->tokens.at(0).get_length() + this->tokens.at(1).get_length() + 2;
 
 	default:
 		throw InternalError{"unknown container value type"};

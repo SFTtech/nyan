@@ -15,8 +15,7 @@ namespace nyan {
  */
 class LangError : public Error {
 public:
-	LangError(const Location &location, const std::string &msg,
-	          std::vector<std::pair<Location, std::string>> &&reasons={});
+	LangError(const Location &location, const std::string &msg, std::vector<std::pair<Location, std::string>> &&reasons = {});
 
 	/**
 	 * String representation of this error.
@@ -34,7 +33,6 @@ public:
 	virtual std::string show_problem_origin() const;
 
 protected:
-
 	/**
 	 * Location of the error in a file.
 	 */
@@ -64,7 +62,8 @@ public:
 class NameError : public LangError {
 public:
 	NameError(const Location &location,
-	          const std::string &msg, const std::string &name="");
+	          const std::string &msg,
+	          const std::string &name = "");
 
 	/**
 	 * String representation of this error.
@@ -74,7 +73,6 @@ public:
 	std::string str() const override;
 
 protected:
-
 	/**
 	 * Name that the entitycausing this error conflicts with.
 	 */

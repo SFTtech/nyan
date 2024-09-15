@@ -10,8 +10,7 @@
 
 namespace nyan {
 
-PatchInfo::PatchInfo(fqon_t &&target)
-	:
+PatchInfo::PatchInfo(fqon_t &&target) :
 	target{std::move(target)} {}
 
 

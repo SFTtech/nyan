@@ -3,14 +3,14 @@
 
 #include <exception>
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
 #include <string>
 #include <tuple>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
-#include "config.h"
 #include "change_tracker.h"
+#include "config.h"
 
 
 namespace nyan {
@@ -24,7 +24,6 @@ class View;
  * Information to update for a view.
  */
 struct view_update {
-
 	using linearizations_t = std::vector<std::vector<fqon_t>>;
 
 	using child_map_t = std::unordered_map<fqon_t, std::unordered_set<fqon_t>>;
@@ -67,7 +66,6 @@ struct view_state {
  */
 class Transaction {
 public:
-
 	Transaction(order_t at, std::shared_ptr<View> &&origin);
 
 	/**

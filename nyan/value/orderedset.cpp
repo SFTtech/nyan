@@ -42,11 +42,9 @@ std::string OrderedSet::str() const {
 	std::ostringstream builder;
 	builder << "o{";
 	builder << util::strjoin(
-		", ", this->values,
-		[] (const auto &val) {
+		", ", this->values, [](const auto &val) {
 			return val->str();
-		}
-	);
+		});
 	builder << "}";
 
 	return builder.str();
@@ -57,18 +55,15 @@ std::string OrderedSet::repr() const {
 	std::ostringstream builder;
 	builder << "o{";
 	builder << util::strjoin(
-		", ", this->values,
-		[] (const auto &val) {
+		", ", this->values, [](const auto &val) {
 			return val->repr();
-		}
-	);
+		});
 	builder << "}";
 	return builder.str();
 }
 
 
 const std::unordered_set<nyan_op> &OrderedSet::allowed_operations(const Type &with_type) const {
-
 	const static std::unordered_set<nyan_op> orderedset_ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,

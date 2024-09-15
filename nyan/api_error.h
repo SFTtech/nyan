@@ -31,8 +31,10 @@ public:
  */
 class MemberTypeError : public APIError {
 public:
-	MemberTypeError(const fqon_t &objname, const memberid_t &member,
-	                const std::string &real_type, const std::string &wrong_type);
+	MemberTypeError(const fqon_t &objname,
+	                const memberid_t &member,
+	                const std::string &real_type,
+	                const std::string &wrong_type);
 
 protected:
 	/**

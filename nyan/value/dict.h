@@ -8,8 +8,8 @@
 #include "../compiler.h"
 #include "../util.h"
 #include "container.h"
-#include "value.h"
 #include "container_types.h"
+#include "value.h"
 
 
 namespace nyan {
@@ -26,14 +26,14 @@ public:
 	using element_type = typename value_storage::value_type;
 	using value_const_iterator = typename value_storage::const_iterator;
 
-	using iterator = ContainerIterator<std::pair<Value,Value>>;
-	using const_iterator = ContainerIterator<const std::pair<Value,Value>>;
+	using iterator = ContainerIterator<std::pair<Value, Value>>;
+	using const_iterator = ContainerIterator<const std::pair<Value, Value>>;
 
 	using holder_iterator = ContainerIterator<element_type>;
 	using holder_const_iterator = ContainerIterator<const element_type>;
 
 	Dict();
-	Dict(std::unordered_map<ValueHolder,ValueHolder> &&values);
+	Dict(std::unordered_map<ValueHolder, ValueHolder> &&values);
 
 
 	size_t hash() const override {
@@ -59,8 +59,7 @@ public:
 		throw Error{
 			"Dicts are only const-iterable. "
 			"make it const by using e.g. "
-			"for (auto &it = std::as_const(dict))"
-		};
+			"for (auto &it = std::as_const(dict))"};
 	}
 
 	iterator end() {
@@ -71,8 +70,7 @@ public:
 
 	holder_iterator values_begin() {
 		throw Error{
-			"Dict values holders are not non-const-iterable."
-		};
+			"Dict values holders are not non-const-iterable."};
 	}
 
 
@@ -90,9 +88,8 @@ public:
 	holder_const_iterator values_begin() const {
 		auto real_iterator = std::make_unique<
 			DefaultIterator<value_const_iterator,
-			                holder_const_iterator::elem_type>>(
-				                std::begin(this->values)
-			                );
+		                    holder_const_iterator::elem_type>>(
+			std::begin(this->values));
 
 		return holder_const_iterator{std::move(real_iterator)};
 	}
@@ -103,9 +100,8 @@ public:
 	holder_const_iterator values_end() const {
 		auto real_iterator = std::make_unique<
 			DefaultIterator<value_const_iterator,
-			                holder_const_iterator::elem_type>>(
-				                std::end(this->values)
-			                );
+		                    holder_const_iterator::elem_type>>(
+			std::end(this->values));
 
 		return holder_const_iterator{std::move(real_iterator)};
 	}

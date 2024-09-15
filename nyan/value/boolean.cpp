@@ -6,24 +6,21 @@
 
 #include "../compiler.h"
 #include "../lang_error.h"
-#include "../util.h"
 #include "../token.h"
+#include "../util.h"
 
 
 namespace nyan {
 
-Boolean::Boolean(const bool &value)
-	:
+Boolean::Boolean(const bool &value) :
 	value{value} {}
 
 
 Boolean::Boolean(const IDToken &token) {
-
 	if (unlikely(token.get_type() != token_type::ID)) {
 		throw LangError{
 			token,
-			"invalid value for boolean"
-		};
+			"invalid value for boolean"};
 	}
 
 	const std::string &token_value = token.get_first();
@@ -37,16 +34,14 @@ Boolean::Boolean(const IDToken &token) {
 	else {
 		throw LangError{
 			token,
-			"unknown boolean value (did you use 'True' and 'False'?)"
-		};
+			"unknown boolean value (did you use 'True' and 'False'?)"};
 	}
 }
 
 
 ValueHolder Boolean::copy() const {
 	return ValueHolder{
-		std::make_shared<Boolean>(dynamic_cast<const Boolean &>(*this))
-	};
+		std::make_shared<Boolean>(dynamic_cast<const Boolean &>(*this))};
 }
 
 
@@ -55,13 +50,16 @@ bool Boolean::apply_value(const Value &value, nyan_op operation) {
 
 	switch (operation) {
 	case nyan_op::ASSIGN:
-		this->value = change.value; break;
+		this->value = change.value;
+		break;
 
 	case nyan_op::UNION_ASSIGN:
-		this->value |= change.value; break;
+		this->value |= change.value;
+		break;
 
 	case nyan_op::INTERSECT_ASSIGN:
-		this->value &= change.value; break;
+		this->value &= change.value;
+		break;
 
 	default:
 		throw Error{"unknown operation requested"};

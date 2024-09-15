@@ -7,19 +7,17 @@
 #include "compiler.h"
 #include "error.h"
 #include "object_state.h"
-#include "view.h"
 #include "util.h"
+#include "view.h"
 
 
 namespace nyan {
 
-State::State(const std::shared_ptr<State> &previous_state)
-	:
+State::State(const std::shared_ptr<State> &previous_state) :
 	previous_state{previous_state} {}
 
 
-State::State()
-	:
+State::State() :
 	previous_state{nullptr} {}
 
 
@@ -59,8 +57,7 @@ void State::update(std::shared_ptr<State> &&source_state) {
 		}
 		else {
 			this->objects.insert(
-				{std::move(it.first), std::move(it.second)}
-			);
+				{std::move(it.first), std::move(it.second)});
 		}
 	}
 }
@@ -69,7 +66,6 @@ void State::update(std::shared_ptr<State> &&source_state) {
 const std::shared_ptr<ObjectState> &State::copy_object(const fqon_t &name,
                                                        order_t t,
                                                        std::shared_ptr<View> &origin) {
-
 	// last known state of the object
 	const std::shared_ptr<ObjectState> &source = origin->get_raw(name, t);
 
@@ -81,10 +77,8 @@ const std::shared_ptr<ObjectState> &State::copy_object(const fqon_t &name,
 	auto it = this->objects.find(name);
 	if (it == std::end(this->objects)) {
 		// if not, copy the source object into this state
-		return this->objects.emplace(
-			name,
-			source->copy()
-		).first->second;
+		auto it_new_object = this->objects.emplace(name, source->copy()).first;
+		return it_new_object->second;
 	}
 	else {
 		// else, no need to copy, the object is already in this state
@@ -112,7 +106,7 @@ std::string State::str() const {
 	size_t i = 0;
 	for (auto &it : this->objects) {
 		builder << "object " << i << ":" << std::endl
-		        << it.first << " => " << it.second->str() << std::endl;
+				<< it.first << " => " << it.second->str() << std::endl;
 		i += 1;
 	}
 

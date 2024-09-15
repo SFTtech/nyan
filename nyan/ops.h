@@ -58,18 +58,30 @@ extern const std::unordered_set<nyan_op> no_nyan_ops;
  */
 constexpr const char *op_to_string(nyan_op op) {
 	switch (op) {
-	case nyan_op::ADD:                return "+";
-	case nyan_op::ADD_ASSIGN:         return "+=";
-	case nyan_op::ASSIGN:             return "=";
-	case nyan_op::DIVIDE:             return "/";
-	case nyan_op::DIVIDE_ASSIGN:      return "/=";
-	case nyan_op::INTERSECT_ASSIGN:   return "&=";
-	case nyan_op::INVALID:            return "=INVALID=";
-	case nyan_op::MULTIPLY:           return "*";
-	case nyan_op::MULTIPLY_ASSIGN:    return "*=";
-	case nyan_op::SUBTRACT:           return "-";
-	case nyan_op::SUBTRACT_ASSIGN:    return "-=";
-	case nyan_op::UNION_ASSIGN:       return "|=";
+	case nyan_op::ADD:
+		return "+";
+	case nyan_op::ADD_ASSIGN:
+		return "+=";
+	case nyan_op::ASSIGN:
+		return "=";
+	case nyan_op::DIVIDE:
+		return "/";
+	case nyan_op::DIVIDE_ASSIGN:
+		return "/=";
+	case nyan_op::INTERSECT_ASSIGN:
+		return "&=";
+	case nyan_op::INVALID:
+		return "=INVALID=";
+	case nyan_op::MULTIPLY:
+		return "*";
+	case nyan_op::MULTIPLY_ASSIGN:
+		return "*=";
+	case nyan_op::SUBTRACT:
+		return "-";
+	case nyan_op::SUBTRACT_ASSIGN:
+		return "-=";
+	case nyan_op::UNION_ASSIGN:
+		return "|=";
 	}
 	return "unhandled nyan_op";
 }
@@ -119,9 +131,9 @@ namespace std {
 /**
  * Hash for the nyan_op enum class. Thanks C++!
  */
-template<>
+template <>
 struct hash<nyan::nyan_op> {
-	size_t operator ()(const nyan::nyan_op &x) const {
+	size_t operator()(const nyan::nyan_op &x) const {
 		return static_cast<size_t>(x);
 	}
 };

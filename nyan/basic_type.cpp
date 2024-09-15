@@ -102,10 +102,8 @@ size_t BasicType::expected_nested_types() const {
 
 
 bool BasicType::operator==(const BasicType &other) const {
-	return (this->primitive_type == other.primitive_type and
-	        this->composite_type == other.composite_type);
+	return (this->primitive_type == other.primitive_type and this->composite_type == other.composite_type);
 }
-
 
 
 std::string BasicType::str() const {
@@ -130,22 +128,19 @@ BasicType BasicType::from_type_token(const IDToken &tok) {
 		{"text", primitive_t::TEXT},
 		{"file", primitive_t::FILENAME},
 		{"int", primitive_t::INT},
-		{"float", primitive_t::FLOAT}
-	};
+		{"float", primitive_t::FLOAT}};
 
 	// container type name map
 	static const std::unordered_map<std::string, composite_t> container_types = {
 		{"set", composite_t::SET},
 		{"orderedset", composite_t::ORDEREDSET},
-		{"dict", composite_t::DICT}
-	};
+		{"dict", composite_t::DICT}};
 
 	// modifier type name map
 	static const std::unordered_map<std::string, composite_t> modifiers = {
 		{"abstract", composite_t::ABSTRACT},
 		{"children", composite_t::CHILDREN},
-		{"optional", composite_t::OPTIONAL}
-	};
+		{"optional", composite_t::OPTIONAL}};
 
 	primitive_t type = primitive_t::OBJECT;
 	composite_t composite_type = composite_t::SINGLE;

@@ -44,11 +44,9 @@ std::string Set::str() const {
 	std::ostringstream builder;
 	builder << "{";
 	builder << util::strjoin(
-		", ", this->values,
-		[] (const auto &val) {
+		", ", this->values, [](const auto &val) {
 			return val->str();
-		}
-	);
+		});
 	builder << "}";
 
 	return builder.str();
@@ -61,18 +59,15 @@ std::string Set::repr() const {
 	std::ostringstream builder;
 	builder << "{";
 	builder << util::strjoin(
-		", ", this->values,
-		[] (const auto &val) {
+		", ", this->values, [](const auto &val) {
 			return val->repr();
-		}
-	);
+		});
 	builder << "}";
 	return builder.str();
 }
 
 
 const std::unordered_set<nyan_op> &Set::allowed_operations(const Type &with_type) const {
-
 	const static std::unordered_set<nyan_op> set_ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,

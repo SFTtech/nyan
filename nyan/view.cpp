@@ -12,8 +12,7 @@
 namespace nyan {
 
 
-View::View(const std::shared_ptr<Database> &database)
-	:
+View::View(const std::shared_ptr<Database> &database) :
 	database{database},
 	state{database} {}
 
@@ -117,19 +116,16 @@ std::unordered_set<fqon_t> View::get_obj_children_all(const fqon_t &fqon, order_
 
 std::shared_ptr<ObjectNotifier> View::create_notifier(const fqon_t &fqon,
                                                       const update_cb_t &callback) {
-
 	auto it = this->notifiers.find(fqon);
 	decltype(this->notifiers)::mapped_type *notifier_set = nullptr;
 
 	if (it == std::end(this->notifiers)) {
-
 		// create new set, add to object map and and get pointer
 		auto ins = this->notifiers.insert(
 			{
 				fqon,
 				std::unordered_set<std::shared_ptr<ObjectNotifierHandle>>{},
-			}
-		);
+			});
 
 		notifier_set = &ins.first->second;
 	}
@@ -138,7 +134,7 @@ std::shared_ptr<ObjectNotifier> View::create_notifier(const fqon_t &fqon,
 	}
 
 	auto notifier = std::make_shared<ObjectNotifier>(fqon, callback, this->shared_from_this());
-	const auto& handle = notifier->get_handle();
+	const auto &handle = notifier->get_handle();
 	notifier_set->insert(handle);
 	return notifier;
 }
@@ -173,11 +169,9 @@ void View::fire_notifications(const std::unordered_set<fqon_t> &changed_objs,
 }
 
 
-
 void View::gather_obj_children(std::unordered_set<fqon_t> &target,
                                const fqon_t &obj,
                                order_t t) const {
-
 	for (auto &child : this->get_obj_children(obj, t)) {
 		target.insert(child);
 
@@ -188,7 +182,6 @@ void View::gather_obj_children(std::unordered_set<fqon_t> &target,
 		this->gather_obj_children(target, child, t);
 	}
 }
-
 
 
 StateHistory &View::get_state_history() {
