@@ -27,6 +27,7 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 
 	std::shared_ptr<View> root = db->new_view();
 
+	Object test = root->get_object("test.Test");
 	Object second = root->get_object("test.Second");
 	Object first = root->get_object("test.First");
 
@@ -34,10 +35,9 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 	          << *root->get_object("test.First").get<Int>("member")
 	          << std::endl;
 
-	std::optional<std::shared_ptr<Object>> optional_wat3 = first.get_optional<Object>("wat3", 0);
-
-	if (optional_wat3.has_value()) {
-		if ((*optional_wat3)->get_name() != "test.Second") {
+	std::optional<std::shared_ptr<Object>> wat3_first = first.get_optional<Object>("wat3", 0);
+	if (wat3_first.has_value()) {
+		if ((*wat3_first)->get_name() != "test.Second") {
 			std::cout << "First.wat3 has wrong value at t=0" << std::endl;
 			return 1;
 		}
@@ -46,6 +46,19 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 		std::cout << "First.wat3 should not be None" << std::endl;
 		return 1;
 	}
+
+	std::optional<std::shared_ptr<Object>> wat3_second = second.get_optional<Object, true>("wat3", 0);
+	if (wat3_second.has_value()) {
+		std::cout << "Second.wat3 should be None" << std::endl;
+		return 1;
+	}
+
+	std::optional<std::shared_ptr<Object>> wat3_test = test.get_optional<Object, true>("wat3", 0);
+	if (wat3_test.has_value()) {
+		std::cout << "Test.wat3 should be None" << std::endl;
+		return 1;
+	}
+
 
 	Object patch = root->get_object("test.FirstPatch");
 	for (int i = 0; i < 3; i++) {
@@ -56,8 +69,8 @@ int test_parser(const std::string &base_path, const std::string &filename) {
 		}
 	}
 
-	optional_wat3 = first.get_optional<Object>("wat3");
-	if (optional_wat3.has_value()) {
+	wat3_first = first.get_optional<Object>("wat3");
+	if (wat3_first.has_value()) {
 		std::cout << "First.wat3 should be None by patch" << std::endl;
 		return 1;
 	}
@@ -250,7 +263,6 @@ std::pair<flags_t, params_t> argparse(int argc, char** argv) {
 
 
 int main(int argc, char **argv) {
-
 	auto args = nyan::argparse(argc, argv);
 	nyan::flags_t flags = args.first;
 	nyan::params_t params = args.second;
