@@ -28,6 +28,7 @@ Second(First):
     member *= 5.5
     First.nice_member = False
     # nap : int
+    wat3 = None
 
 NestingBase(First):
 

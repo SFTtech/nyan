@@ -1,4 +1,4 @@
-// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2024 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object.h"
 
@@ -170,15 +170,16 @@ ValueHolder Object::calculate_value(const memberid_t &member, order_t t) const {
 	ValueHolder result = base_value->copy();
 
 	// walk back and apply the value changes
-	while (true) {
-		const Member *change = parents[defined_by]->get(member);
+
+	// skip the parent that assigns the value
+	// this prevents reassignment errors e.g. from assigning None
+	int parent_idx = defined_by - 1;
+	while (parent_idx >= 0) {
+		const Member *change = parents[parent_idx]->get(member);
 		if (change != nullptr) {
 			result->apply(*change);
 		}
-		if (defined_by == 0) {
-			break;
-		}
-		defined_by -= 1;
+		parent_idx -= 1;
 	}
 
 	return result;
