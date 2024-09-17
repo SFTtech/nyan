@@ -17,7 +17,6 @@ class ObjectState;
 class State;
 
 
-
 /**
  * Object state history tracking.
  */
@@ -89,8 +88,7 @@ public:
 	 *
 	 * @return C3 linearization of the object.
 	 */
-	const std::vector<fqon_t> &get_linearization(const fqon_t &obj, order_t t,
-	                                             const MetaInfo &meta_info) const;
+	const std::vector<fqon_t> &get_linearization(const fqon_t &obj, order_t t, const MetaInfo &meta_info) const;
 
 	/**
 	 * Record a change to the children of an object in its history.
@@ -110,11 +108,9 @@ public:
 	 *
 	 * @return List of children of the object.
 	 */
-	const std::unordered_set<fqon_t> &get_children(const fqon_t &obj, order_t t,
-	                                               const MetaInfo &meta_info) const;
+	const std::unordered_set<fqon_t> &get_children(const fqon_t &obj, order_t t, const MetaInfo &meta_info) const;
 
 protected:
-
 	/**
 	 * Get the object history an an object in the database.
 	 *

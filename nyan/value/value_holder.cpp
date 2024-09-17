@@ -10,17 +10,15 @@ namespace nyan {
 ValueHolder::ValueHolder() = default;
 
 
-ValueHolder::ValueHolder(std::shared_ptr<Value> &&value)
-	:
+ValueHolder::ValueHolder(std::shared_ptr<Value> &&value) :
 	value{std::move(value)} {}
 
 
-ValueHolder::ValueHolder(const std::shared_ptr<Value> &value)
-	:
+ValueHolder::ValueHolder(const std::shared_ptr<Value> &value) :
 	value{value} {}
 
 
-ValueHolder &ValueHolder::operator =(const std::shared_ptr<Value> &value) {
+ValueHolder &ValueHolder::operator=(const std::shared_ptr<Value> &value) {
 	this->value = value;
 	return *this;
 }
@@ -36,22 +34,22 @@ bool ValueHolder::exists() const {
 }
 
 
-Value &ValueHolder::operator *() const {
+Value &ValueHolder::operator*() const {
 	return *this->value;
 }
 
 
-Value *ValueHolder::operator ->() const {
+Value *ValueHolder::operator->() const {
 	return this->value.get();
 }
 
 
-bool ValueHolder::operator ==(const ValueHolder &other) const  {
+bool ValueHolder::operator==(const ValueHolder &other) const {
 	return (*this->value == *other.value);
 }
 
 
-bool ValueHolder::operator !=(const ValueHolder &other) const {
+bool ValueHolder::operator!=(const ValueHolder &other) const {
 	return (*this->value != *other.value);
 }
 
@@ -61,7 +59,7 @@ bool ValueHolder::operator !=(const ValueHolder &other) const {
 
 namespace std {
 
-size_t hash<nyan::ValueHolder>::operator ()(const nyan::ValueHolder &val) const {
+size_t hash<nyan::ValueHolder>::operator()(const nyan::ValueHolder &val) const {
 	return hash<nyan::Value>{}(*val);
 }
 

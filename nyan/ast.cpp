@@ -282,8 +282,7 @@ void ASTObject::ast_parents(TokenStream &tokens) {
 			if (token.type != token_type::ID) {
 				throw ASTError{
 					"expected inheritance parent identifier, but there is",
-					token
-				};
+					token};
 			}
 
 			this->parents.emplace_back(token, stream);
@@ -301,9 +300,9 @@ void ASTObject::ast_members(TokenStream &tokens) {
 			bool object_next = false;
 			auto lookahead = tokens.next();
 
-			if (lookahead->type == token_type::OPERATOR  // value assignment
-				or lookahead->type == token_type::COLON  // type declaration
-				or lookahead->type == token_type::DOT) { // inherited member access (e.g. Parent.some_member)
+			if (lookahead->type == token_type::OPERATOR // value assignment
+			    or lookahead->type == token_type::COLON // type declaration
+			    or lookahead->type == token_type::DOT) { // inherited member access (e.g. Parent.some_member)
 				object_next = false;
 			}
 			else if (lookahead->type == token_type::LANGLE or lookahead->type == token_type::LBRACKET or lookahead->type == token_type::LPAREN) {
@@ -434,7 +433,6 @@ ASTMember::ASTMember(const Token &name,
 	name{IDToken{name, tokens}},
 	type{std::nullopt},
 	value{std::nullopt} {
-
 	auto token = tokens.next();
 	bool had_def_or_decl = false;
 
@@ -535,7 +533,6 @@ ASTMember::ASTMember(const Token &name,
 ASTMemberType::ASTMemberType(const Token &name,
                              TokenStream &tokens) :
 	name{IDToken{name, tokens}} {
-
 	// now there may follow type arguments, e.g.:
 	// set(arg, key=val)
 	// optional(dict(ktype, vtype))
@@ -547,7 +544,6 @@ ASTMemberType::ASTMemberType(const Token &name,
 	size_t num_expected_types = member_type.expected_nested_types();
 
 	if (token->type == token_type::LPAREN) {
-
 		// TODO: if we introduce optional arguments for composite types
 		// we have to adjust the allowed count here.
 		// or just count the non-kwarg arguments, and ignored the kwarg count.
@@ -561,18 +557,17 @@ ASTMemberType::ASTMemberType(const Token &name,
 			num_expected_types,
 			[this](const Token &token, TokenStream &stream) {
 				this->nested_types.emplace_back(token, stream);
-			}
-		);
+			});
 
 		if (unlikely(num_read_types != num_expected_types)) {
 			throw ASTError(
 				std::string("expected ")
-				+ std::to_string(num_expected_types)
-				+ " arguments for "
-				+ composite_type_to_string(member_type.composite_type)
-				+ " declaration, but only "
-				+ std::to_string(num_read_types)
-				+ " could be found",
+					+ std::to_string(num_expected_types)
+					+ " arguments for "
+					+ composite_type_to_string(member_type.composite_type)
+					+ " declaration, but only "
+					+ std::to_string(num_read_types)
+					+ " could be found",
 				*token,
 				false);
 		}
@@ -580,10 +575,10 @@ ASTMemberType::ASTMemberType(const Token &name,
 	else if (num_expected_types > 0) {
 		throw ASTError(
 			std::string("expected ")
-			+ std::to_string(num_expected_types)
-			+ " arguments for "
-			+ composite_type_to_string(member_type.composite_type)
-			+ " declaration",
+				+ std::to_string(num_expected_types)
+				+ " arguments for "
+				+ composite_type_to_string(member_type.composite_type)
+				+ " declaration",
 			*token,
 			false);
 	}
@@ -739,12 +734,11 @@ void ASTObject::strb(std::ostringstream &builder, int indentlevel) const {
 
 	// object parents
 	builder << "(";
-	util::strjoin(builder, ", ", this->parents,
-	              [](auto &stream, auto &elem) {
-		              stream << elem.str();
-	              });
+	util::strjoin(builder, ", ", this->parents, [](auto &stream, auto &elem) {
+		stream << elem.str();
+	});
 	builder << "):"
-	        << std::endl;
+			<< std::endl;
 
 	if (this->objects.size() > 0) {
 		for (auto &object : this->objects) {
@@ -795,8 +789,8 @@ void ASTMember::strb(std::ostringstream &builder, int indentlevel) const {
 
 	if (this->value.has_value()) {
 		builder << " "
-		        << op_to_string(this->operation)
-		        << " ";
+				<< op_to_string(this->operation)
+				<< " ";
 
 		this->value->strb(builder);
 	}
@@ -810,10 +804,9 @@ void ASTMemberType::strb(std::ostringstream &builder, int /*indentlevel*/) const
 
 	if (this->args.size() > 0) {
 		builder << "(";
-		util::strjoin(builder, ", ", this->args,
-		              [](auto &stream, auto& elem) {
-			              elem.strb(stream);
-		              });
+		util::strjoin(builder, ", ", this->args, [](auto &stream, auto &elem) {
+			elem.strb(stream);
+		});
 		builder << ")";
 	}
 }
@@ -846,8 +839,7 @@ void ASTMemberValue::strb(std::ostringstream &builder, int /*indentlevel*/) cons
 		throw InternalError{"unhandled container type"};
 	}
 
-	util::strjoin(builder, ", ", this->values,
-	              [](auto &stream, auto &elem) { stream << elem.str(); });
+	util::strjoin(builder, ", ", this->values, [](auto &stream, auto &elem) { stream << elem.str(); });
 
 	switch (this->composite_type) {
 	case composite_t::SET:
@@ -869,7 +861,7 @@ ASTError::ASTError(const std::string &msg,
 	if (add_token) {
 		std::ostringstream builder;
 		builder << msg << ": "
-		        << token_type_str(token.type);
+				<< token_type_str(token.type);
 		this->msg = std::move(builder).str();
 	}
 	else {
@@ -885,7 +877,7 @@ ASTError::ASTError(const std::string &msg,
 	if (add_token) {
 		std::ostringstream builder;
 		builder << msg << ": "
-		        << token_type_str(token.get_type());
+				<< token_type_str(token.get_type());
 		this->msg = builder.str();
 	}
 	else {

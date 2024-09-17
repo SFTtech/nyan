@@ -6,8 +6,7 @@
 namespace nyan::lexer {
 
 
-Bracket::Bracket(token_type ttype, int indent)
-	:
+Bracket::Bracket(token_type ttype, int indent) :
 	indentation{indent},
 	type{this->to_type(ttype)},
 	hanging{true} {}
@@ -57,7 +56,7 @@ std::string Bracket::get_closing_indent() const {
 	if (this->is_hanging()) {
 		std::ostringstream builder;
 		builder << "at least "
-		        << this->indentation;
+				<< this->indentation;
 		return builder.str();
 	}
 	else {

@@ -20,9 +20,9 @@ MemberTypeError::MemberTypeError(const fqon_t &objname,
                                  const std::string &real_type,
                                  const std::string &wrong_type) :
 	APIError{(static_cast<const std::ostringstream &>(
-		          std::ostringstream{} << "type mismatch for member " << objname + "." << member
-		          << ": tried to convert real type " << real_type << " to " << wrong_type))
-	.str()},
+				  std::ostringstream{} << "type mismatch for member " << objname + "." << member
+									   << ": tried to convert real type " << real_type << " to " << wrong_type))
+                 .str()},
 	objname{objname},
 	member{member},
 	real_type{real_type},

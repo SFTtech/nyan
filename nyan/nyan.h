@@ -23,15 +23,15 @@
 #include "token.h"
 #include "type.h"
 #include "util.h"
-#include "value/value.h"
-#include "value/file.h"
 #include "value/container.h"
+#include "value/dict.h"
+#include "value/file.h"
 #include "value/number.h"
 #include "value/object.h"
 #include "value/orderedset.h"
 #include "value/set.h"
-#include "value/dict.h"
 #include "value/text.h"
+#include "value/value.h"
 #include "view.h"
 
 

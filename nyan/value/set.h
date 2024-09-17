@@ -17,7 +17,6 @@ namespace nyan {
  */
 class Set
 	: public SetBase<set_t> {
-
 	// fetch the constructors
 	using SetBase<set_t>::SetBase;
 

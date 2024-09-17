@@ -2,8 +2,8 @@
 #pragma once
 
 
-#include "set_base.h"
 #include "container_types.h"
+#include "set_base.h"
 
 #include "../ops.h"
 #include "value_holder.h"
@@ -19,7 +19,6 @@ class Value;
  */
 class OrderedSet
 	: public SetBase<ordered_set_t> {
-
 	// fetch the constructors
 	using SetBase<ordered_set_t>::SetBase;
 

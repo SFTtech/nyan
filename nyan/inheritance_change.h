@@ -30,7 +30,6 @@ public:
 	const fqon_t &get_target() const;
 
 protected:
-
 	/**
 	 * Inheritance change type.
 	 */

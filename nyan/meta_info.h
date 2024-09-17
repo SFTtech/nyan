@@ -2,12 +2,12 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 #include "config.h"
-#include "object_info.h"
 #include "namespace.h"
+#include "object_info.h"
 
 
 namespace nyan {

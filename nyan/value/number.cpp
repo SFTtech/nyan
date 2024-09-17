@@ -6,8 +6,8 @@
 #include <typeinfo>
 
 #include "../compiler.h"
-#include "../lang_error.h"
 #include "../id_token.h"
+#include "../lang_error.h"
 #include "../ops.h"
 #include "../token.h"
 #include "../util.h"
@@ -16,30 +16,27 @@
 namespace nyan {
 
 static void check_token(const IDToken &token, std::vector<token_type> expected) {
-
 	using namespace std::string_literals;
 
-	if (unlikely(not (std::find(expected.begin(),
-	                            expected.end(),
-	                            token.get_type()) != expected.end()))) {
+	if (unlikely(not(std::find(expected.begin(),
+	                           expected.end(),
+	                           token.get_type())
+	                 != expected.end()))) {
 		throw LangError{
 			token,
 			"invalid value for number, expected "s
-			+ util::strjoin(
-				" or ",
-				expected,
-				[] (const auto &token_type) {
-					return token_type_str(token_type);
-				}
-			)
-		};
+				+ util::strjoin(
+					" or ",
+					expected,
+					[](const auto &token_type) {
+						return token_type_str(token_type);
+					})};
 	}
 }
 
 
-template<>
+template <>
 Int::Number(const IDToken &token) {
-
 	const static std::vector<token_type> expected{
 		token_type::INT,
 		token_type::INF,
@@ -69,9 +66,8 @@ Int::Number(const IDToken &token) {
 }
 
 
-template<>
+template <>
 Float::Number(const IDToken &token) {
-
 	const static std::vector<token_type> expected{
 		token_type::FLOAT,
 		token_type::INF,
@@ -103,8 +99,7 @@ Float::Number(const IDToken &token) {
 
 template <typename T>
 bool Number<T>::is_infinite() const {
-	return (this->value == this->infinite_pos() or
-	        this->value == this->infinite_neg());
+	return (this->value == this->infinite_pos() or this->value == this->infinite_neg());
 }
 
 template <typename T>
@@ -129,19 +124,24 @@ bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 	auto applier = [this](auto operand, nyan_op operation) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
-			this->value = operand; break;
+			this->value = operand;
+			break;
 
 		case nyan_op::ADD_ASSIGN:
-			this->value += operand; break;
+			this->value += operand;
+			break;
 
 		case nyan_op::SUBTRACT_ASSIGN:
-			this->value -= operand; break;
+			this->value -= operand;
+			break;
 
 		case nyan_op::MULTIPLY_ASSIGN:
-			this->value *= operand; break;
+			this->value *= operand;
+			break;
 
 		case nyan_op::DIVIDE_ASSIGN:
-			this->value /= operand; break;
+			this->value /= operand;
+			break;
 
 		default:
 			throw InternalError{"unknown operation requested"};
@@ -178,7 +178,7 @@ bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 	}
 
 	// regular numbers without infinity
-	if (not (this->is_infinite() or number->is_infinite())) {
+	if (not(this->is_infinite() or number->is_infinite())) {
 		apply_number_convert(*number, operation);
 	}
 	else {
@@ -227,8 +227,7 @@ bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 template <typename T>
 std::optional<typename Number<T>::infinity_action>
 Number<T>::handle_infinity(const NumberBase &other, nyan_op operation) {
-
-	auto inf_by_other = [&other](bool invert=false) {
+	auto inf_by_other = [&other](bool invert = false) {
 		if (other.is_infinite_positive() ^ invert) {
 			return infinity_action::INF_POS;
 		}
@@ -337,7 +336,6 @@ Number<T>::handle_infinity(const NumberBase &other, nyan_op operation) {
 template <typename T>
 const std::unordered_set<nyan_op> &
 Number<T>::allowed_operations(const Type &with_type) const {
-
 	const static std::unordered_set<nyan_op> ops{
 		nyan_op::ASSIGN,
 		nyan_op::ADD_ASSIGN,
@@ -358,22 +356,20 @@ Number<T>::allowed_operations(const Type &with_type) const {
 }
 
 
-template<>
+template <>
 const BasicType &Int::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::INT,
-		composite_t::SINGLE
-	};
+		composite_t::SINGLE};
 	return type;
 }
 
 
-template<>
+template <>
 const BasicType &Float::get_type() const {
 	constexpr static BasicType type{
 		primitive_t::FLOAT,
-		composite_t::SINGLE
-	};
+		composite_t::SINGLE};
 
 	return type;
 }
@@ -395,10 +391,7 @@ template <>
 value_int_t Float::as_int() const {
 	// float -> int might overflow...
 	if (unlikely(
-		    (static_cast<value_float_t>(std::numeric_limits<value_int_t>::max()) < this->value) or
-		    (static_cast<value_float_t>(std::numeric_limits<value_int_t>::min()) > this->value)
-	    )) {
-
+			(static_cast<value_float_t>(std::numeric_limits<value_int_t>::max()) < this->value) or (static_cast<value_float_t>(std::numeric_limits<value_int_t>::min()) > this->value))) {
 		// we should handle this better instead of hard-crashing...
 		throw Error{"float to int conversion impossible since value wouldn't fit"};
 	}

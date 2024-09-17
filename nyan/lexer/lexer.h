@@ -28,8 +28,8 @@ public:
 	// no moves and copies
 	Lexer(Lexer &&other) = delete;
 	Lexer(const Lexer &other) = delete;
-	Lexer &operator =(Lexer &&other) = delete;
-	Lexer &operator =(const Lexer &other) = delete;
+	Lexer &operator=(Lexer &&other) = delete;
+	Lexer &operator=(const Lexer &other) = delete;
 
 	/**
 	 * Return the next available token.

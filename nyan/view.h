@@ -26,16 +26,17 @@ class State;
  */
 class View : public std::enable_shared_from_this<View> {
 	friend class Transaction;
+
 public:
 	View(const std::shared_ptr<Database> &database);
 
 	Object get_object(const fqon_t &fqon);
 
-	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t=LATEST_T) const;
+	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t = LATEST_T) const;
 
 	const ObjectInfo &get_info(const fqon_t &fqon) const;
 
-	Transaction new_transaction(order_t t=DEFAULT_T);
+	Transaction new_transaction(order_t t = DEFAULT_T);
 
 	std::shared_ptr<View> new_child();
 
@@ -44,18 +45,18 @@ public:
 
 	const Database &get_database() const;
 
-	const std::vector<fqon_t> &get_linearization(const fqon_t &fqon, order_t t=LATEST_T) const;
+	const std::vector<fqon_t> &get_linearization(const fqon_t &fqon, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the direct ancestor children of an object.
 	 * Does not step further down than one inheritance level.
 	 */
-	const std::unordered_set<fqon_t> &get_obj_children(const fqon_t &fqon, order_t t=LATEST_T) const;
+	const std::unordered_set<fqon_t> &get_obj_children(const fqon_t &fqon, order_t t = LATEST_T) const;
 
 	/**
 	 * Get all ancestor children of an object including the transitive onces.
 	 */
-	std::unordered_set<fqon_t> get_obj_children_all(const fqon_t &fqon, order_t t=LATEST_T) const;
+	std::unordered_set<fqon_t> get_obj_children_all(const fqon_t &fqon, order_t t = LATEST_T) const;
 
 	/**
 	 * Register a function that is called whenever the given object or any of its parents

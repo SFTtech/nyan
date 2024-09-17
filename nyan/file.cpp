@@ -9,25 +9,21 @@
 namespace nyan {
 
 
-File::File(const std::string &virtual_name, std::string &&data)
-	:
+File::File(const std::string &virtual_name, std::string &&data) :
 	name{virtual_name},
 	data{std::move(data)} {
-
 	this->extract_lines();
 }
 
 
-File::File(const std::string &path)
-	:
+File::File(const std::string &path) :
 	File{path, util::read_file(path)} {
-
 	// util::read_file throws a FileReadError if unsuccessful.
 }
 
 
 void File::extract_lines() {
-	this->line_ends = { std::string::npos };
+	this->line_ends = {std::string::npos};
 
 	for (size_t i = 0; i < this->data.size(); i++) {
 		if (this->data[i] == '\n') {

@@ -4,8 +4,8 @@
 #include <queue>
 #include <stack>
 
-#include "bracket.h"
 #include "../lang_error.h"
+#include "bracket.h"
 
 
 namespace nyan::lexer {
@@ -13,24 +13,23 @@ namespace nyan::lexer {
 /// Interface with flex generated lexer.
 class Impl {
 public:
-
 	explicit Impl(const std::shared_ptr<File> &file);
 
 	~Impl();
 
 	/** No copies. No moves. */
 	Impl(const Impl &other) = delete;
-	Impl(Impl&& other) = delete;
-	const Impl &operator =(const Impl &other) = delete;
-	Impl &&operator =(Impl &&other) = delete;
+	Impl(Impl &&other) = delete;
+	const Impl &operator=(const Impl &other) = delete;
+	Impl &&operator=(Impl &&other) = delete;
 
 	/** Produce a token by reading the input. */
 	Token generate_token();
 
-/** @name FlexInterfaceMethods
+	/** @name FlexInterfaceMethods
  * Methods used by the flex generated lexer.
  */
-///@{
+	///@{
 
 	/** Advance the line position by match length. */
 	void advance_linepos();
@@ -56,10 +55,9 @@ public:
 	/** Generate indentation tokens based on given depth. */
 	void handle_indent(int depth);
 
-///@}
+	///@}
 
 protected:
-
 	/**
 	 * Indentation enforcement in parens requires to track
 	 * the open and closing parens `(<[{}]>)`.

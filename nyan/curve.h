@@ -13,10 +13,9 @@
 
 namespace nyan {
 
-template<typename T>
+template <typename T>
 class Curve {
 public:
-
 	using container_t = std::map<order_t, T>;
 
 	using fallback_t = std::function<const T &(const order_t)>;
@@ -25,8 +24,7 @@ public:
 	Curve() {}
 
 #ifdef CURVE_FALLBACK_FUNCTION
-	Curve(const fallback_t &func)
-		:
+	Curve(const fallback_t &func) :
 		fallback{func} {}
 
 	/**
@@ -57,8 +55,7 @@ public:
 			else {
 #endif
 				throw InternalError{
-					"requested time lower than first curve entry"
-				};
+					"requested time lower than first curve entry"};
 #ifdef CURVE_FALLBACK_FUNCTION
 			}
 #endif

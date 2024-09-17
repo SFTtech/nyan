@@ -38,7 +38,7 @@ unsigned int comma_list(token_type end,
                         TokenStream &tokens,
                         size_t limit,
                         const std::function<void(const Token &, TokenStream &)> &func,
-                        bool unlimited=false);
+                        bool unlimited = false);
 
 
 /**

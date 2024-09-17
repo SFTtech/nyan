@@ -19,6 +19,7 @@ class ObjectInfo;
  */
 class ObjectState {
 	friend class Database;
+
 public:
 	/**
 	 * Creation of an initial object state.

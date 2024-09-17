@@ -22,20 +22,19 @@ class Set;
  * i.e. it unpacks the ValueHolders!
  *
  */
-template<typename iter_type, typename elem_type>
+template <typename iter_type, typename elem_type>
 class SetIterator : public ContainerIterBase<elem_type> {
 public:
 	using this_type = SetIterator<iter_type, elem_type>;
 	using base_type = ContainerIterBase<elem_type>;
 
-	explicit SetIterator(iter_type &&iter)
-		:
+	explicit SetIterator(iter_type &&iter) :
 		iterator{std::move(iter)} {}
 
 	/**
 	 * Advance the iterator to the next element in the set.
 	 */
-	base_type &operator ++() override {
+	base_type &operator++() override {
 		++this->iterator;
 		return *this;
 	}
@@ -43,7 +42,7 @@ public:
 	/**
 	 * Get the element the iterator is currently pointing to.
 	 */
-	elem_type &operator *() const override {
+	elem_type &operator*() const override {
 		// unpack the ValueHolder!
 		return *(*this->iterator);
 	}
@@ -72,10 +71,10 @@ protected:
 template <typename T>
 class SetBase : public Container {
 public:
-	using Container::iterator;
 	using Container::const_iterator;
-	using Container::holder_iterator;
 	using Container::holder_const_iterator;
+	using Container::holder_iterator;
+	using Container::iterator;
 
 	using value_storage = T;
 	using element_type = typename value_storage::value_type;
@@ -110,8 +109,7 @@ public:
 		throw APIError{
 			"Sets are only const-iterable. "
 			"make it const by using e.g. "
-			"for (auto &it = std::as_const(container))"
-		};
+			"for (auto &it = std::as_const(container))"};
 	}
 
 	iterator end() override {
@@ -139,7 +137,7 @@ public:
 		// (this, true)        = use this set as target, use the beginning.
 		auto real_iterator = std::make_unique<
 			SetIterator<value_const_iterator,
-			            const_iterator::elem_type>>(std::begin(this->values));
+		                const_iterator::elem_type>>(std::begin(this->values));
 
 		return const_iterator{std::move(real_iterator)};
 	}
@@ -149,7 +147,7 @@ public:
 		// see explanation in the begin() above
 		auto real_iterator = std::make_unique<
 			SetIterator<value_const_iterator,
-			            const_iterator::elem_type>>(std::end(this->values));
+		                const_iterator::elem_type>>(std::end(this->values));
 
 		return const_iterator{std::move(real_iterator)};
 	}
@@ -157,8 +155,7 @@ public:
 
 	holder_iterator values_begin() override {
 		throw APIError{
-			"Set values holders are not non-const-iterable."
-		};
+			"Set values holders are not non-const-iterable."};
 	}
 
 
@@ -176,9 +173,8 @@ public:
 	holder_const_iterator values_begin() const override {
 		auto real_iterator = std::make_unique<
 			DefaultIterator<value_const_iterator,
-			                holder_const_iterator::elem_type>>(
-				                std::begin(this->values)
-			                );
+		                    holder_const_iterator::elem_type>>(
+			std::begin(this->values));
 
 		return holder_const_iterator{std::move(real_iterator)};
 	}
@@ -189,9 +185,8 @@ public:
 	holder_const_iterator values_end() const override {
 		auto real_iterator = std::make_unique<
 			DefaultIterator<value_const_iterator,
-			                holder_const_iterator::elem_type>>(
-				                std::end(this->values)
-			                );
+		                    holder_const_iterator::elem_type>>(
+			std::end(this->values));
 
 		return holder_const_iterator{std::move(real_iterator)};
 	}

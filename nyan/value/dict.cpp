@@ -2,17 +2,17 @@
 
 #include "dict.h"
 
-#include "orderedset.h"
-#include "set.h"
 #include "../error.h"
 #include "../util.h"
+#include "orderedset.h"
+#include "set.h"
 
 
 namespace nyan {
 
 Dict::Dict() = default;
 
-Dict::Dict(std::unordered_map<ValueHolder,ValueHolder> &&values) {
+Dict::Dict(std::unordered_map<ValueHolder, ValueHolder> &&values) {
 	for (auto &value : values) {
 		this->values.insert(std::move(value));
 	}
@@ -30,11 +30,9 @@ std::string Dict::str() const {
 	std::ostringstream builder;
 	builder << "{";
 	builder << util::strjoin(
-		", ", this->values,
-		[] (const auto &val) {
+		", ", this->values, [](const auto &val) {
 			return val.first->str() + ": " + val.second->str();
-		}
-	);
+		});
 	builder << "}";
 
 	return builder.str();
@@ -47,11 +45,9 @@ std::string Dict::repr() const {
 	std::ostringstream builder;
 	builder << "{";
 	builder << util::strjoin(
-		", ", this->values,
-		[] (const auto &val) {
+		", ", this->values, [](const auto &val) {
 			return val.first->repr() + ": " + val.second->repr();
-		}
-	);
+		});
 	builder << "}";
 
 	return builder.str();
@@ -98,7 +94,7 @@ bool Dict::apply_value(const Value &value, nyan_op operation) {
 			break;
 		}
 
-		case nyan_op::INTERSECT_ASSIGN:{
+		case nyan_op::INTERSECT_ASSIGN: {
 			// only keep items that are in both. Both key
 			// and value must match.
 
@@ -174,7 +170,7 @@ bool Dict::apply_value(const Value &value, nyan_op operation) {
 	};
 
 
-	if (typeid(Set&) == typeid(value)) {
+	if (typeid(Set &) == typeid(value)) {
 		const Set *change = dynamic_cast<const Set *>(&value);
 
 		if (unlikely(change == nullptr)) {
@@ -187,9 +183,8 @@ bool Dict::apply_value(const Value &value, nyan_op operation) {
 		}
 
 		set_applier(this->values, change->get(), operation);
-
 	}
-	else if (typeid(OrderedSet&) == typeid(value)) {
+	else if (typeid(OrderedSet &) == typeid(value)) {
 		const OrderedSet *change = dynamic_cast<const OrderedSet *>(&value);
 
 		if (unlikely(change == nullptr)) {
@@ -202,9 +197,8 @@ bool Dict::apply_value(const Value &value, nyan_op operation) {
 		}
 
 		set_applier(this->values, change->get(), operation);
-
 	}
-	else if (typeid(Dict&) == typeid(value)) {
+	else if (typeid(Dict &) == typeid(value)) {
 		const Dict *change = dynamic_cast<const Dict *>(&value);
 
 		if (unlikely(change == nullptr)) {
@@ -227,7 +221,6 @@ bool Dict::apply_value(const Value &value, nyan_op operation) {
 }
 
 const std::unordered_set<nyan_op> &Dict::allowed_operations(const Type &with_type) const {
-
 	const static std::unordered_set<nyan_op> set_ops{
 		nyan_op::SUBTRACT_ASSIGN,
 		nyan_op::INTERSECT_ASSIGN,

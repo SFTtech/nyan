@@ -3,8 +3,8 @@
 
 #include <unordered_set>
 
-#include "value_holder.h"
 #include "../datastructure/orderedset.h"
+#include "value_holder.h"
 
 
 namespace nyan {

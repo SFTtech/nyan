@@ -4,8 +4,7 @@
 
 namespace nyan {
 
-InheritanceChange::InheritanceChange(inher_change_t type, fqon_t &&target)
-	:
+InheritanceChange::InheritanceChange(inher_change_t type, fqon_t &&target) :
 	type{type},
 	target{std::move(target)} {}
 
