@@ -103,6 +103,7 @@ void Database::load(const std::string &filename,
 		auto it = imports.find(namespace_to_import);
 		if (it != std::end(imports)) {
 			// this namespace is already imported!
+			to_import.erase(cur_ns_it);
 			continue;
 		}
 
