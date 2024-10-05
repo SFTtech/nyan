@@ -1,4 +1,4 @@
-// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2024 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "database.h"
 
@@ -126,6 +126,11 @@ void Database::load(const std::string &filename,
 												  }})
 		                              .first->second;
 
+		// Processing import is done and we can remove it from the list
+		// We must already erase here because the iterator cur_ns_it might get
+		// invalidated by an insert into to_import further below
+		to_import.erase(cur_ns_it);
+
 		// enqueue all new imports of this file
 		// and record import aliases
 		for (auto &import : new_ns.get_ast().get_imports()) {
@@ -158,8 +163,6 @@ void Database::load(const std::string &filename,
 				}
 			}
 		}
-
-		to_import.erase(cur_ns_it);
 	}
 
 
