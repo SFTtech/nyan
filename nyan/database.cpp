@@ -1,4 +1,4 @@
-// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2024 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "database.h"
 
@@ -103,6 +103,7 @@ void Database::load(const std::string &filename,
 		auto it = imports.find(namespace_to_import);
 		if (it != std::end(imports)) {
 			// this namespace is already imported!
+			to_import.erase(cur_ns_it);
 			continue;
 		}
 
@@ -125,6 +126,11 @@ void Database::load(const std::string &filename,
 													  parser.parse(current_file) // read the ast!
 												  }})
 		                              .first->second;
+
+		// Processing import is done and we can remove it from the list
+		// We must already erase here because the iterator cur_ns_it might get
+		// invalidated by an insert into to_import further below
+		to_import.erase(cur_ns_it);
 
 		// enqueue all new imports of this file
 		// and record import aliases
@@ -158,8 +164,6 @@ void Database::load(const std::string &filename,
 				}
 			}
 		}
-
-		to_import.erase(cur_ns_it);
 	}
 
 
