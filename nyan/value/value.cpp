@@ -2,6 +2,10 @@
 
 #include "value.h"
 
+#include "../ast.h"
+#include "../error.h"
+#include "../member.h"
+#include "../token.h"
 #include "boolean.h"
 #include "dict.h"
 #include "file.h"
@@ -14,10 +18,6 @@
 #include "orderedset.h"
 #include "set.h"
 #include "text.h"
-#include "../ast.h"
-#include "../error.h"
-#include "../member.h"
-#include "../token.h"
 
 
 namespace nyan {
@@ -36,12 +36,10 @@ static ValueHolder value_from_id_token(
 	const Type &target_type,
 	const IDToken &id_token,
 	const std::function<fqon_t(const Type &, const IDToken &)> &get_fqon) {
-
 	auto &token_components = id_token.get_components();
 	if (target_type.has_modifier(modifier_t::OPTIONAL)
 	    and token_components.size() == 1
 	    and token_components[0].get() == "None") {
-
 		// link to global None value
 		return {None::value};
 	}
@@ -65,8 +63,7 @@ static ValueHolder value_from_id_token(
 		}
 		throw LangError{
 			id_token,
-			"invalid token for int, expected int or inf"
-		};
+			"invalid token for int, expected int or inf"};
 	}
 	case primitive_t::FLOAT: {
 		if (id_token.get_type() == token_type::INF) {
@@ -80,8 +77,7 @@ static ValueHolder value_from_id_token(
 		}
 		throw LangError{
 			id_token,
-			"invalid token for float, expected float or inf"
-		};
+			"invalid token for float, expected float or inf"};
 	}
 	case primitive_t::FILENAME: {
 		// TODO: make relative to current namespace
@@ -91,8 +87,7 @@ static ValueHolder value_from_id_token(
 		if (unlikely(id_token.get_type() != token_type::ID)) {
 			throw LangError{
 				id_token,
-				"invalid value for object, expecting object id"
-			};
+				"invalid value for object, expecting object id"};
 		}
 
 		fqon_t obj_id = get_fqon(target_type, id_token);
@@ -122,18 +117,16 @@ static std::vector<ValueHolder> value_from_value_token(
 	const std::vector<Type> &target_types,
 	const ValueToken &value_token,
 	const std::function<fqon_t(const Type &, const IDToken &)> &get_fqon) {
-
 	auto &&tok_values = value_token.get_value();
 
 	if (unlikely(target_types.size() != tok_values.size())) {
 		throw TypeError(
 			value_token.get_start_location(),
 			std::string("ValueToken has ")
-			+ std::to_string(tok_values.size())
-			+ " elements, but only "
-			+ std::to_string(target_types.size())
-			+ " have been requested"
-		);
+				+ std::to_string(tok_values.size())
+				+ " elements, but only "
+				+ std::to_string(target_types.size())
+				+ " have been requested");
 	}
 
 	std::vector<ValueHolder> values;
@@ -144,9 +137,7 @@ static std::vector<ValueHolder> value_from_value_token(
 			value_from_id_token(
 				target_types.at(i),
 				value_token.get_value().at(i),
-				get_fqon
-			)
-		);
+				get_fqon));
 	}
 
 	return values;
@@ -182,7 +173,6 @@ ValueHolder Value::from_ast(
 	const ASTMemberValue &astmembervalue,
 	const std::function<fqon_t(const Type &, const IDToken &)> &get_fqon,
 	const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin) {
-
 	using namespace std::string_literals;
 
 	ValueHolder value;
@@ -195,28 +185,25 @@ ValueHolder Value::from_ast(
 		if (astvalues.size() > 1) {
 			throw TypeError{
 				astvalues[1].get_start_location(),
-				"storing multiple values in non-container member"
-			};
+				"storing multiple values in non-container member"};
 		}
 
 		value = value_from_value_token(
 			{target_type},
 			astvalues[0],
-			get_fqon
-		)[0];
+			get_fqon)[0];
 	}
 	else {
 		// for optional types, we need to check if the member is set to None
 		if (target_type.has_modifier(modifier_t::OPTIONAL)
-			and check_container_none(astvalues)) {
+		    and check_container_none(astvalues)) {
 			value = None::value;
 		}
 		else {
 			// now for containers (dict, set, orderedset, ...)
 			composite_t composite_type = target_type.get_composite_type();
 
-			switch (composite_type)
-			{
+			switch (composite_type) {
 			case composite_t::ORDEREDSET:
 			case composite_t::SET: {
 				std::vector<ValueHolder> values;
@@ -231,18 +218,16 @@ ValueHolder Value::from_ast(
 					ValueHolder value = value_from_value_token(
 						{element_type},
 						value_token,
-						get_fqon
-					)[0];
+						get_fqon)[0];
 
 					if (auto error = value->compatible_with(element_type, get_obj_lin)) {
 						throw TypeError(
 							value_token.get_start_location(),
 							"set element type "s
-							+ element_type.str()
-							+ " can't be assigned a value of type "
-							+ value->get_type().str()
-							+ ": " + error->msg
-						);
+								+ element_type.str()
+								+ " can't be assigned a value of type "
+								+ value->get_type().str()
+								+ ": " + error->msg);
 					}
 
 					values.push_back(value);
@@ -278,28 +263,25 @@ ValueHolder Value::from_ast(
 					std::vector<ValueHolder> keyval = value_from_value_token(
 						element_type,
 						value_token,
-						get_fqon
-					);
+						get_fqon);
 
 					if (auto error = keyval[0]->compatible_with(key_type, get_obj_lin)) {
 						throw TypeError(
 							value_token.get_start_location(),
 							"dict key type "s
-							+ key_type.str()
-							+ " can't be assigned a value of type "
-							+ keyval[0]->get_type().str()
-							+ ": " + error->msg
-						);
+								+ key_type.str()
+								+ " can't be assigned a value of type "
+								+ keyval[0]->get_type().str()
+								+ ": " + error->msg);
 					}
 					if (auto error = keyval[1]->compatible_with(value_type, get_obj_lin)) {
 						throw TypeError(
 							value_token.get_start_location(),
 							"dict value type "s
-							+ value_type.str()
-							+ " can't be assigned a value of type "
-							+ keyval[1]->get_type().str()
-							+ ": " + error->msg
-						);
+								+ value_type.str()
+								+ " can't be assigned a value of type "
+								+ keyval[1]->get_type().str()
+								+ ": " + error->msg);
 					}
 
 					items.insert(std::make_pair(keyval[0], keyval[1]));
@@ -318,10 +300,10 @@ ValueHolder Value::from_ast(
 		throw TypeError{
 			astvalues[0].get_start_location(),
 			"member type "s
-			+ target_type.str()
-			+ " can't be assigned a value of type "
-			+ value->get_type().str()
-			+ (error->msg.size() ? ": "s + error->msg : "")
+				+ target_type.str()
+				+ " can't be assigned a value of type "
+				+ value->get_type().str()
+				+ (error->msg.size() ? ": "s + error->msg : "")
 			// TODO: put more info in the error, e.g. underlining the operator
 		};
 	}
@@ -332,8 +314,7 @@ ValueHolder Value::from_ast(
 
 std::optional<Value::TypeProblem> Value::compatible_with(
 	const Type &type,
-	const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin
-) const {
+	const std::function<std::vector<fqon_t>(const fqon_t &)> &get_obj_lin) const {
 	using namespace std::string_literals;
 
 	if (type.has_modifier(modifier_t::OPTIONAL)) {
@@ -427,15 +408,15 @@ bool Value::apply(const Member &change) {
 	return this->apply_value(value, change.get_operation());
 }
 
-bool Value::operator ==(const Value &other) const {
+bool Value::operator==(const Value &other) const {
 	if (typeid(*this) != typeid(other)) {
 		return false;
 	}
 	return this->equals(other);
 }
 
-bool Value::operator !=(const Value &other) const {
-	return not (*this == other);
+bool Value::operator!=(const Value &other) const {
+	return not(*this == other);
 }
 
 } // namespace nyan

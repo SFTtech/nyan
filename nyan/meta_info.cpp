@@ -19,8 +19,7 @@ ObjectInfo &MetaInfo::add_object(const fqon_t &name, ObjectInfo &&obj_info) {
 		throw LangError{
 			loc,
 			"object already defined",
-			{{ret.first->second.get_location(), "first defined here"}}
-		};
+			{{ret.first->second.get_location(), "first defined here"}}};
 	}
 
 	return ret.first->second;
@@ -51,13 +50,13 @@ bool MetaInfo::has_object(const fqon_t &name) const {
 }
 
 Namespace &MetaInfo::add_namespace(const Namespace &ns) {
-    auto ret = this->namespaces.insert({fqnn_t(ns.to_fqon()), ns});
+	auto ret = this->namespaces.insert({fqnn_t(ns.to_fqon()), ns});
 
 	return ret.first->second;
 }
 
 Namespace *MetaInfo::get_namespace(const fqnn_t &name) {
-    return const_cast<Namespace *>(std::as_const(*this).get_namespace(name));
+	return const_cast<Namespace *>(std::as_const(*this).get_namespace(name));
 }
 
 const Namespace *MetaInfo::get_namespace(const fqnn_t &name) const {
@@ -69,7 +68,7 @@ const Namespace *MetaInfo::get_namespace(const fqnn_t &name) const {
 }
 
 bool MetaInfo::has_namespace(const fqnn_t &name) const {
-    return this->namespaces.contains(name);
+	return this->namespaces.contains(name);
 }
 
 std::string MetaInfo::str() const {

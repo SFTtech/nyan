@@ -12,11 +12,11 @@
 
 #include "api_error.h"
 #include "config.h"
-#include "value/none.h"
-#include "value/container_types.h"
-#include "value/value_holder.h"
 #include "object_notifier_types.h"
 #include "util.h"
+#include "value/container_types.h"
+#include "value/none.h"
+#include "value/value_holder.h"
 
 
 namespace nyan {
@@ -45,6 +45,7 @@ concept ValueLike = std::derived_from<T, Value> || std::is_same_v<T, Object>;
  */
 class Object {
 	friend class View;
+
 protected:
 	/**
 	 * Create a nyan-object handle. This is never invoked by the user,
@@ -62,8 +63,8 @@ public:
 	// This constructor is public, but can't be invoked since the Restricted
 	// class is not available. We use this to be able to invoke make_shared
 	// within this class, but not outside of it.
-	Object(Object::Restricted, const fqon_t &name, const std::shared_ptr<View> &origin)
-		: Object(name, origin) {};
+	Object(Object::Restricted, const fqon_t &name, const std::shared_ptr<View> &origin) :
+		Object(name, origin) {};
 	~Object();
 
 	/**
@@ -89,7 +90,7 @@ public:
 	 *
 	 * @return ValueHolder containing the raw value of the member.
 	 */
-	ValueHolder get_value(const memberid_t &member, order_t t=LATEST_T) const;
+	ValueHolder get_value(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value container for a given member at a given time.
@@ -105,7 +106,7 @@ public:
 	 * @return Value of the member.
 	 */
 	template <ValueLike T>
-	std::shared_ptr<T> get(const memberid_t &member, order_t t=LATEST_T) const;
+	std::shared_ptr<T> get(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value container for a given member at a given time.
@@ -118,8 +119,8 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	template <ValueLike T, bool may_be_none=true>
-	std::optional<std::shared_ptr<T>> get_optional(const memberid_t &member, order_t t=LATEST_T) const;
+	template <ValueLike T, bool may_be_none = true>
+	std::optional<std::shared_ptr<T>> get_optional(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for a number type member (\p int or \p float).
@@ -132,8 +133,8 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	template<std::derived_from<NumberBase> T, typename ret=typename T::storage_type>
-	ret get_number(const memberid_t &member, order_t t=LATEST_T) const;
+	template <std::derived_from<NumberBase> T, typename ret = typename T::storage_type>
+	ret get_number(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p int type member.
@@ -143,7 +144,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	value_int_t get_int(const memberid_t &member, order_t t=LATEST_T) const;
+	value_int_t get_int(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p float type member.
@@ -155,7 +156,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	value_float_t get_float(const memberid_t &member, order_t t=LATEST_T) const;
+	value_float_t get_float(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p text type member.
@@ -165,7 +166,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	std::string get_text(const memberid_t &member, order_t t=LATEST_T) const;
+	std::string get_text(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p bool type member.
@@ -175,7 +176,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	bool get_bool(const memberid_t &member, order_t t=LATEST_T) const;
+	bool get_bool(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p set type member.
@@ -185,7 +186,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	set_t get_set(const memberid_t &member, order_t t=LATEST_T) const;
+	set_t get_set(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p orderedset type member.
@@ -195,7 +196,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	ordered_set_t get_orderedset(const memberid_t &member, order_t t=LATEST_T) const;
+	ordered_set_t get_orderedset(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p dict type member.
@@ -205,7 +206,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	dict_t get_dict(const memberid_t &member, order_t t=LATEST_T) const;
+	dict_t get_dict(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for an \p file type member.
@@ -215,7 +216,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	std::string get_file(const memberid_t &member, order_t t=LATEST_T) const;
+	std::string get_file(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value container for an \p object type member.
@@ -225,7 +226,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	Object get_object(const memberid_t &fqon, order_t t=LATEST_T) const;
+	Object get_object(const memberid_t &fqon, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the parents of this object at a given time.
@@ -234,7 +235,7 @@ public:
 	 *
 	 * @return Double-linked queue containing the parents of this object.
 	 */
-	const std::deque<fqon_t> &get_parents(order_t t=LATEST_T) const;
+	const std::deque<fqon_t> &get_parents(order_t t = LATEST_T) const;
 
 	/**
 	 * Test if this object has a member with a given name at a given time.
@@ -244,7 +245,7 @@ public:
 	 *
 	 * @return true if the member exists for this object, else false.
 	 */
-	bool has(const memberid_t &member, order_t t=LATEST_T) const;
+	bool has(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Check if this object is a child of the given parent at a given time.
@@ -256,7 +257,7 @@ public:
 	 *     identifier or that of any of its (transitive) parents,
 	 *     else false
 	 */
-	bool extends(fqon_t other_fqon, order_t t=LATEST_T) const;
+	bool extends(fqon_t other_fqon, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the metadata information object for this object.
@@ -287,7 +288,7 @@ public:
 	 *
 	 * @return C3 linearization of this object.
 	 */
-	const std::vector<fqon_t> &get_linearized(order_t t=LATEST_T) const;
+	const std::vector<fqon_t> &get_linearized(order_t t = LATEST_T) const;
 
 	/**
 	 * Register a function that will be called when this object changes in its current view.
@@ -303,7 +304,6 @@ public:
 	std::shared_ptr<ObjectNotifier> subscribe(const update_cb_t &callback);
 
 protected:
-
 	/**
 	 * Get the object state at a given time.
 	 *
@@ -311,7 +311,7 @@ protected:
 	 *
 	 * @return Shared pointer to the object state.
 	 */
-	const std::shared_ptr<ObjectState> &get_raw(order_t t=LATEST_T) const;
+	const std::shared_ptr<ObjectState> &get_raw(order_t t = LATEST_T) const;
 
 	/**
 	 * Get the calculated member value for a given member at a given time.
@@ -321,7 +321,7 @@ protected:
 	 *
 	 * @return ValueHolder with the value of the member.
 	 */
-	ValueHolder calculate_value(const memberid_t &member, order_t t=LATEST_T) const;
+	ValueHolder calculate_value(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * View the object was created from.
@@ -358,15 +358,14 @@ std::optional<std::shared_ptr<T>> Object::get_optional(const memberid_t &member,
 			this->name,
 			member,
 			util::typestring(value.get()),
-			util::typestring<T>()
-		};
+			util::typestring<T>()};
 	}
 
 	return ret;
 }
 
 
-template<std::derived_from<NumberBase> T, typename ret>
+template <std::derived_from<NumberBase> T, typename ret>
 ret Object::get_number(const memberid_t &member, order_t t) const {
 	return *this->get<T>(member, t);
 }

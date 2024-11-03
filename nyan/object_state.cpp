@@ -14,26 +14,21 @@
 namespace nyan {
 
 
-ObjectState::ObjectState(std::deque<fqon_t> &&parents)
-	:
+ObjectState::ObjectState(std::deque<fqon_t> &&parents) :
 	parents{std::move(parents)} {}
 
 
 void ObjectState::apply(const std::shared_ptr<ObjectState> &mod,
                         const ObjectInfo &mod_info,
                         ObjectChanges &tracker) {
-
 	const auto &inher_changes = mod_info.get_inheritance_change();
 	if (inher_changes.size() > 0) {
 		for (auto &change : inher_changes) {
-
-			bool parent_exists = (
-				std::find(
-					std::begin(this->parents),
-					std::end(this->parents),
-					change.get_target()
-				) != std::end(this->parents)
-			);
+			// check if the object already has the parent
+			auto it = std::find(std::begin(this->parents),
+			                    std::end(this->parents),
+			                    change.get_target());
+			bool parent_exists = it != std::end(this->parents);
 
 			// only add the parent if it does not exist.
 			// maybe we may want to relocate it in the future?
@@ -68,8 +63,7 @@ void ObjectState::apply(const std::shared_ptr<ObjectState> &mod,
 			}
 			else {
 				throw InternalError{
-					"a non-patch tried to change a nonexisting member"
-				};
+					"a non-patch tried to change a nonexisting member"};
 			}
 		}
 		else {
@@ -125,9 +119,9 @@ std::string ObjectState::str() const {
 	std::ostringstream builder;
 
 	builder << "ObjectState("
-	        << util::strjoin(", ", this->parents)
-	        << ")"
-	        << std::endl;
+			<< util::strjoin(", ", this->parents)
+			<< ")"
+			<< std::endl;
 
 	if (this->members.size() == 0) {
 		builder << "    [no members]" << std::endl;
@@ -135,7 +129,7 @@ std::string ObjectState::str() const {
 
 	for (auto &it : this->members) {
 		builder << "    " << it.first
-		        << " -> " << it.second.str() << std::endl;
+				<< " -> " << it.second.str() << std::endl;
 	}
 
 	return builder.str();

@@ -33,7 +33,6 @@ std::vector<fqon_t>
 linearize_recurse(const fqon_t &name,
                   const objstate_fetch_t &get_obj,
                   std::unordered_set<fqon_t> *seen) {
-
 	using namespace std::string_literals;
 
 	// test for inheritance loops
@@ -41,8 +40,7 @@ linearize_recurse(const fqon_t &name,
 		throw C3Error{
 			"recursive inheritance loop detected: '"s + name + "' already in {"
 			+ util::strjoin(", ", *seen)
-			+ "}"
-		};
+			+ "}"};
 	}
 	else {
 		seen->insert(name);
@@ -67,14 +65,12 @@ linearize_recurse(const fqon_t &name,
 	for (auto &parent : parents) {
 		// Recursive call to get the linearization of the parent
 		par_linearizations.push_back(
-			linearize_recurse(parent, get_obj, seen)
-		);
+			linearize_recurse(parent, get_obj, seen));
 	}
 
 	// And at the end, add all parents of this object to the merge-list.
 	par_linearizations.push_back(
-		{std::begin(parents), std::end(parents)}
-	);
+		{std::begin(parents), std::end(parents)});
 
 	// remove current name from the seen set
 	// we only needed it for the recursive call above.
@@ -109,7 +105,6 @@ linearize_recurse(const fqon_t &name,
 
 			// Test if the candidate is in any tail
 			for (size_t j = 0; j < par_linearizations.size(); j++) {
-
 				// The current list will never contain the candidate again.
 				if (j == i) {
 					continue;
@@ -121,7 +116,6 @@ linearize_recurse(const fqon_t &name,
 				// Start one slot after the head
 				// and check that the candidate is not in that tail.
 				for (size_t k = headpos_try + 1; k < tail.size(); k++) {
-
 					// The head is in that tail, so we fail
 					if (unlikely(*candidate == tail[k])) {
 						candidate_ok = false;
@@ -138,7 +132,8 @@ linearize_recurse(const fqon_t &name,
 			// The candidate was not in any tail
 			if (candidate_ok) {
 				break;
-			} else {
+			}
+			else {
 				// Try the next candidate,
 				// this means to select the next par_lin list.
 				continue;
@@ -171,8 +166,7 @@ linearize_recurse(const fqon_t &name,
 		if (not candidate_ok) {
 			throw C3Error{
 				"Can't find consistent C3 resolution order for "s
-				+ name + " for bases " + util::strjoin(", ", parents)
-			};
+				+ name + " for bases " + util::strjoin(", ", parents)};
 		}
 	}
 
@@ -181,8 +175,7 @@ linearize_recurse(const fqon_t &name,
 }
 
 
-C3Error::C3Error(const std::string &msg)
-	:
+C3Error::C3Error(const std::string &msg) :
 	Error{msg} {}
 
 

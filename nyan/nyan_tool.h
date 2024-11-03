@@ -44,9 +44,9 @@ namespace std {
 /**
  * Hash for the option_flag enum class. Fak u C++!
  */
-template<>
+template <>
 struct hash<nyan::option_flag> {
-	size_t operator ()(const nyan::option_flag &x) const {
+	size_t operator()(const nyan::option_flag &x) const {
 		return static_cast<size_t>(x);
 	}
 };
@@ -54,9 +54,9 @@ struct hash<nyan::option_flag> {
 /**
  * Hash for the option_param enum class. Fak u C++!
  */
-template<>
+template <>
 struct hash<nyan::option_param> {
-	size_t operator ()(const nyan::option_param &x) const {
+	size_t operator()(const nyan::option_param &x) const {
 		return static_cast<size_t>(x);
 	}
 };

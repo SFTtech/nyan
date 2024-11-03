@@ -129,7 +129,7 @@ public:
 	 *
 	 * @return true if the values are equal, else false.
 	 */
-	bool operator ==(const Value &other) const;
+	bool operator==(const Value &other) const;
 
 	/**
 	 * Inequality comparison for Values.
@@ -138,7 +138,7 @@ public:
 	 *
 	 * @return true if the values are not equal, else false.
 	 */
-	bool operator !=(const Value &other) const;
+	bool operator!=(const Value &other) const;
 
 protected:
 	/**
@@ -171,9 +171,9 @@ namespace std {
 /**
  * Hash for Values.
  */
-template<>
+template <>
 struct hash<nyan::Value> {
-	size_t operator ()(const nyan::Value &val) const {
+	size_t operator()(const nyan::Value &val) const {
 		return val.hash();
 	}
 };

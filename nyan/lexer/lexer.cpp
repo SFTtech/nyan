@@ -7,10 +7,8 @@
 
 namespace nyan {
 
-Lexer::Lexer(const std::shared_ptr<File> &file)
-	:
+Lexer::Lexer(const std::shared_ptr<File> &file) :
 	impl{std::make_unique<lexer::Impl>(file)} {
-
 }
 
 Lexer::~Lexer() = default;
@@ -22,8 +20,7 @@ Token Lexer::get_next_token() {
 
 
 LexerError::LexerError(const Location &location,
-                       const std::string &msg)
-	:
+                       const std::string &msg) :
 	LangError{location, msg} {}
 
 } // namespace nyan

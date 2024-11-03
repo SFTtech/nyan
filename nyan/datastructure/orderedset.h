@@ -25,7 +25,7 @@ public:
 		}
 	}
 
-	const OrderedSet &operator =(const OrderedSet &other) {
+	const OrderedSet &operator=(const OrderedSet &other) {
 		for (auto &value : other) {
 			this->insert(value);
 		}
@@ -34,7 +34,7 @@ public:
 	// no moves allowed because they invalidate
 	// the ordering iterators.
 	OrderedSet(OrderedSet &&other) = delete;
-	const OrderedSet &operator =(OrderedSet &&other) = delete;
+	const OrderedSet &operator=(OrderedSet &&other) = delete;
 
 	/**
 	 * Type of value contained in the set.
@@ -73,14 +73,13 @@ protected:
 	 */
 	class ConstIterator {
 	public:
-    	using iterator_category = std::forward_iterator_tag;
-    	using value_type = T;
-    	using difference_type = T;
-    	using pointer = T*;
-    	using reference = T&;
+		using iterator_category = std::forward_iterator_tag;
+		using value_type = T;
+		using difference_type = T;
+		using pointer = T *;
+		using reference = T &;
 
-		ConstIterator(list_iter iter)
-			:
+		ConstIterator(list_iter iter) :
 			iter{iter} {}
 
 		virtual ~ConstIterator() = default;
@@ -88,7 +87,7 @@ protected:
 		/**
 		 * Advance the inner iterator to the next element.
 		 */
-		ConstIterator &operator ++() {
+		ConstIterator &operator++() {
 			++this->iter;
 			return *this;
 		}
@@ -99,7 +98,7 @@ protected:
 		 * Dereferencing it provides a pointer to the data.
 		 * Dereferencing that pointer gets the data reference.
 		 */
-		const T &operator *() const {
+		const T &operator*() const {
 			return *(*this->iter);
 		}
 
@@ -107,7 +106,7 @@ protected:
 		 * Check if this iterator points to the same element
 		 * as the other iterator.
 		 */
-		bool operator ==(const ConstIterator& other) const {
+		bool operator==(const ConstIterator &other) const {
 			return (this->iter == other.iter);
 		}
 
@@ -115,8 +114,8 @@ protected:
 		 * Check if the iterator does not point to the same
 		 * element as the other iterator.
 		 */
-		bool operator !=(const ConstIterator& other) const {
-			return not (*this == other);
+		bool operator!=(const ConstIterator &other) const {
+			return not(*this == other);
 		}
 
 	protected:
@@ -175,8 +174,7 @@ public:
 
 		// add a ptr to the value to the element order list at the end
 		auto list_ins = this->value_order.insert(
-			std::end(this->value_order), value_ptr
-		);
+			std::end(this->value_order), value_ptr);
 
 		// and store the list iterator to the map
 		value_pos->second = list_ins;

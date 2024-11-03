@@ -4,8 +4,8 @@
 
 #include <cstring>
 #ifndef _MSC_VER
-#include <cxxabi.h>
-#include <dlfcn.h>
+	#include <cxxabi.h>
+	#include <dlfcn.h>
 #endif
 #include <cerrno>
 #include <fstream>
@@ -14,12 +14,12 @@
 #include <string>
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#include <array>
-#include <mutex>
+	#include <array>
+	#include <mutex>
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <DbgHelp.h>
+	#define WIN32_LEAN_AND_MEAN
+	#include <DbgHelp.h>
+	#include <Windows.h>
 
 
 namespace {
@@ -53,14 +53,13 @@ std::string symbol_name_win(const void *addr, bool require_exact_addr) {
 	constexpr int buffer_size = sizeof(SYMBOL_INFO) + name_buffer_size * sizeof(char);
 	std::array<char, buffer_size> buffer;
 
-	SYMBOL_INFO *symbol_info = reinterpret_cast<SYMBOL_INFO*>(buffer.data());
+	SYMBOL_INFO *symbol_info = reinterpret_cast<SYMBOL_INFO *>(buffer.data());
 
 	symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
 	symbol_info->MaxNameLen = name_buffer_size;
 
 	DWORD64 symbol_offset = 0;
-	if (not SymFromAddr(process_handle, reinterpret_cast<DWORD64>(addr),
-	                    &symbol_offset, symbol_info)
+	if (not SymFromAddr(process_handle, reinterpret_cast<DWORD64>(addr), &symbol_offset, symbol_info)
 	    or (require_exact_addr and symbol_offset != 0)) {
 		return {};
 	}
@@ -69,7 +68,7 @@ std::string symbol_name_win(const void *addr, bool require_exact_addr) {
 }
 
 
-} // <anonymous> namespace
+} // namespace
 #endif
 
 
@@ -98,8 +97,8 @@ std::string read_file(const std::string &filename, bool binary) {
 	else {
 		std::ostringstream builder;
 		builder << "failed reading file '"
-		        << filename << "': "
-		        << strerror(errno);
+				<< filename << "': "
+				<< strerror(errno);
 		throw FileReadError{builder.str()};
 	}
 }
@@ -116,7 +115,8 @@ std::string demangle(const char *symbol) {
 
 	if (status != 0) {
 		return symbol;
-	} else {
+	}
+	else {
 		std::string result{buf};
 		free(buf);
 		return result;
@@ -133,7 +133,8 @@ std::string addr_to_string(const void *addr) {
 
 
 std::string symbol_name(const void *addr,
-                        bool require_exact_addr, bool no_pure_addrs) {
+                        bool require_exact_addr,
+                        bool no_pure_addrs) {
 #if defined(_WIN32) || defined(__CYGWIN__)
 	auto symbol_name_result = symbol_name_win(addr, require_exact_addr);
 
@@ -148,24 +149,23 @@ std::string symbol_name(const void *addr,
 	if (dladdr(addr, &addr_info) == 0) {
 		// dladdr has... failed.
 		return no_pure_addrs ? "" : addr_to_string(addr);
-	} else {
-		size_t symbol_offset = reinterpret_cast<size_t>(addr) -
-		                       reinterpret_cast<size_t>(addr_info.dli_saddr);
+	}
+	else {
+		size_t symbol_offset = reinterpret_cast<size_t>(addr) - reinterpret_cast<size_t>(addr_info.dli_saddr);
 
-		if (addr_info.dli_sname == nullptr or
-		    (symbol_offset != 0 and require_exact_addr)) {
-
+		if (addr_info.dli_sname == nullptr or (symbol_offset != 0 and require_exact_addr)) {
 			return no_pure_addrs ? "" : addr_to_string(addr);
 		}
 
 		if (symbol_offset == 0) {
 			// this is our symbol name.
 			return demangle(addr_info.dli_sname);
-		} else {
+		}
+		else {
 			std::ostringstream out;
 			out << demangle(addr_info.dli_sname)
-			    << "+0x" << std::hex
-			    << symbol_offset << std::dec;
+				<< "+0x" << std::hex
+				<< symbol_offset << std::dec;
 			return out.str();
 		}
 	}

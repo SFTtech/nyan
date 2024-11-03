@@ -8,8 +8,7 @@
 
 namespace nyan {
 
-MemberInfo::MemberInfo(const Location &location)
-	:
+MemberInfo::MemberInfo(const Location &location) :
 	location{location},
 	initial_def{false} {}
 

@@ -46,7 +46,6 @@ enum class modifier_t {
  */
 class Type {
 public:
-
 	//////////////////////////////////////////////////////////////////
 
 	/**
@@ -171,7 +170,7 @@ public:
 	 *
 	 * @return true if the types are equal, else false.
 	 */
-	bool operator ==(const Type &other) const;
+	bool operator==(const Type &other) const;
 
 protected:
 	/**

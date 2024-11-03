@@ -62,16 +62,15 @@ public:
 	 * this and other mean the current operand values.
 	 */
 	enum class infinity_action {
-		THIS,     //!< keep the value of this number
-		OTHER,    //!< take the value of the other number
-		INF_POS,  //!< set this to positive infinite
-		INF_NEG,  //!< set this to negative infinite
-		ZERO,     //!< set this to zero
+		THIS, //!< keep the value of this number
+		OTHER, //!< take the value of the other number
+		INF_POS, //!< set this to positive infinite
+		INF_NEG, //!< set this to negative infinite
+		ZERO, //!< set this to zero
 	};
 
 	Number(const IDToken &token);
-	Number(T value)
-		:
+	Number(T value) :
 		value{value} {}
 
 	ValueHolder copy() const override {
@@ -171,27 +170,26 @@ using Int = Number<value_int_t>;
 using Float = Number<value_float_t>;
 
 
-
-template<>
+template <>
 constexpr Float::storage_type
 Number<Float::storage_type>::infinite_pos() {
 	return std::numeric_limits<Float::storage_type>::infinity();
 }
 
-template<>
+template <>
 constexpr Float::storage_type
 Number<Float::storage_type>::infinite_neg() {
 	return -std::numeric_limits<Float::storage_type>::infinity();
 }
 
 
-template<>
+template <>
 constexpr Int::storage_type
 Number<Int::storage_type>::infinite_pos() {
 	return std::numeric_limits<Int::storage_type>::max();
 }
 
-template<>
+template <>
 constexpr Int::storage_type
 Number<Int::storage_type>::infinite_neg() {
 	return std::numeric_limits<Int::storage_type>::min();

@@ -11,12 +11,10 @@
 namespace nyan {
 
 StateHistory::StateHistory(const std::shared_ptr<Database> &base) {
-
 	// create new empty state to work on at the beginning.
 	this->insert(
 		std::make_shared<State>(base->get_state()),
-		DEFAULT_T
-	);
+		DEFAULT_T);
 }
 
 const std::shared_ptr<State> &StateHistory::get_state(order_t t) const {
@@ -66,7 +64,6 @@ const std::shared_ptr<ObjectState> *StateHistory::get_obj_state(const fqon_t &fq
 
 
 void StateHistory::insert(std::shared_ptr<State> &&new_state, order_t t) {
-
 	// record the changes.
 	for (const auto &it : new_state->get_objects()) {
 		ObjectHistory &obj_history = this->get_create_obj_history(it.first);
@@ -86,9 +83,7 @@ void StateHistory::insert_linearization(std::vector<fqon_t> &&ins, order_t t) {
 
 
 const std::vector<fqon_t> &
-StateHistory::get_linearization(const fqon_t &obj, order_t t,
-                                const MetaInfo &meta_info) const {
-
+StateHistory::get_linearization(const fqon_t &obj, order_t t, const MetaInfo &meta_info) const {
 	const ObjectHistory *obj_hist = this->get_obj_history(obj);
 	if (obj_hist != nullptr) {
 		if (not obj_hist->linearizations.empty()) {
@@ -113,15 +108,12 @@ StateHistory::get_linearization(const fqon_t &obj, order_t t,
 void StateHistory::insert_children(const fqon_t &obj,
                                    std::unordered_set<fqon_t> &&ins,
                                    order_t t) {
-
 	this->get_create_obj_history(obj).children.insert_drop(t, std::move(ins));
 }
 
 
 const std::unordered_set<fqon_t> &
-StateHistory::get_children(const fqon_t &obj, order_t t,
-                           const MetaInfo &meta_info) const {
-
+StateHistory::get_children(const fqon_t &obj, order_t t, const MetaInfo &meta_info) const {
 	// first try the obj_history
 	const ObjectHistory *obj_hist = this->get_obj_history(obj);
 	if (obj_hist != nullptr) {
@@ -173,9 +165,8 @@ ObjectHistory &StateHistory::get_create_obj_history(const fqon_t &obj) {
 	}
 	else {
 		// create new obj_history entry.
-		return this->object_obj_hists.emplace(
-			obj, ObjectHistory{}
-		).first->second;
+		auto it_new_entry = this->object_obj_hists.emplace(obj, ObjectHistory{}).first;
+		return it_new_entry->second;
 	}
 }
 

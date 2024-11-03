@@ -7,8 +7,7 @@
 
 namespace nyan {
 
-ObjectNotifierHandle::ObjectNotifierHandle(const update_cb_t &func)
-	:
+ObjectNotifierHandle::ObjectNotifierHandle(const update_cb_t &func) :
 	func{func} {}
 
 
@@ -19,8 +18,7 @@ void ObjectNotifierHandle::fire(order_t t, const fqon_t &fqon, const ObjectState
 
 ObjectNotifier::ObjectNotifier(const fqon_t &fqon,
                                const update_cb_t &func,
-                               const std::shared_ptr<View> &view)
-	:
+                               const std::shared_ptr<View> &view) :
 	fqon{fqon},
 	view{view},
 	handle{std::make_shared<ObjectNotifierHandle>(func)} {}

@@ -20,10 +20,8 @@ namespace nyan {
 Type::Type(const ASTMemberType &root_ast_type,
            const NamespaceFinder &scope,
            const Namespace &ns,
-           const MetaInfo &type_info)
-	:
+           const MetaInfo &type_info) :
 	element_type{std::nullopt} {
-
 	// ast -> type conversion works like this:
 	// we fold all modifiers into binary flags, and intialize this type
 	// with the first non-modifier basic type.
@@ -44,17 +42,17 @@ Type::Type(const ASTMemberType &root_ast_type,
 	BasicType basic_type = BasicType::from_type_token(ast_type->name);
 
 	// validation method for the nested type count
-	auto expect_nested_types = [] (const BasicType &basic_type,
-	                               const ASTMemberType &ast_type) -> size_t {
+	auto expect_nested_types = [](const BasicType &basic_type,
+	                              const ASTMemberType &ast_type) -> size_t {
 		size_t count = basic_type.expected_nested_types();
-		if (not (count == ast_type.nested_types.size())) {
+		if (not(count == ast_type.nested_types.size())) {
 			throw ASTError{
 				std::string("only ")
-				+ std::to_string(ast_type.nested_types.size())
-				+ " container element types specified, expected "
-				+ std::to_string(count),
-				ast_type.name, false
-			};
+					+ std::to_string(ast_type.nested_types.size())
+					+ " container element types specified, expected "
+					+ std::to_string(count),
+				ast_type.name,
+				false};
 		}
 		return count;
 	};
@@ -102,7 +100,6 @@ Type::Type(const ASTMemberType &root_ast_type,
 		return;
 	}
 	else if (basic_type.is_composite()) {
-
 		size_t expected_element_types = expect_nested_types(basic_type, *ast_type);
 
 		std::vector<Type> nested_types{};
@@ -114,8 +111,7 @@ Type::Type(const ASTMemberType &root_ast_type,
 				ast_type->nested_types.at(i),
 				scope,
 				ns,
-				type_info
-			);
+				type_info);
 		}
 
 		switch (basic_type.composite_type) {
@@ -126,8 +122,7 @@ Type::Type(const ASTMemberType &root_ast_type,
 			if (nested_types[0].has_modifier(modifier_t::OPTIONAL)) {
 				throw TypeError{
 					ast_type->nested_types[0].name.get_start_location(),
-					"container key type can't be optional"
-				};
+					"container key type can't be optional"};
 			}
 			break;
 		default:
@@ -163,8 +158,7 @@ bool Type::is_container() const {
 
 
 bool Type::is_container(composite_t type) const {
-	return (this->basic_type.is_container() and
-	        this->get_composite_type() == type);
+	return (this->basic_type.is_container() and this->get_composite_type() == type);
 }
 
 
@@ -230,21 +224,18 @@ std::string Type::str() const {
 
 		if (unlikely(this->get_composite_type() == composite_t::SINGLE)) {
 			throw InternalError{
-				"single value encountered when expecting composite"
-			};
+				"single value encountered when expecting composite"};
 		}
 
 		std::ostringstream builder;
 
 		builder << composite_type_to_string(this->get_composite_type())
-		        << "(";
+				<< "(";
 
 		util::strjoin(
-			builder, ", ", this->get_element_type(),
-			[](auto &builder, auto& item) {
+			builder, ", ", this->get_element_type(), [](auto &builder, auto &item) {
 				builder << item.str();
-			}
-		);
+			});
 
 		builder << ")";
 
@@ -252,7 +243,7 @@ std::string Type::str() const {
 	}
 }
 
-bool Type::operator ==(const Type &other) const {
+bool Type::operator==(const Type &other) const {
 	if (not this->is_basic_type_match(other.get_basic_type())) {
 		return false;
 	}

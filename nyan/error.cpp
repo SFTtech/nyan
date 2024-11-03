@@ -5,13 +5,13 @@
 #include <memory>
 #include <sstream>
 #if defined(_WIN32) || defined(__CYGWIN__)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-// TODO - CaptureStackBackTrace doesn't report number of frames available
-// need to implement increase buffer size
-#define backtrace(buffer, buf_size) CaptureStackBackTrace(0, buf_size, buffer, NULL)
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+	// TODO - CaptureStackBackTrace doesn't report number of frames available
+	// need to implement increase buffer size
+	#define backtrace(buffer, buf_size) CaptureStackBackTrace(0, buf_size, buffer, NULL)
 #else
-#include <execinfo.h>
+	#include <execinfo.h>
 #endif
 
 #include "compiler.h"
@@ -42,7 +42,7 @@ void Backtrace::analyze() {
 }
 
 
-void Backtrace::get_symbols(std::function<void (const backtrace_symbol *)> cb, bool reversed) const {
+void Backtrace::get_symbols(std::function<void(const backtrace_symbol *)> cb, bool reversed) const {
 	backtrace_symbol symbol;
 
 	if (reversed) {
@@ -54,7 +54,8 @@ void Backtrace::get_symbols(std::function<void (const backtrace_symbol *)> cb, b
 
 			cb(&symbol);
 		}
-	} else {
+	}
+	else {
 		for (void *pc : this->stack_addrs) {
 			symbol.functionname = util::symbol_name(pc, false, true);
 			symbol.pc = pc;
@@ -87,12 +88,10 @@ bool Error::break_on_error = false;
 
 Error::Error(const std::string &msg,
              bool generate_backtrace,
-             bool store_cause)
-	:
+             bool store_cause) :
 	std::runtime_error{runtime_error_message},
 	backtrace{nullptr},
 	msg{msg} {
-
 	if (generate_backtrace) {
 		this->backtrace = std::make_shared<Backtrace>();
 		this->backtrace->analyze();
@@ -126,10 +125,12 @@ void Error::store_cause() {
 
 	try {
 		throw;
-	} catch (Error &cause) {
+	}
+	catch (Error &cause) {
 		cause.trim_backtrace();
 		this->cause = std::current_exception();
-	} catch (...) {
+	}
+	catch (...) {
 		this->cause = std::current_exception();
 	}
 }
@@ -169,29 +170,33 @@ void Error::enable_break(bool enable) {
 }
 
 
-std::ostream &operator <<(std::ostream &os, const Error &e) {
+std::ostream &operator<<(std::ostream &os, const Error &e) {
 	// output the exception cause
 	bool had_a_cause = true;
 	try {
 		e.rethrow_cause();
 		had_a_cause = false;
-	} catch (Error &cause) {
+	}
+	catch (Error &cause) {
 		os << cause << std::endl;
-	} catch (std::exception &cause) {
+	}
+	catch (std::exception &cause) {
 		os << util::demangle(typeid(cause).name()) << ": " << cause.what() << std::endl;
 	}
 
 	if (had_a_cause) {
 		os << std::endl
 		   << "The above exception was the direct cause "
-		      "of the following exception:"
-		   << std::endl << std::endl;
+			  "of the following exception:"
+		   << std::endl
+		   << std::endl;
 	}
 
 	// output the exception backtrace
 	if (e.get_backtrace()) {
 		os << *e.get_backtrace();
-	} else {
+	}
+	else {
 		os << "origin:" << std::endl;
 	}
 
@@ -205,13 +210,14 @@ std::ostream &operator <<(std::ostream &os, const Error &e) {
 /**
  * Prints a backtrace_symbol object.
  */
-std::ostream &operator <<(std::ostream &os, const backtrace_symbol &bt_sym) {
+std::ostream &operator<<(std::ostream &os, const backtrace_symbol &bt_sym) {
 	// imitate the looks of a Python traceback.
 	os << " -> ";
 
 	if (bt_sym.functionname.empty()) {
 		os << '?';
-	} else {
+	}
+	else {
 		os << bt_sym.functionname;
 	}
 
@@ -226,25 +232,24 @@ std::ostream &operator <<(std::ostream &os, const backtrace_symbol &bt_sym) {
 /**
  * Prints an entire Backtrace object.
  */
-std::ostream &operator <<(std::ostream &os, const Backtrace &bt) {
+std::ostream &operator<<(std::ostream &os, const Backtrace &bt) {
 	// imitate the looks of a Python traceback.
 	os << "Traceback (most recent call last):" << std::endl;
 
 	bt.get_symbols([&os](const backtrace_symbol *symbol) {
 		os << *symbol << std::endl;
-	}, true);
+	},
+	               true);
 
 	return os;
 }
 
 
-InternalError::InternalError(const std::string &msg)
-	:
+InternalError::InternalError(const std::string &msg) :
 	Error{msg} {}
 
 
-FileReadError::FileReadError(const std::string &msg)
-	:
+FileReadError::FileReadError(const std::string &msg) :
 	Error{msg} {}
 
 } // namespace nyan

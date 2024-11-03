@@ -19,7 +19,7 @@ ValueHolder None::copy() const {
 }
 
 
-bool None::apply_value(const Value &/**value*/, nyan_op /**operation*/) {
+bool None::apply_value(const Value & /**value*/, nyan_op /**operation*/) {
 	throw InternalError{"None can't get an applied value - assign Value directly to member instead"};
 }
 
@@ -39,7 +39,7 @@ size_t None::hash() const {
 }
 
 
-bool None::equals(const Value &/*other*/) const {
+bool None::equals(const Value & /*other*/) const {
 	// none always equals none,
 	// and `other` is ensured to be none by the `Value::operator==` check,
 	// which then calls this `equals` member method.
