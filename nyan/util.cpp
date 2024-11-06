@@ -18,8 +18,8 @@
 	#include <mutex>
 
 	#define WIN32_LEAN_AND_MEAN
-	#include <DbgHelp.h>
 	#include <Windows.h>
+	#include <DbgHelp.h>
 
 
 namespace {
