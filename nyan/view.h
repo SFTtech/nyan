@@ -1,4 +1,4 @@
-// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
@@ -31,6 +31,7 @@ public:
 	View(const std::shared_ptr<Database> &database);
 
 	Object get_object(const fqon_t &fqon);
+	const std::shared_ptr<Object> get_object_ptr(const fqon_t &fqon);
 
 	const std::shared_ptr<ObjectState> &get_raw(const fqon_t &fqon, order_t t = LATEST_T) const;
 

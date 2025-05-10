@@ -1,4 +1,4 @@
-// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "view.h"
 
@@ -23,6 +23,13 @@ Object View::get_object(const fqon_t &fqon) {
 
 	// TODO: store info in object to avoid further lookups.
 	return Object{fqon, shared_from_this()};
+}
+
+const std::shared_ptr<Object> View::get_object_ptr(const fqon_t &fqon) {
+	// test for object existence
+	this->get_info(fqon);
+
+	return std::make_shared<Object>(Object::Restricted{}, fqon, shared_from_this());
 }
 
 
