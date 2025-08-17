@@ -2,7 +2,6 @@
 #pragma once
 
 
-#include <concepts>
 #include <deque>
 #include <memory>
 #include <sstream>
@@ -11,6 +10,7 @@
 #include <vector>
 
 #include "api_error.h"
+#include "concept.h"
 #include "config.h"
 #include "object_notifier_types.h"
 #include "util.h"
@@ -29,15 +29,6 @@ class ObjectNotifier;
 class Type;
 class Value;
 class View;
-
-
-/**
- * Type that is either a nyan value or object.
- * Object is not a value (ObjectValue is), but want to allow an
- * overloaded conversion for direct object access.
- */
-template <typename T>
-concept ValueLike = std::derived_from<T, Value> || std::is_same_v<T, Object>;
 
 
 /**
