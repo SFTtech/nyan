@@ -259,16 +259,16 @@ public:
 	bool has_member(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
-	 * Check if this object is a child of the given parent at a given time.
+	 * Check if this object is a descendant/child of the given object at a given time.
 	 *
-	 * @param other_fqon Identifier of the suspected parent object.
+	 * @param other_fqon Identifier of the suspected parent/ancestor object.
 	 * @param t Time for which the relationship is checked.
 	 *
-	 * @return true if the parent's identifier equals this object's
-	 *     identifier or that of any of its (transitive) parents,
-	 *     else false
+	 * @return true if the ancestors's identifier equals this object's
+	 *         identifier or that of any of its (transitive) parents,
+	 *         else false
 	 */
-	bool extends(fqon_t other_fqon, order_t t = LATEST_T) const;
+	bool extends(const fqon_t &other_fqon, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the metadata information object for this object.

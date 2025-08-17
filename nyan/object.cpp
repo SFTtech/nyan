@@ -210,7 +210,7 @@ bool Object::has_member(const memberid_t &member, order_t t) const {
 }
 
 
-bool Object::extends(fqon_t other_fqon, order_t t) const {
+bool Object::extends(const fqon_t &other_fqon, order_t t) const {
 	if (this->name == other_fqon) {
 		return true;
 	}
