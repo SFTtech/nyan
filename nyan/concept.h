@@ -4,10 +4,17 @@
 
 #include <concepts>
 
-#include "nyan/value/value.h"
-
 
 namespace nyan {
+
+class Value;
+class Object;
+
+/**
+ * Type that is a nyan value.
+ */
+template <typename T>
+concept ValueLike = std::derived_from<T, Value>;
 
 /**
  * Type that is either a nyan value or object.
@@ -15,6 +22,6 @@ namespace nyan {
  * overloaded conversion for direct object access.
  */
 template <typename T>
-concept ValueLike = std::derived_from<T, Value> || std::is_same_v<T, Object>;
+concept ValueOrObjectLike = std::is_same_v<T, Object> or ValueLike<T>;
 
 } // namespace nyan

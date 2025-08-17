@@ -96,7 +96,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	template <ValueLike T>
+	template <ValueOrObjectLike T>
 	std::shared_ptr<T> get(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
@@ -110,7 +110,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	template <ValueLike T, bool may_be_none = true>
+	template <ValueOrObjectLike T, bool may_be_none = true>
 	std::optional<std::shared_ptr<T>> get_optional(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
@@ -337,14 +337,14 @@ protected:
 };
 
 
-template <ValueLike T>
+template <ValueOrObjectLike T>
 std::shared_ptr<T> Object::get(const memberid_t &member, order_t t) const {
 	auto ret = this->get_optional<T, false>(member, t);
 	return *ret;
 }
 
 
-template <ValueLike T, bool may_be_none>
+template <ValueOrObjectLike T, bool may_be_none>
 std::optional<std::shared_ptr<T>> Object::get_optional(const memberid_t &member, order_t t) const {
 	std::shared_ptr<Value> value = this->get_value(member, t).get_ptr();
 	if constexpr (may_be_none) {
