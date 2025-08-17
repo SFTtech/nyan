@@ -1,4 +1,4 @@
-// Copyright 2016-2024 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "object.h"
 
@@ -192,6 +192,10 @@ const std::deque<fqon_t> &Object::get_parents(order_t t) const {
 
 
 bool Object::has(const memberid_t &member, order_t t) const {
+	return this->has_member(member, t);
+}
+
+bool Object::has_member(const memberid_t &member, order_t t) const {
 	// TODO: cache?
 
 	const std::vector<fqon_t> &lin = this->get_linearized(t);

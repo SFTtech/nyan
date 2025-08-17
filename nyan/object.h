@@ -1,4 +1,4 @@
-// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -245,7 +245,18 @@ public:
 	 *
 	 * @return true if the member exists for this object, else false.
 	 */
+	[[deprecated("Use has_member(..) instead")]]
 	bool has(const memberid_t &member, order_t t = LATEST_T) const;
+
+	/**
+	 * Check if this object has a member with a given name at a given time.
+	 *
+	 * @param member Identifier of the member.
+	 * @param t Time for which the member existence is checked.
+	 *
+	 * @return true if the member exists for this object, else false.
+	 */
+	bool has_member(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
 	 * Check if this object is a child of the given parent at a given time.
