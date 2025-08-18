@@ -1,12 +1,12 @@
 # Building nyan
 
-This project requires a C++20 compiler (e.g gcc >= 10 or clang >= 10) and
+This project requires a C++23 compiler (e.g gcc >= 11 or clang >= 13) and
 uses `flex` and `cmake`.
 
 
 ## Dependencies
 
-###### Ubuntu 20.04 or later
+###### Ubuntu 22.04 or later
 
 ```
 sudo apt-get update
@@ -36,7 +36,7 @@ sudo emerge -avt cmake flex make
   - [Visual Studio 2017 Community edition](https://www.visualstudio.com/downloads/)
   - [flex](https://sourceforge.net/projects/winflexbison/)
     - The path to win_flex.exe needs to be added to the PATH environment variable
-  
+
 ## Clone this repository
 
 ```
@@ -58,7 +58,7 @@ make -j$(nproc)
 _Note:_ on windows the last command is
 ```powershell
 cmake --build . --config RelWithDebInfo
-``` 
+```
 
 _Note:_ if nyan can't find flex add `-DFLEX_EXECUTABLE=path/to/win_flex.exe` to the cmake configure command.
 

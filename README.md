@@ -19,12 +19,12 @@ The main focus is *readability* and *moddability*.
 
 The foundation of **nyan**:
 
-Technology             | Component
------------------------|----------
-**C++20**              | nyan core
-**Flex**               | Tokenizer generator
-**CMake**              | Build "system"
-**Humans**             | Doing it wrong all the time
+| Technology | Component                   |
+| ---------- | --------------------------- |
+| **C++23**  | nyan core                   |
+| **Flex**   | Tokenizer generator         |
+| **CMake**  | Build "system"              |
+| **Humans** | Doing it wrong all the time |
 
 
 How?
@@ -133,9 +133,9 @@ Please submit bugs and feature requests (and patches) on [GitHub](https://github
 Dependencies, Building and Running
 ----------------------------------
 
-Operating System    | Build status
---------------------|--------------
-Debian Sid          | [Todo: Kevin #11](https://github.com/SFTtech/kevin/issues/11)
+| Operating System | Build status                                                  |
+| ---------------- | ------------------------------------------------------------- |
+| Debian Sid       | [Todo: Kevin #11](https://github.com/SFTtech/kevin/issues/11) |
 
 
  - How do I get this to install on my box?
