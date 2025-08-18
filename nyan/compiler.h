@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #pragma once
 
@@ -34,7 +34,7 @@
 		#define NYANAPI __declspec(dllexport) // library is built
 	#else
 		#define NYANAPI __declspec(dllimport) // library is used
-	#endif /* nyan_EXPORTS */
+	#endif
 #else
 	#define NYANAPI __attribute__((visibility("default")))
 #endif

@@ -1,4 +1,4 @@
-// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
@@ -41,22 +41,22 @@ protected:
 	token_type expected_match() const;
 
 	/**
-     * Indentation level of the line this bracket was in.
-     */
+	 * Indentation level of the line this bracket was in.
+	 */
 	int indentation;
 
 	/**
-     * Type of this opening bracket.
-     */
+	 * Type of this opening bracket.
+	 */
 	bracket_type type;
 
 	/**
-     * true if the indentation mode is "hanging",
-     * that is, if a continuation must happen at the
-     * indent level of this opening bracket.
-     * The expected indentation level of contained content is stored
-     * in the `indentation` member.
-     */
+	 * true if the indentation mode is "hanging",
+	 * that is, if a continuation must happen at the
+	 * indent level of this opening bracket.
+	 * The expected indentation level of contained content is stored
+	 * in the `indentation` member.
+	 */
 	bool hanging;
 };
 

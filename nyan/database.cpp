@@ -1,4 +1,4 @@
-// Copyright 2017-2024 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "database.h"
 
@@ -532,7 +532,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 						// check if the member we're looking for isn't already typed.
 						if (unlikely(member_info.is_initial_def())) {
 							// another parent defines this type,
-							// which is disallowed!
+						    // which is disallowed!
 
 							// TODO: show location of infringing type instead of member
 							throw LangError{
@@ -546,7 +546,7 @@ void Database::resolve_types(const std::vector<fqon_t> &new_objects) {
 						member_info.set_type(new_type, false);
 					}
 					// else that member knows the type,
-					// but we're looking for the initial definition.
+				    // but we're looking for the initial definition.
 
 					// we need to traverse all members and never stop early.
 					return false;

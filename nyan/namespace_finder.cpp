@@ -1,4 +1,4 @@
-// Copyright 2017-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "namespace_finder.h"
 
@@ -32,9 +32,11 @@ void NamespaceFinder::add_alias(const Token &alias,
 
 
 bool NamespaceFinder::check_conflict(const std::string &name) const {
-	return (this->aliases.find(name) != std::end(this->aliases) // aliases
-	        // importing files from the root directory can be a problem too
-	        or this->imports.find(Namespace{std::vector<std::string>(), name}) != std::end(this->imports));
+	return (
+		// aliases must be unique
+		this->aliases.find(name) != std::end(this->aliases)
+		// importing files from the root directory can be a problem too
+		or this->imports.find(Namespace{std::vector<std::string>(), name}) != std::end(this->imports));
 }
 
 
