@@ -115,7 +115,7 @@ set_target_properties(nyan PROPERTIES
 # C++ standard requirement
 target_compile_features(nyan
 	PUBLIC
-		cxx_std_17
+		cxx_std_23
 )
 
 # binaries
