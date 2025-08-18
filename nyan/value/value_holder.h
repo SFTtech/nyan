@@ -1,7 +1,11 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <memory>
+
+#include "../api_error.h"
+#include "../concept.h"
+#include "../util.h"
 
 
 namespace nyan {
@@ -26,11 +30,25 @@ public:
 	ValueHolder &operator=(const std::shared_ptr<Value> &value);
 
 	/**
-	 * Get the shared pointer of this ValueHolder.
+	 * Get the shared pointer to the value wrapped by this holder.
 	 *
 	 * @return Shared pointer to this holder's value.
 	 */
 	const std::shared_ptr<Value> &get_ptr() const;
+
+	/**
+	 * Get a shared pointer to the value stored by this holder.
+	 *
+	 * Auto-converts the value to type T, which must be a nyan::Value type.
+	 *
+	 * @tparam T Type of the value to retrieve.
+	 *
+	 * @return Value stored by this holder.
+	 *
+	 * @throws InternalError if the value is not of type T.
+	 */
+	template <ValueLike T>
+	const std::shared_ptr<T> get_value_ptr() const;
 
 	/**
 	 * Check if this holder points to a value.
@@ -73,6 +91,20 @@ protected:
 	 */
 	std::shared_ptr<Value> value;
 };
+
+
+template <ValueLike T>
+const std::shared_ptr<T> ValueHolder::get_value_ptr() const {
+	auto ret = std::dynamic_pointer_cast<T>(this->value);
+
+	if (not ret) {
+		throw APIError{"ValueHolder does not contain a value of type "
+		               + util::typestring<T>() + ", but got "
+		               + util::typestring(this->value.get())};
+	}
+
+	return ret;
+}
 
 } // namespace nyan
 

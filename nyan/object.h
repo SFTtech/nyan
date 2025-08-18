@@ -1,8 +1,7 @@
-// Copyright 2016-2023 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 
-#include <concepts>
 #include <deque>
 #include <memory>
 #include <sstream>
@@ -11,6 +10,7 @@
 #include <vector>
 
 #include "api_error.h"
+#include "concept.h"
 #include "config.h"
 #include "object_notifier_types.h"
 #include "util.h"
@@ -29,15 +29,6 @@ class ObjectNotifier;
 class Type;
 class Value;
 class View;
-
-
-/**
- * Type that is either a nyan value or object.
- * Object is not a value (ObjectValue is), but want to allow an
- * overloaded conversion for direct object access.
- */
-template <typename T>
-concept ValueLike = std::derived_from<T, Value> || std::is_same_v<T, Object>;
 
 
 /**
@@ -105,7 +96,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	template <ValueLike T>
+	template <ValueOrObjectLike T>
 	std::shared_ptr<T> get(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
@@ -119,7 +110,7 @@ public:
 	 *
 	 * @return Value of the member.
 	 */
-	template <ValueLike T, bool may_be_none = true>
+	template <ValueOrObjectLike T, bool may_be_none = true>
 	std::optional<std::shared_ptr<T>> get_optional(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
@@ -245,19 +236,30 @@ public:
 	 *
 	 * @return true if the member exists for this object, else false.
 	 */
+	[[deprecated("Use has_member(..) instead")]]
 	bool has(const memberid_t &member, order_t t = LATEST_T) const;
 
 	/**
-	 * Check if this object is a child of the given parent at a given time.
+	 * Check if this object has a member with a given name at a given time.
 	 *
-	 * @param other_fqon Identifier of the suspected parent object.
+	 * @param member Identifier of the member.
+	 * @param t Time for which the member existence is checked.
+	 *
+	 * @return true if the member exists for this object, else false.
+	 */
+	bool has_member(const memberid_t &member, order_t t = LATEST_T) const;
+
+	/**
+	 * Check if this object is a descendant/child of the given object at a given time.
+	 *
+	 * @param other_fqon Identifier of the suspected parent/ancestor object.
 	 * @param t Time for which the relationship is checked.
 	 *
-	 * @return true if the parent's identifier equals this object's
-	 *     identifier or that of any of its (transitive) parents,
-	 *     else false
+	 * @return true if the ancestors's identifier equals this object's
+	 *         identifier or that of any of its (transitive) parents,
+	 *         else false
 	 */
-	bool extends(fqon_t other_fqon, order_t t = LATEST_T) const;
+	bool extends(const fqon_t &other_fqon, order_t t = LATEST_T) const;
 
 	/**
 	 * Get the metadata information object for this object.
@@ -335,14 +337,14 @@ protected:
 };
 
 
-template <ValueLike T>
+template <ValueOrObjectLike T>
 std::shared_ptr<T> Object::get(const memberid_t &member, order_t t) const {
 	auto ret = this->get_optional<T, false>(member, t);
 	return *ret;
 }
 
 
-template <ValueLike T, bool may_be_none>
+template <ValueOrObjectLike T, bool may_be_none>
 std::optional<std::shared_ptr<T>> Object::get_optional(const memberid_t &member, order_t t) const {
 	std::shared_ptr<Value> value = this->get_value(member, t).get_ptr();
 	if constexpr (may_be_none) {

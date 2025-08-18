@@ -30,6 +30,7 @@ add_library(nyan SHARED
 	basic_type.cpp
 	c3.cpp
 	change_tracker.cpp
+	concept.cpp
 	config.cpp
 	curve.cpp
 	database.cpp
