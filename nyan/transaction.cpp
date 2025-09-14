@@ -1,4 +1,4 @@
-// Copyright 2017-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "transaction.h"
 
@@ -108,7 +108,7 @@ bool Transaction::add(const Object &patch) {
 			// apply all patch parents in order (last the patch itself)
 			target_obj->apply(
 				// TODO: use the same mechanism as above to get only parent
-				//       obj states of base_state
+			    //       obj states of base_state
 				view->get_raw(patch_name, this->at),
 				view->get_info(patch_name),
 				patch_tracker);

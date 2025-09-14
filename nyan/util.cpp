@@ -1,4 +1,4 @@
-// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "util.h"
 
@@ -18,8 +18,12 @@
 	#include <mutex>
 
 	#define WIN32_LEAN_AND_MEAN
+// clang-format off
+// prevent clang-format from reordering these includes
+// DbgHelp.h must be included AFTER Windows.h
 	#include <Windows.h>
 	#include <DbgHelp.h>
+// clang-format on
 
 
 namespace {

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "token_stream.h"
 
@@ -26,7 +26,7 @@ const TokenStream::tok_t *TokenStream::next() {
 
 	ret = &(*this->iter);
 
-	//std::cout << "tok: " << ret->str() << std::endl;
+	// std::cout << "tok: " << ret->str() << std::endl;
 
 	this->iter = std::next(this->iter);
 	return ret;

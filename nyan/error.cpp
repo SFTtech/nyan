@@ -1,4 +1,4 @@
-// Copyright 2016-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2016-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 
 #include "error.h"
 
@@ -8,7 +8,7 @@
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 	// TODO - CaptureStackBackTrace doesn't report number of frames available
-	// need to implement increase buffer size
+    // need to implement increase buffer size
 	#define backtrace(buffer, buf_size) CaptureStackBackTrace(0, buf_size, buffer, NULL)
 #else
 	#include <execinfo.h>

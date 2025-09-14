@@ -1,4 +1,4 @@
-// Copyright 2017-2021 the nyan authors, LGPLv3+. See copying.md for legal info.
+// Copyright 2017-2025 the nyan authors, LGPLv3+. See copying.md for legal info.
 #pragma once
 
 #include <queue>
@@ -27,8 +27,8 @@ public:
 	Token generate_token();
 
 	/** @name FlexInterfaceMethods
- * Methods used by the flex generated lexer.
- */
+	 * Methods used by the flex generated lexer.
+	 */
 	///@{
 
 	/** Advance the line position by match length. */
