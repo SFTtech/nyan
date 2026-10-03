@@ -15,6 +15,7 @@ _the nyan authors_ are:
 | Andre Kupka                 | freakout                    | kupka@in.tum.de                       |
 | Tushar Maheshwari           | tusharpm                    | tushar27192@gmail.com                 |
 | Andrew Thompson             | mrwerdo                     | mrwerdo331@me.com                     |
+| Luca Pizzagalli             | lucapizzagalli              | web à lucapizzagalli dawt com         |
 
 If you're a first-time commiter, add yourself to the above list. This is not
 just for legal reasons, but also to keep an overview of all those nicknames.

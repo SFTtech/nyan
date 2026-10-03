@@ -107,7 +107,7 @@ bool BasicType::operator==(const BasicType &other) const {
 
 
 std::string BasicType::str() const {
-	if (this->is_fundamental()) {
+	if (this->is_fundamental() or this->is_object()) {
 		return type_to_string(this->primitive_type);
 	}
 	else if (this->is_composite()) {
