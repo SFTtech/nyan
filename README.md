@@ -21,7 +21,7 @@ The foundation of **nyan**:
 
 | Technology | Component                   |
 | ---------- | --------------------------- |
-| **C++20**  | nyan core                   |
+| **C++26**  | nyan core                   |
 | **Flex**   | Tokenizer generator         |
 | **CMake**  | Build "system"              |
 | **Humans** | Doing it wrong all the time |

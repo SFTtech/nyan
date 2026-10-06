@@ -2,8 +2,8 @@
 
 # main nyan build configuration file
 
-cmake_minimum_required(VERSION 3.8.0)
-# required for CMAKE_CXX_STANDARD 17
+# >= 3.28 for C++ module support
+cmake_minimum_required(VERSION 3.28.0)
 
 message("
 
@@ -38,7 +38,7 @@ project(nyan VERSION ${nyan_VERSION} LANGUAGES CXX)
 set(nyan_exports_name "nyanTargets")
 
 # C++ standard requirement
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # CMake policies
