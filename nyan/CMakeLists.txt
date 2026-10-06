@@ -90,6 +90,14 @@ add_library(nyan SHARED
 )
 add_library(nyan::nyan ALIAS nyan)
 
+# C++ module interface for `import nyan`
+target_sources(nyan
+	PUBLIC
+		FILE_SET CXX_MODULES
+		BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
+		FILES nyan.cppm
+)
+
 if(UNIX)
 	if("${CMAKE_SYSTEM_NAME}" MATCHES "^(Free|Net|Open)BSD|DragonFly")
 		find_library(EXECINFO_LIBRARY execinfo)
@@ -129,6 +137,7 @@ install(
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nyan
 )
 
 # install headers
