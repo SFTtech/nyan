@@ -6,6 +6,7 @@
 #include <concepts>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <type_traits>
