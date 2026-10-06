@@ -1,5 +1,5 @@
 Any file in this project that doesn't state otherwise, and isn't listed as an
-exception below, is Copyright 2016-2017 the nyan authors, and licensed
+exception below, is Copyright 2016+ the nyan authors, and licensed
 under the terms of the GNU Lesser General Public License Version 3, or
 (at your option) any later version ("LGPL3+").
 A copy of the license can be found in [legal/LGPLv3](/legal/LGPLv3).
@@ -9,12 +9,12 @@ _the nyan authors_ are:
 
 | Full name                   | aliases                     | E-Mail                                |
 |-----------------------------|-----------------------------|---------------------------------------|
-| Jonas Jelten                | TheJJ                       | jj@sft.mx                             |
-| Markus Otto                 | zuntrax                     | otto@fs.tum.de                        |
-| Michael Enßlin              | mic_e                       | michael@ensslin.cc                    |
-| Andre Kupka                 | freakout                    | kupka@in.tum.de                       |
-| Tushar Maheshwari           | tusharpm                    | tushar27192@gmail.com                 |
-| Andrew Thompson             | mrwerdo                     | mrwerdo331@me.com                     |
+| Jonas Jelten                | TheJJ                       | jj à sft dawt mx                      |
+| Markus Otto                 | zuntrax                     | otto à fs dawt tum dawt de            |
+| Michael Enßlin              | mic_e                       | michael à ensslin dawt cc             |
+| Andre Kupka                 | freakout                    | kupka à in dawt tum dawt de           |
+| Tushar Maheshwari           | tusharpm                    | tushar27192 à gmail dawt com          |
+| Andrew Thompson             | mrwerdo                     | mrwerdo331 à me dawt com              |
 | Luca Pizzagalli             | lucapizzagalli              | web à lucapizzagalli dawt com         |
 
 If you're a first-time commiter, add yourself to the above list. This is not
@@ -49,16 +49,13 @@ include a header.
 _the nyan authors_, require the following one-line header, preferrably in
 the first line, as a comment:
 
-    Copyright 20XX-20YY the nyan authors, LGPLv3+. See copying.md for legal info.
+    Copyright 20XX+ the nyan authors, LGPLv3+. See copying.md for legal info.
 
-`20XX` is the year when the file was created, and `20YY` is the year when
-the file was last edited. When editing a file, make sure the
-last-modification year is still correct.
-
+`20XX` is the year when the file was created.
 
 Notes about this file:
 
-This file originates from [openage](https://openage.sft.mx/).
+This file originates from [openage](https://openage.sft.lol/).
 It was adapted for nyan and its license.
 
 I (zuntrax) and neither mic_e are lawyers. This is an open-source
