@@ -11,7 +11,11 @@ if (APPLE)
 	endif ()
 endif ()
 
-find_package(FLEX 2.6 REQUIRED)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+    find_package(FLEX REQUIRED)
+else()
+    find_package(FLEX 2.6 REQUIRED)
+endif()
 
 set(nyanl_cpp "${CMAKE_CURRENT_BINARY_DIR}/flex.gen.cpp")
 set(nyanl_h "${CMAKE_CURRENT_BINARY_DIR}/flex.gen.h")
@@ -94,7 +98,7 @@ if(UNIX)
 		target_link_libraries(nyan ${CMAKE_DL_LIBS})
 	endif()
 
-	if(NOT APPLE)
+	if(NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
 		# for ld on macOS: "The default is to treat undefined symbols as errors."
 		set_target_properties(nyan PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
 	endif()
