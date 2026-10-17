@@ -7,6 +7,9 @@
  * The headers stay the single source of truth: this unit only re-exports
  * their declarations, so imported and included consumers share one set
  * of linker-visible symbols.
+ *
+ * GCC rejects standard headers included after the import unless the
+ * importer's build translates them into a header unit, e.g. <bits/stdc++.h>.
  */
 
 module;
