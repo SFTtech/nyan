@@ -7,12 +7,11 @@ configure:
 	- env: compiler=g++                           (? if job == "debian" ?)
 	- env: compiler=clang++                       (? if job == "debian-clang" ?)
 	mkdir build
-	cd build && cmake .. -DCMAKE_CXX_COMPILER=${compiler}
+	cd build && cmake .. -G Ninja -DCMAKE_CXX_COMPILER=${compiler}
 
 build: configure
 	- cwd: build/
-	make -j$(nproc)
-
+	cmake --build . --parallel $(nproc)
 test: build
 	- cwd: build
 	./nyan/nyancat --test-parser -f ../test/test.nyan

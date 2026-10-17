@@ -15,16 +15,16 @@
 namespace nyan {
 
 /** number of spaces per indent **/
-constexpr int SPACES_PER_INDENT = 4;
+inline constexpr int SPACES_PER_INDENT = 4;
 
 /** ordering type */
 using order_t = uint64_t;
 
 /** starting point of order */
-constexpr const order_t DEFAULT_T = 0;
+inline constexpr const order_t DEFAULT_T = 0;
 
 /** the maximum representable value of order_t is always the "latest" value */
-constexpr const order_t LATEST_T = std::numeric_limits<order_t>::max();
+inline constexpr const order_t LATEST_T = std::numeric_limits<order_t>::max();
 
 /** fully-qualified object name */
 using fqon_t = std::string;

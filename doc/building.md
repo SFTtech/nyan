@@ -1,16 +1,18 @@
 # Building nyan
 
-This project requires a C++20 compiler (e.g gcc >= 10 or clang >= 10) and
-uses `flex` and `cmake`.
+This project requires a C++26 compiler (g++ >= 16, clang++ >= 21 or
+Visual Studio 2022 >= 17.4) and uses `flex`, `cmake` and `ninja`.
+
+You can use the `justfile` to launch common build steps.
 
 
 ## Dependencies
 
-###### Ubuntu 20.04 or later
+###### Ubuntu 26.04 or later
 
 ```
 sudo apt-get update
-sudo apt-get install cmake flex make
+sudo apt-get install cmake flex ninja-build
 ```
 
 For gcc: `sudo apt-get install gcc g++`
@@ -21,19 +23,19 @@ For clang: `sudo apt-get install clang`
 ###### Archlinux
 
 ```
-sudo pacman -Syu --needed cmake flex make clang gcc
+sudo pacman -Syu --needed cmake flex ninja clang gcc
 ```
 
 ###### Gentoo
 
 ```
-sudo emerge -avt cmake flex make
+sudo emerge -avt cmake flex ninja
 ```
 
 ###### Windows
 
   - [CMake](https://cmake.org/download/)
-  - [Visual Studio 2017 Community edition](https://www.visualstudio.com/downloads/)
+  - [Visual Studio 2022 Community edition](https://www.visualstudio.com/downloads/)
   - [flex](https://sourceforge.net/projects/winflexbison/)
     - The path to win_flex.exe needs to be added to the PATH environment variable
   
@@ -45,20 +47,21 @@ git clone https://github.com/SFTtech/nyan.git
 
 ## Build
 
-This project is built like every standard [cmake project](http://lmgtfy.com/?q=building+a+cmake+project). It boils down to:
+The common build steps are driven by the `justfile`:
 
 ```
 cd nyan
-mkdir build
-cd build
-cmake ..
-make -j$(nproc)
+just build   # configure with ninja and build
+just test    # run tests
 ```
 
-_Note:_ on windows the last command is
-```powershell
-cmake --build . --config RelWithDebInfo
-``` 
+which boils down to the standard [cmake project](https://cmake.org/cmake/help/latest/guide/tutorial/index.html) dance:
+
+```
+cd nyan
+cmake -B build -G Ninja
+cmake --build build
+```
 
 _Note:_ if nyan can't find flex add `-DFLEX_EXECUTABLE=path/to/win_flex.exe` to the cmake configure command.
 
