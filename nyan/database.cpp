@@ -16,6 +16,7 @@
 #include "patch_info.h"
 #include "state.h"
 #include "util.h"
+#include "value/number.h"
 #include "view.h"
 
 
@@ -672,6 +673,16 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 			                   + "' " :
 			               " allows no operations ")
 					+ "for value '" + new_value.str() + "'"};
+		}
+
+		// the divisor is a literal, so this is decided once at load time
+		if (operation == nyan_op::DIVIDE_ASSIGN) {
+			const auto *divisor = dynamic_cast<const NumberBase *>(&new_value);
+			if (unlikely(divisor != nullptr and divisor->is_zero())) {
+				throw LangError{
+					astmember.value->values[0].get_start_location(),
+					"division of member '"s + memberid + "' by zero"};
+			}
 		}
 	}
 

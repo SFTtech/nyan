@@ -21,11 +21,11 @@ First():
 FirstPatch<First>():
     member += 3
     blub += 3
-    blob -= 3
+    blob -= 3.0
     wat3 = None
 
 Second(First):
-    member *= 5.5
+    member *= 5
     First.nice_member = False
     # nap : int
     wat3 = None
@@ -50,11 +50,11 @@ NestingBase(First):
                                 3,4,5}
 
 Fourth(First):
-    guenther : int = 1337
+    guenther : float = 1337.0
     truth : bool = True
 
 Fifth(Fourth):
-    guenther /= 100
+    guenther /= 100.0
     truth &= False
 
 Third(First):
