@@ -3,7 +3,6 @@
 #include "number.h"
 
 #include <string>
-#include <typeinfo>
 
 #include "../compiler.h"
 #include "../id_token.h"
@@ -121,7 +120,7 @@ bool Number<T>::is_positive() const {
 template <typename T>
 bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 	// apply the given number to `this`
-	auto applier = [this](auto operand, nyan_op operation) {
+	auto applier = [this](T operand, nyan_op operation) {
 		switch (operation) {
 		case nyan_op::ASSIGN:
 			this->value = operand;
@@ -140,7 +139,13 @@ bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 			break;
 
 		case nyan_op::DIVIDE_ASSIGN:
-			this->value /= operand;
+			if constexpr (std::is_integral_v<T>) {
+				// integers can't be divided, allowed_operations() prevents this
+				throw InternalError{"integer division requested"};
+			}
+			else {
+				this->value /= operand;
+			}
 			break;
 
 		default:
@@ -148,38 +153,17 @@ bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 		}
 	};
 
-	// apply the given number to `this`, and convert it before
-	auto apply_number_convert = [&applier](const NumberBase &number, nyan_op operation) {
-		if constexpr (std::is_same_v<Number<T>, Int>) {
-			if (typeid(const Float &) == typeid(number)) {
-				applier(number.as_float(), operation);
-			}
-			else if (typeid(const Int &) == typeid(number)) {
-				applier(number.as_int(), operation);
-			}
-			else {
-				throw InternalError{"unknown number type to be applied"};
-			}
-		}
-		else if constexpr (std::is_same_v<Number<T>, Float>) {
-			applier(number.as_float(), operation);
-		}
-		else {
-			util::match_failure();
-		}
-	};
-
-	// `this` is either float or int, and `value` can also be either.
-
-	const NumberBase *number = dynamic_cast<const NumberBase *>(&value);
+	// the operand has the same number type as `this`: no implicit conversion
+	const Number *number = dynamic_cast<const Number *>(&value);
 	if (unlikely(number == nullptr)) {
-		throw InternalError("expected Number instance for operation, but got"
+		throw InternalError("expected " + util::typestring(this)
+		                    + " instance for operation, but got "
 		                    + util::typestring(&value));
 	}
 
 	// regular numbers without infinity
 	if (not(this->is_infinite() or number->is_infinite())) {
-		apply_number_convert(*number, operation);
+		applier(number->value, operation);
 	}
 	else {
 		// handle infinity values
@@ -188,7 +172,7 @@ bool Number<T>::apply_value(const Value &value, nyan_op operation) {
 		if (inf_result.has_value()) {
 			switch (inf_result.value()) {
 			case infinity_action::OTHER:
-				apply_number_convert(*number, nyan_op::ASSIGN);
+				applier(number->value, nyan_op::ASSIGN);
 				break;
 
 			case infinity_action::THIS:
@@ -341,14 +325,23 @@ Number<T>::allowed_operations(const Type &with_type) const {
 		nyan_op::ADD_ASSIGN,
 		nyan_op::MULTIPLY_ASSIGN,
 		nyan_op::SUBTRACT_ASSIGN,
+	};
+
+	const static std::unordered_set<nyan_op> ops_with_division{
+		nyan_op::ASSIGN,
+		nyan_op::ADD_ASSIGN,
+		nyan_op::MULTIPLY_ASSIGN,
+		nyan_op::SUBTRACT_ASSIGN,
 		nyan_op::DIVIDE_ASSIGN,
 	};
 
-	// all allowed number types
 	switch (with_type.get_primitive_type()) {
-	case primitive_t::FLOAT:
 	case primitive_t::INT:
+		// integer division would need a rounding rule
 		return ops;
+
+	case primitive_t::FLOAT:
+		return ops_with_division;
 
 	default:
 		return no_nyan_ops;
@@ -372,31 +365,6 @@ const BasicType &Float::get_type() const {
 		composite_t::SINGLE};
 
 	return type;
-}
-
-
-template <typename T>
-value_float_t Number<T>::as_float() const {
-	// using the brave assumption that the int type max values are always lower
-	// than the floatingpoint types max values
-	return static_cast<value_float_t>(this->value);
-}
-
-template <>
-value_int_t Int::as_int() const {
-	return static_cast<value_int_t>(this->value);
-}
-
-template <>
-value_int_t Float::as_int() const {
-	// float -> int might overflow...
-	if (unlikely(
-			(static_cast<value_float_t>(std::numeric_limits<value_int_t>::max()) < this->value) or (static_cast<value_float_t>(std::numeric_limits<value_int_t>::min()) > this->value))) {
-		// we should handle this better instead of hard-crashing...
-		throw Error{"float to int conversion impossible since value wouldn't fit"};
-	}
-
-	return static_cast<value_int_t>(this->value);
 }
 
 

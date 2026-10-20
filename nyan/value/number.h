@@ -15,9 +15,6 @@ namespace nyan {
 class IDToken;
 
 class NumberBase : public Value {
-	template <typename T>
-	friend class Number;
-
 public:
 	virtual ~NumberBase() = default;
 
@@ -32,19 +29,6 @@ public:
 
 	/** Check if the number is positive. */
 	virtual bool is_positive() const = 0;
-
-protected:
-	/**
-	 * get this number as float
-	 * does _not_ do infinity conversions.
-	 */
-	virtual value_float_t as_float() const = 0;
-
-	/**
-	 * get this number as int
-	 * does _not_ do infinity conversions.
-	 */
-	virtual value_int_t as_int() const = 0;
 };
 
 
@@ -143,13 +127,6 @@ protected:
 		auto &other_val = dynamic_cast<const Number &>(other);
 		return this->value == other_val.value;
 	}
-
-	/** get this number as float */
-	value_float_t as_float() const override;
-
-	/** get this number as int */
-	value_int_t as_int() const override;
-
 
 	/**
 	 * Actual numerical value.

@@ -58,9 +58,6 @@ static ValueHolder value_from_id_token(
 		else if (id_token.get_type() == token_type::INT) {
 			return {std::make_shared<Int>(id_token)};
 		}
-		else if (id_token.get_type() == token_type::FLOAT) {
-			return {std::make_shared<Float>(id_token)};
-		}
 		throw LangError{
 			id_token,
 			"invalid token for int, expected int or inf"};
@@ -68,9 +65,6 @@ static ValueHolder value_from_id_token(
 	case primitive_t::FLOAT: {
 		if (id_token.get_type() == token_type::INF) {
 			return {std::make_shared<Float>(id_token)};
-		}
-		else if (id_token.get_type() == token_type::INT) {
-			return {std::make_shared<Int>(id_token)};
 		}
 		else if (id_token.get_type() == token_type::FLOAT) {
 			return {std::make_shared<Float>(id_token)};
@@ -341,8 +335,12 @@ std::optional<Value::TypeProblem> Value::compatible_with(
 			}
 			break;
 		case primitive_t::INT:
+			if (not util::isinstance<Int>(*this)) {
+				return TypeProblem{};
+			}
+			break;
 		case primitive_t::FLOAT:
-			if (not util::isinstance<NumberBase>(*this)) {
+			if (not util::isinstance<Float>(*this)) {
 				return TypeProblem{};
 			}
 			break;

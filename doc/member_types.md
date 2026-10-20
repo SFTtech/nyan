@@ -31,7 +31,7 @@ operations that are allowed on them.
 
 nyan Type | C++ Equivalent | Operators               | Description
 ----------|----------------|-------------------------|-----------------------------------
-`int`     | `int64_t`      | `=`,`+=`,`-=`,`*=`,`/=` | 64-Bit signed integer.
+`int`     | `int64_t`      | `=`,`+=`,`-=`,`*=`      | 64-Bit signed integer.
 `float`   | `double`       | `=`,`+=`,`-=`,`*=`,`/=` | double precision floating point value.
 `bool`    | `bool`         | `=`,`&=`,`\|=`          | Boolean value.
 `text`    | `std:string`   | `=`,`+=`                | String of characters.
@@ -64,10 +64,10 @@ Type Modifier | nyan Types | Description
 A member with type `int` can store a signed 64-Bit integer value. Positive infinity
 (`inf`) and negative infinity (`-inf`) are supported.
 
-`float` is compatible to `int` which means that `float` values can be used in
-operations on integer values. The result of operations with `float` operands is
-always floored (i.e. the value is truncated). This behaviour is consistent with
-*standard conversion* for integer/float types in C++.
+`int` and `float` are strictly separated: an `int` member only accepts `int` operands.
+`a *= 2.5` is rejected, as is `a = 5.0`.
+Integers can't be divided, because the result would need a rounding rule.
+Use a `float` member for values that are scaled by fractions.
 
 ```python
 SomeObject():
@@ -81,13 +81,12 @@ SomeObject():
 
 The following operators can be used when inheriting from or patching a nyan object.
 
-Operator | Operation      | Examples            | Description
----------|----------------|---------------------|------------------------------------
-`=`      | Assignment     | `a = 5` `a = 5.0`   | Assigns the operand value to the member. Floats can be used as an operand.
-`+=`     | Addition       | `a += 5` `a += 5.0` | Adds the operand value to the current member value. Floats can be used as an operand. The result is floored.
-`-=`     | Subtraction    | `a -= 5` `a -= 5.0` | Subtracts the operand value from the current member value. Floats can be used as an operand. The result is floored.
-`*=`     | Multiplication | `a *= 2` `a *= 2.5` | Multiplies the operand value with the current member value. Floats can be used as an operand. The result is floored.
-`/=`     | Division       | `a /= 2` `a /= 2.5` | Divides the current member value by the operand value. Floats can be used as an operand. The result is floored.
+Operator | Operation      | Examples | Description
+---------|----------------|----------|------------------------------------
+`=`      | Assignment     | `a = 5`  | Assigns the operand value to the member.
+`+=`     | Addition       | `a += 5` | Adds the operand value to the current member value.
+`-=`     | Subtraction    | `a -= 5` | Subtracts the operand value from the current member value.
+`*=`     | Multiplication | `a *= 2` | Multiplies the operand value with the current member value.
 
 #### Usage Examples
 
@@ -108,13 +107,16 @@ OtherObject():
     a : int = -7
     b : int = 3
     c : int = 4
-    d : int = 8
 
 Patch2<OtherObject>():
     a -= 5    # result: a = -12 (subtraction: -7 - 5)
     b -= -2   # result: b = 5   (addition: 3 - (-2))
-    c *= 2.5f # result: c = 10  (multiplication: 4 * 2.5)
-    d /= 3    # result: d = 2   (division: 8 / 3 = 2.666... floored to 2)
+    c *= 2    # result: c = 8   (multiplication: 4 * 2)
+
+Patch3<OtherObject>():
+    a = 5.0   # NOT ALLOWED: float operand for an int member
+    c *= 2.5  # NOT ALLOWED: float operand for an int member
+    b /= 2    # NOT ALLOWED: ints can't be divided
 ```
 
 
@@ -123,9 +125,9 @@ Patch2<OtherObject>():
 A member with type `float` can store a *double precision* floating point value.
 Positive infinity (`inf`) and negative infinity (`-inf`) are supported.
 
-`int` is compatible to `float` which means that `int` values can be used in
-operations on integer values. This behaviour is consistent with
-*standard conversion* for integer/float types in C++.
+`float` and `int` are strictly separated: a `float` member only accepts `float` operands.
+`a = 5` is rejected and must be written as `a = 5.0`.
+Dividing by zero is rejected, too.
 
 ```python
 SomeObject():
@@ -140,13 +142,13 @@ SomeObject():
 
 The following operators can be used when inheriting from or patching a nyan object.
 
-Operator | Operation      | Examples            | Description
----------|----------------|---------------------|------------------------------------
-`=`      | Assignment     | `a = 5.0` `a = 5`   | Assigns the operand value to the member. Integers can be used as an operand.
-`+=`     | Addition       | `a += 5.0` `a += 5` | Adds the operand value to the current member value. Integers can be used as an operand.
-`-=`     | Subtraction    | `a -= 5.0` `a -= 5` | Subtracts the operand value from the current member value. Integers can be used as an operand.
-`*=`     | Multiplication | `a *= 2.5` `a *= 2` | Multiplies the operand value with the current member value. Integers can be used as an operand.
-`/=`     | Division       | `a /= 2.5` `a /= 2` | Divides the current member value by the operand value. Integers can be used as an operand.
+Operator | Operation      | Examples   | Description
+---------|----------------|------------|------------------------------------
+`=`      | Assignment     | `a = 5.0`  | Assigns the operand value to the member.
+`+=`     | Addition       | `a += 5.0` | Adds the operand value to the current member value.
+`-=`     | Subtraction    | `a -= 5.0` | Subtracts the operand value from the current member value.
+`*=`     | Multiplication | `a *= 2.5` | Multiplies the operand value with the current member value.
+`/=`     | Division       | `a /= 2.5` | Divides the current member value by the operand value. The operand must not be zero.
 
 
 #### Usage Examples
@@ -176,6 +178,11 @@ Patch2<OtherObject>():
     b -= -2.0   # result: b = 5.3   (addition: 3.3 - (-2.0))
     c *= 0.5    # result: c = 2.0   (multiplication: 4.0 * 0.5)
     d /= 7.0    # result: d = 0.7   (division: 4.9 / 7.0)
+
+Patch3<OtherObject>():
+    a = 5       # NOT ALLOWED: int operand for a float member
+    c *= 2      # NOT ALLOWED: int operand for a float member
+    d /= 0.0    # NOT ALLOWED: division by zero
 ```
 
 
@@ -730,7 +737,6 @@ Patch1<SomeObject>():
     c *= 5   # result: c = inf
     d *= -5  # result: d = -inf
     e *= 0   # NOT ALLOWED
-    f /= 5   # result: f = inf
 ```
 
 Using a regular value as the first operand and infinity as the second operand:
@@ -741,14 +747,12 @@ SomeObject():
     b : int = 5
     c : int = 5
     d : int = 5
-    e : int = 5
 
 Patch2<SomeObject>():
     a += inf   # result: a = inf
     b -= inf   # result: b = -inf
     c *= inf   # result: c = inf
     d *= -inf  # result: d = -inf
-    e /= inf   # result: e = 0
 ```
 
 Using infinity as the first and second operand:
@@ -760,7 +764,6 @@ SomeObject():
     c : int = inf
     d : int = inf
     e : int = inf
-    f : int = inf
 
 Patch3<SomeObject>():
     a += inf   # result: a = inf
@@ -768,5 +771,18 @@ Patch3<SomeObject>():
     c *= -inf  # result: c = -inf
     d -= inf   # NOT ALLOWED
     e += -inf  # NOT ALLOWED
-    f /= inf   # NOT ALLOWED
+```
+
+Division is only available for `float` members:
+
+```python
+SomeObject():
+    a : float = inf
+    b : float = 5.0
+    c : float = inf
+
+Patch4<SomeObject>():
+    a /= 5.0   # result: a = inf
+    b /= inf   # result: b = 0.0
+    c /= inf   # NOT ALLOWED
 ```
