@@ -657,22 +657,19 @@ void Database::create_obj_state(std::vector<std::pair<fqon_t, Location>> *objs_i
 
 			throw TypeError{
 				astmember.value->values[0].get_start_location(),
-				"member type "s
-					+ member_type->str()
-					+ " can't be used with value of type "
-					+ new_value.get_type().str()
-					+ ": invalid operator "
+				"invalid operator "s
 					+ op_to_string(operation)
-					+ " because member type "
+					+ " for member type "
+					+ member_type->str()
 					+ (allowed_ops.size() > 0 ?
-			               " only allows operations:\n'"s
+			               ", which only allows operations '"s
 			                   + util::strjoin(
 								   ", ", allowed_ops, [](const nyan_op &op) {
 									   return op_to_string(op);
 								   })
-			                   + "' " :
-			               " allows no operations ")
-					+ "for value '" + new_value.str() + "'"};
+			                   + "'" :
+			               ", which allows no operations")
+					+ " with value '" + new_value.str() + "' of type " + new_value.get_type().str()};
 		}
 
 		// the divisor is a literal, so this is decided once at load time
